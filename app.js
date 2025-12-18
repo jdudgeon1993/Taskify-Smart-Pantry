@@ -1,4 +1,7 @@
 // Smart Pantry Application v2.0
+// API Configuration
+const API_BASE_URL = 'https://your-render-api.onrender.com'; // UPDATE THIS with your Render URL
+
 // Data Storage
 let ingredients = {
     pantry: [],
@@ -26,9 +29,14 @@ let recipeSearchQuery = '';
 let editingRecipeId = null;
 let editingIngredientData = null;
 
+// Authentication State
+let userToken = null;
+let isSyncing = false;
+
 // Initialize App
 document.addEventListener('DOMContentLoaded', () => {
     loadFromLocalStorage();
+    initAuth();
     initNavigation();
     initIngredients();
     initRecipes();
@@ -897,6 +905,35 @@ function removeMealFromPlan(day, meal) {
 
 // Settings Section
 function initSettings() {
+    // Auth event listeners
+    const registerBtn = document.getElementById('register-btn');
+    const loginBtn = document.getElementById('login-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+    const syncNowBtn = document.getElementById('sync-now-btn');
+    const loginInput = document.getElementById('login-token-input');
+
+    if (registerBtn) registerBtn.addEventListener('click', registerNewUser);
+    if (loginBtn) loginBtn.addEventListener('click', () => {
+        const token = loginInput.value;
+        if (token) {
+            loginWithToken(token);
+        } else {
+            alert('Please enter a token');
+        }
+    });
+    if (logoutBtn) logoutBtn.addEventListener('click', logout);
+    if (syncNowBtn) syncNowBtn.addEventListener('click', syncToServer);
+
+    // Allow Enter key in login input
+    if (loginInput) {
+        loginInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                loginWithToken(loginInput.value);
+            }
+        });
+    }
+
+    // Data management listeners
     document.getElementById('export-data-btn').addEventListener('click', exportData);
     document.getElementById('import-trigger-btn').addEventListener('click', () => {
         document.getElementById('import-data-file').click();
@@ -1043,4 +1080,219 @@ function updateStats() {
         </div>
         ` : ''}
     `;
+}
+
+// ==================== AUTHENTICATION & SYNC ====================
+
+function initAuth() {
+    userToken = localStorage.getItem('smartPantry_token');
+    updateAuthUI();
+
+    if (userToken) {
+        syncFromServer();
+    }
+}
+
+function updateAuthUI() {
+    const loggedOutState = document.getElementById('logged-out-state');
+    const loggedInState = document.getElementById('logged-in-state');
+    const displayToken = document.getElementById('display-token');
+
+    if (userToken) {
+        if (loggedOutState) loggedOutState.style.display = 'none';
+        if (loggedInState) loggedInState.style.display = 'block';
+        if (displayToken) displayToken.textContent = userToken;
+        updateSyncStatus();
+    } else {
+        if (loggedOutState) loggedOutState.style.display = 'block';
+        if (loggedInState) loggedInState.style.display = 'none';
+    }
+}
+
+async function registerNewUser() {
+    try {
+        const response = await fetch(API_BASE_URL + '/api/pantry/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            userToken = data.token;
+            localStorage.setItem('smartPantry_token', userToken);
+            updateAuthUI();
+            await syncToServer();
+            alert('Token Generated: ' + userToken + '\n\nSave this to access your data from any device!');
+        } else {
+            alert('Registration failed. Please try again.');
+        }
+    } catch (error) {
+        console.error('Registration error:', error);
+        alert('Network error. Please check your connection.');
+    }
+}
+
+async function loginWithToken(token) {
+    try {
+        const response = await fetch(API_BASE_URL + '/api/pantry/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: token.trim().toUpperCase() })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            userToken = data.token;
+            localStorage.setItem('smartPantry_token', userToken);
+            await syncFromServer();
+            updateAuthUI();
+            alert('Login successful! Your data has been synced.');
+        } else {
+            alert('Invalid token. Please check and try again.');
+        }
+    } catch (error) {
+        console.error('Login error:', error);
+        alert('Network error. Please check your connection.');
+    }
+}
+
+function logout() {
+    if (confirm('Are you sure you want to logout? Your data will remain saved locally on this device.')) {
+        localStorage.removeItem('smartPantry_token');
+        localStorage.removeItem('smartPantry_lastSync');
+        userToken = null;
+        updateAuthUI();
+        alert('Logged out successfully');
+    }
+}
+
+async function syncToServer() {
+    if (!userToken || isSyncing) return;
+
+    isSyncing = true;
+    updateSyncStatus('Syncing to cloud...');
+
+    try {
+        await fetch(API_BASE_URL + '/api/pantry/ingredients/' + userToken, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ data: ingredients })
+        });
+
+        await fetch(API_BASE_URL + '/api/pantry/recipes/' + userToken, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ data: recipes })
+        });
+
+        await fetch(API_BASE_URL + '/api/pantry/shopping/' + userToken, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ data: shoppingList })
+        });
+
+        await fetch(API_BASE_URL + '/api/pantry/mealplan/' + userToken, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ data: mealPlan })
+        });
+
+        localStorage.setItem('smartPantry_lastSync', new Date().toISOString());
+        updateSyncStatus();
+        console.log('Sync complete');
+    } catch (error) {
+        console.error('Sync error:', error);
+        updateSyncStatus('Sync failed - will retry');
+    } finally {
+        isSyncing = false;
+    }
+}
+
+async function syncFromServer() {
+    if (!userToken || isSyncing) return;
+
+    isSyncing = true;
+    updateSyncStatus('Downloading from cloud...');
+
+    try {
+        const ingResponse = await fetch(API_BASE_URL + '/api/pantry/ingredients/' + userToken);
+        const ingData = await ingResponse.json();
+        if (ingData.success && ingData.data) {
+            ingredients = ingData.data;
+        }
+
+        const recResponse = await fetch(API_BASE_URL + '/api/pantry/recipes/' + userToken);
+        const recData = await recResponse.json();
+        if (recData.success && recData.data) {
+            recipes = recData.data;
+        }
+
+        const shopResponse = await fetch(API_BASE_URL + '/api/pantry/shopping/' + userToken);
+        const shopData = await shopResponse.json();
+        if (shopData.success && shopData.data) {
+            shoppingList = shopData.data;
+        }
+
+        const mealResponse = await fetch(API_BASE_URL + '/api/pantry/mealplan/' + userToken);
+        const mealData = await mealResponse.json();
+        if (mealData.success && mealData.data) {
+            mealPlan = mealData.data;
+        }
+
+        saveToLocalStorage();
+        renderIngredients();
+        renderRecipes();
+        renderShoppingList();
+        renderMealPlan();
+        updateStats();
+
+        localStorage.setItem('smartPantry_lastSync', new Date().toISOString());
+        updateSyncStatus();
+        console.log('Download complete');
+    } catch (error) {
+        console.error('Sync error:', error);
+        updateSyncStatus('Download failed');
+    } finally {
+        isSyncing = false;
+    }
+}
+
+function updateSyncStatus(message) {
+    const syncStatus = document.getElementById('sync-status');
+    if (!syncStatus) return;
+
+    if (message) {
+        syncStatus.textContent = message;
+        syncStatus.style.background = '#fff3cd';
+    } else {
+        const lastSync = localStorage.getItem('smartPantry_lastSync');
+        if (lastSync) {
+            const date = new Date(lastSync);
+            syncStatus.textContent = 'Last synced: ' + date.toLocaleString();
+            syncStatus.style.background = '#f0fff4';
+        } else {
+            syncStatus.textContent = 'Last synced: Never';
+            syncStatus.style.background = '#f8f9fa';
+        }
+    }
+}
+
+function copyToken() {
+    if (userToken) {
+        navigator.clipboard.writeText(userToken);
+        alert('Token copied to clipboard!');
+    }
+}
+
+function saveToLocalStorageAndSync() {
+    saveToLocalStorage();
+
+    if (userToken && !isSyncing) {
+        clearTimeout(window.syncTimeout);
+        window.syncTimeout = setTimeout(() => {
+            syncToServer();
+        }, 2000);
+    }
 }

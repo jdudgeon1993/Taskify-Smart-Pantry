@@ -195,7 +195,58 @@
             <h2>Settings & Data Management</h2>
 
             <div class="settings-card">
-                <h3>Data Backup & Restore</h3>
+                <h3>☁️ Cloud Sync</h3>
+                <p style="color: #6c757d; margin-bottom: 15px;">
+                    Sync your data across all devices with a secure token. Your token works like a password - keep it safe!
+                </p>
+
+                <div id="logged-out-state" style="display: none;">
+                    <button id="register-btn" style="background: #48bb78;">
+                        🎫 Generate New Token
+                    </button>
+                    <div style="margin-top: 20px;">
+                        <p style="color: #6c757d; margin-bottom: 10px;">Already have a token?</p>
+                        <input type="text" id="login-token-input"
+                               placeholder="Enter your token (e.g., KITCH-ABC123)"
+                               style="width: 100%; margin-bottom: 10px; text-transform: uppercase;" />
+                        <button id="login-btn" style="background: #667eea;">
+                            🔐 Login with Token
+                        </button>
+                    </div>
+                </div>
+
+                <div id="logged-in-state" style="display: none;">
+                    <div style="background: #f0fff4; padding: 15px; border-radius: 8px;
+                                border-left: 4px solid #48bb78; margin-bottom: 15px;">
+                        <strong style="display: block; margin-bottom: 8px;">Your Sync Token:</strong>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span id="display-token" style="color: #667eea; font-family: 'Courier New', monospace;
+                                                           font-size: 1.2em; font-weight: 700;"></span>
+                            <button onclick="copyToken()" style="padding: 6px 12px; font-size: 0.85em; background: #667eea;">
+                                📋 Copy
+                            </button>
+                        </div>
+                    </div>
+                    <p style="color: #6c757d; font-size: 0.9em; margin-bottom: 15px;">
+                        💡 Save this token to access your data from any device. Data syncs automatically when online.
+                    </p>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button id="sync-now-btn" style="background: #667eea;">
+                            🔄 Sync Now
+                        </button>
+                        <button id="logout-btn" style="background: #e53e3e;">
+                            🚪 Logout
+                        </button>
+                    </div>
+                    <div id="sync-status" style="margin-top: 10px; padding: 10px; background: #f8f9fa;
+                                                  border-radius: 6px; font-size: 0.9em; color: #6c757d;">
+                        Last synced: Never
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <h3>💾 Data Backup & Restore</h3>
                 <p style="color: #6c757d; margin-bottom: 15px;">Export your data for backup or import from a previous backup.</p>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                     <button id="export-data-btn" style="background: #48bb78;">Export All Data</button>
