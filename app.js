@@ -1,6 +1,6 @@
 // Smart Pantry Application v2.0
 // API Configuration
-const API_BASE_URL = 'https://your-render-api.onrender.com'; // UPDATE THIS with your Render URL
+const API_BASE_URL = 'https://rtd-n-line-api.onrender.com'; // UPDATE THIS with your Render URL
 
 // Data Storage
 let ingredients = {
