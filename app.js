@@ -1,6 +1,6 @@
 // Smart Pantry Application v2.0
 // API Configuration
-const API_BASE_URL = 'https://your-render-api.onrender.com'; // UPDATE THIS with your Render URL
+const API_BASE_URL = 'https://rtd-n-line-api.onrender.com';
 
 // Data Storage
 let ingredients = {
@@ -1217,28 +1217,46 @@ async function syncToServer() {
     updateSyncStatus('Syncing to cloud...');
 
     try {
+        // Ensure data is valid before syncing
+        const safeIngredients = {
+            pantry: Array.isArray(ingredients.pantry) ? ingredients.pantry : [],
+            fridge: Array.isArray(ingredients.fridge) ? ingredients.fridge : [],
+            freezer: Array.isArray(ingredients.freezer) ? ingredients.freezer : []
+        };
+        const safeRecipes = Array.isArray(recipes) ? recipes : [];
+        const safeShoppingList = Array.isArray(shoppingList) ? shoppingList : [];
+        const safeMealPlan = typeof mealPlan === 'object' && mealPlan !== null ? mealPlan : {
+            monday: { breakfast: null, lunch: null, dinner: null },
+            tuesday: { breakfast: null, lunch: null, dinner: null },
+            wednesday: { breakfast: null, lunch: null, dinner: null },
+            thursday: { breakfast: null, lunch: null, dinner: null },
+            friday: { breakfast: null, lunch: null, dinner: null },
+            saturday: { breakfast: null, lunch: null, dinner: null },
+            sunday: { breakfast: null, lunch: null, dinner: null }
+        };
+
         await fetch(API_BASE_URL + '/api/pantry/ingredients/' + userToken, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ data: ingredients })
+            body: JSON.stringify({ data: safeIngredients })
         });
 
         await fetch(API_BASE_URL + '/api/pantry/recipes/' + userToken, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ data: recipes })
+            body: JSON.stringify({ data: safeRecipes })
         });
 
         await fetch(API_BASE_URL + '/api/pantry/shopping/' + userToken, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ data: shoppingList })
+            body: JSON.stringify({ data: safeShoppingList })
         });
 
         await fetch(API_BASE_URL + '/api/pantry/mealplan/' + userToken, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ data: mealPlan })
+            body: JSON.stringify({ data: safeMealPlan })
         });
 
         localStorage.setItem('smartPantry_lastSync', new Date().toISOString());
