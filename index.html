@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Pantry - Your Kitchen Companion</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🍳 Smart Pantry</h1>
+            <p class="subtitle">Manage your kitchen, plan your meals</p>
+        </header>
+
+        <nav class="main-nav">
+            <button class="nav-btn active" data-section="ingredients">Ingredients</button>
+            <button class="nav-btn" data-section="recipes">Recipes</button>
+            <button class="nav-btn" data-section="shopping">Shopping List</button>
+            <button class="nav-btn" data-section="meal-plan">Meal Plan</button>
+        </nav>
+
+        <!-- Ingredients Section -->
+        <section id="ingredients" class="section active">
+            <h2>My Ingredients</h2>
+
+            <div class="location-tabs">
+                <button class="location-btn active" data-location="pantry">Pantry</button>
+                <button class="location-btn" data-location="fridge">Fridge</button>
+                <button class="location-btn" data-location="freezer">Freezer</button>
+            </div>
+
+            <div class="add-ingredient-form">
+                <input type="text" id="ingredient-name" placeholder="Ingredient name" />
+                <input type="number" id="ingredient-quantity" placeholder="Quantity" min="1" value="1" />
+                <input type="text" id="ingredient-unit" placeholder="Unit (e.g., cups, lbs)" />
+                <button id="add-ingredient-btn">Add Ingredient</button>
+            </div>
+
+            <div class="ingredient-lists">
+                <div id="pantry-list" class="ingredient-list active">
+                    <h3>Pantry Items</h3>
+                    <ul id="pantry-items"></ul>
+                </div>
+                <div id="fridge-list" class="ingredient-list">
+                    <h3>Fridge Items</h3>
+                    <ul id="fridge-items"></ul>
+                </div>
+                <div id="freezer-list" class="ingredient-list">
+                    <h3>Freezer Items</h3>
+                    <ul id="freezer-items"></ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recipes Section -->
+        <section id="recipes" class="section">
+            <h2>My Recipes</h2>
+
+            <div class="recipe-controls">
+                <button id="add-recipe-btn">Add New Recipe</button>
+                <div class="recipe-filters">
+                    <button class="filter-btn active" data-filter="all">All Recipes</button>
+                    <button class="filter-btn" data-filter="ready">Ready to Cook</button>
+                    <button class="filter-btn" data-filter="missing">Need Ingredients</button>
+                </div>
+            </div>
+
+            <!-- Add Recipe Form (Initially Hidden) -->
+            <div id="add-recipe-form" class="modal hidden">
+                <div class="modal-content">
+                    <span class="close-modal">&times;</span>
+                    <h3>Add New Recipe</h3>
+                    <input type="text" id="recipe-name" placeholder="Recipe name" />
+                    <textarea id="recipe-instructions" placeholder="Instructions (optional)" rows="4"></textarea>
+
+                    <div class="recipe-ingredients-input">
+                        <h4>Ingredients Required</h4>
+                        <div id="recipe-ingredient-inputs">
+                            <div class="recipe-ingredient-row">
+                                <input type="text" class="recipe-ing-name" placeholder="Ingredient" />
+                                <input type="number" class="recipe-ing-qty" placeholder="Qty" min="0.1" step="0.1" value="1" />
+                                <input type="text" class="recipe-ing-unit" placeholder="Unit" />
+                                <button type="button" class="remove-ing-btn">Remove</button>
+                            </div>
+                        </div>
+                        <button type="button" id="add-recipe-ingredient-btn">+ Add Ingredient</button>
+                    </div>
+
+                    <button id="save-recipe-btn">Save Recipe</button>
+                </div>
+            </div>
+
+            <div id="recipe-list" class="recipe-grid"></div>
+        </section>
+
+        <!-- Shopping List Section -->
+        <section id="shopping" class="section">
+            <h2>Shopping List</h2>
+
+            <div class="shopping-actions">
+                <button id="auto-generate-list-btn">Auto-Generate from Recipes</button>
+                <button id="clear-shopping-list-btn">Clear List</button>
+            </div>
+
+            <div class="add-shopping-item">
+                <input type="text" id="shopping-item-name" placeholder="Item name" />
+                <input type="number" id="shopping-item-qty" placeholder="Qty" min="1" value="1" />
+                <input type="text" id="shopping-item-unit" placeholder="Unit" />
+                <button id="add-shopping-item-btn">Add to List</button>
+            </div>
+
+            <ul id="shopping-list-items"></ul>
+        </section>
+
+        <!-- Meal Plan Section -->
+        <section id="meal-plan" class="section">
+            <h2>Weekly Meal Plan</h2>
+
+            <div id="meal-plan-grid" class="meal-plan-grid">
+                <!-- Days will be generated dynamically -->
+            </div>
+        </section>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
