@@ -20,6 +20,7 @@ let mealPlan = {
 
 let currentLocation = 'pantry';
 let currentRecipeFilter = 'all';
+let editingRecipeId = null;
 
 // Initialize App
 document.addEventListener('DOMContentLoaded', () => {
@@ -116,14 +117,25 @@ function addIngredient() {
         return;
     }
 
-    const ingredient = {
-        id: Date.now(),
-        name,
-        quantity,
-        unit
-    };
+    // Check if ingredient already exists (case-insensitive)
+    const existingIngredient = ingredients[currentLocation].find(
+        ing => ing.name.toLowerCase() === name.toLowerCase() && ing.unit.toLowerCase() === unit.toLowerCase()
+    );
 
-    ingredients[currentLocation].push(ingredient);
+    if (existingIngredient) {
+        // Add to existing quantity
+        existingIngredient.quantity += quantity;
+    } else {
+        // Create new ingredient
+        const ingredient = {
+            id: Date.now(),
+            name,
+            quantity,
+            unit
+        };
+        ingredients[currentLocation].push(ingredient);
+    }
+
     saveToLocalStorage();
     renderIngredients();
     updateRecipeStatus();
@@ -133,6 +145,29 @@ function addIngredient() {
     quantityInput.value = '1';
     unitInput.value = '';
     nameInput.focus();
+}
+
+function editIngredient(location, id) {
+    const ingredient = ingredients[location].find(ing => ing.id === id);
+    if (!ingredient) return;
+
+    const newName = prompt('Edit ingredient name:', ingredient.name);
+    if (newName === null) return; // User cancelled
+
+    const newQuantity = prompt('Edit quantity:', ingredient.quantity);
+    if (newQuantity === null) return; // User cancelled
+
+    const newUnit = prompt('Edit unit:', ingredient.unit);
+    if (newUnit === null) return; // User cancelled
+
+    if (newName.trim() && newQuantity) {
+        ingredient.name = newName.trim();
+        ingredient.quantity = parseFloat(newQuantity) || ingredient.quantity;
+        ingredient.unit = newUnit.trim();
+        saveToLocalStorage();
+        renderIngredients();
+        updateRecipeStatus();
+    }
 }
 
 function deleteIngredient(location, id) {
@@ -158,7 +193,10 @@ function renderIngredients() {
                     <span class="ingredient-name">${item.name}</span>
                     <span class="ingredient-quantity">${item.quantity} ${item.unit}</span>
                 </div>
-                <button class="delete-btn" onclick="deleteIngredient('${location}', ${item.id})">Delete</button>
+                <div style="display: flex; gap: 10px;">
+                    <button style="background: #48bb78;" onclick="editIngredient('${location}', ${item.id})">Edit</button>
+                    <button class="delete-btn" onclick="deleteIngredient('${location}', ${item.id})">Delete</button>
+                </div>
             </li>
         `).join('');
     });
@@ -217,6 +255,7 @@ function addRecipeIngredientRow() {
 }
 
 function clearRecipeForm() {
+    editingRecipeId = null;
     document.getElementById('recipe-name').value = '';
     document.getElementById('recipe-instructions').value = '';
     document.getElementById('recipe-ingredient-inputs').innerHTML = `
@@ -260,25 +299,79 @@ function saveRecipe() {
         return;
     }
 
-    const recipe = {
-        id: Date.now(),
-        name,
-        instructions,
-        ingredients: recipeIngredients
-    };
+    if (editingRecipeId) {
+        // Update existing recipe
+        const recipe = recipes.find(r => r.id === editingRecipeId);
+        if (recipe) {
+            recipe.name = name;
+            recipe.instructions = instructions;
+            recipe.ingredients = recipeIngredients;
+        }
+        editingRecipeId = null;
+    } else {
+        // Create new recipe
+        const recipe = {
+            id: Date.now(),
+            name,
+            instructions,
+            ingredients: recipeIngredients
+        };
+        recipes.push(recipe);
+    }
 
-    recipes.push(recipe);
     saveToLocalStorage();
     renderRecipes();
+    renderMealPlan(); // Update meal plan in case recipe names changed
 
     document.getElementById('add-recipe-form').classList.add('hidden');
+}
+
+function editRecipe(id) {
+    const recipe = recipes.find(r => r.id === id);
+    if (!recipe) return;
+
+    editingRecipeId = id;
+
+    // Populate the form with recipe data
+    document.getElementById('recipe-name').value = recipe.name;
+    document.getElementById('recipe-instructions').value = recipe.instructions || '';
+
+    // Clear and populate ingredient rows
+    const container = document.getElementById('recipe-ingredient-inputs');
+    container.innerHTML = '';
+
+    recipe.ingredients.forEach(ing => {
+        const row = document.createElement('div');
+        row.className = 'recipe-ingredient-row';
+        row.innerHTML = `
+            <input type="text" class="recipe-ing-name" placeholder="Ingredient" value="${ing.name}" />
+            <input type="number" class="recipe-ing-qty" placeholder="Qty" min="0.1" step="0.1" value="${ing.quantity}" />
+            <input type="text" class="recipe-ing-unit" placeholder="Unit" value="${ing.unit}" />
+            <button type="button" class="remove-ing-btn" onclick="this.parentElement.remove()">Remove</button>
+        `;
+        container.appendChild(row);
+    });
+
+    // Show the modal
+    document.getElementById('add-recipe-form').classList.remove('hidden');
 }
 
 function deleteRecipe(id) {
     if (confirm('Are you sure you want to delete this recipe?')) {
         recipes = recipes.filter(recipe => recipe.id !== id);
+
+        // Remove recipe from meal plan
+        Object.keys(mealPlan).forEach(day => {
+            Object.keys(mealPlan[day]).forEach(meal => {
+                if (mealPlan[day][meal] === id) {
+                    mealPlan[day][meal] = null;
+                }
+            });
+        });
+
         saveToLocalStorage();
         renderRecipes();
+        renderMealPlan();
     }
 }
 
@@ -365,6 +458,7 @@ function renderRecipes() {
                 ${recipe.instructions ? `<p style="margin-top: 10px; font-size: 0.9em; color: #4a5568;"><strong>Instructions:</strong> ${recipe.instructions}</p>` : ''}
 
                 <div class="recipe-actions">
+                    <button style="background: #48bb78;" onclick="editRecipe(${recipe.id})">Edit</button>
                     <button class="delete-btn" onclick="deleteRecipe(${recipe.id})">Delete</button>
                 </div>
             </div>
@@ -511,24 +605,36 @@ function renderMealPlan() {
     const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
     const meals = ['breakfast', 'lunch', 'dinner'];
 
+    if (recipes.length === 0) {
+        mealPlanGrid.innerHTML = '<div class="empty-state"><p>No recipes available. Add some recipes first to create your meal plan!</p></div>';
+        return;
+    }
+
     mealPlanGrid.innerHTML = days.map(day => `
         <div class="meal-day">
             <h3>${day.charAt(0).toUpperCase() + day.slice(1)}</h3>
             <div class="meal-slots">
                 ${meals.map(meal => {
                     const selectedRecipe = mealPlan[day][meal];
+                    const selectedRecipeExists = recipes.find(r => r.id === selectedRecipe);
+
+                    // If the selected recipe was deleted, clear it
+                    if (selectedRecipe && !selectedRecipeExists) {
+                        mealPlan[day][meal] = null;
+                    }
+
                     const recipeOptions = recipes.map(recipe =>
                         `<option value="${recipe.id}" ${selectedRecipe === recipe.id ? 'selected' : ''}>${recipe.name}</option>`
                     ).join('');
 
                     return `
-                        <div class="meal-slot ${selectedRecipe ? 'filled' : ''}">
+                        <div class="meal-slot ${selectedRecipe && selectedRecipeExists ? 'filled' : ''}">
                             <h4>${meal.charAt(0).toUpperCase() + meal.slice(1)}</h4>
                             <select onchange="updateMealPlan('${day}', '${meal}', this.value)">
                                 <option value="">-- Select Recipe --</option>
                                 ${recipeOptions}
                             </select>
-                            ${selectedRecipe ? `<button class="remove-meal-btn" onclick="removeMealFromPlan('${day}', '${meal}')">Remove</button>` : ''}
+                            ${selectedRecipe && selectedRecipeExists ? `<button class="remove-meal-btn" onclick="removeMealFromPlan('${day}', '${meal}')">Remove</button>` : ''}
                         </div>
                     `;
                 }).join('')}
