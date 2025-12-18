@@ -672,3 +672,191 @@ button:active {
         width: 100%;
     }
 }
+
+/* Recipe Search */
+.recipe-search-container {
+    margin-bottom: 20px;
+}
+
+#recipe-search {
+    width: 100%;
+    padding: 15px 20px;
+    font-size: 1.1em;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    transition: border-color 0.3s;
+}
+
+#recipe-search:focus {
+    border-color: #667eea;
+    outline: none;
+}
+
+/* Category Filters */
+.category-filter-container,
+.shopping-category-filter {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.category-filter-btn,
+.shop-cat-btn {
+    padding: 8px 16px;
+    background: white;
+    color: #667eea;
+    border: 2px solid #667eea;
+    border-radius: 20px;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.category-filter-btn:hover,
+.shop-cat-btn:hover {
+    background: #667eea;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.category-filter-btn.active,
+.shop-cat-btn.active {
+    background: #667eea;
+    color: white;
+}
+
+/* Recipe Card Enhancements */
+.recipe-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.recipe-category-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    background: #9f7aea;
+    color: white;
+    border-radius: 12px;
+    font-size: 0.8em;
+    margin-bottom: 10px;
+    text-transform: capitalize;
+}
+
+.recipe-servings {
+    color: #6c757d;
+    font-size: 0.9em;
+    margin-bottom: 10px;
+}
+
+.serving-adjuster {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 0;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.serving-adjuster button {
+    padding: 5px 12px;
+    font-size: 0.9em;
+}
+
+/* Ingredient Expiration Warnings */
+.ingredient-expiring-soon {
+    background: #fff3cd !important;
+    border-left: 4px solid #ffc107 !important;
+}
+
+.ingredient-expired {
+    background: #f8d7da !important;
+    border-left: 4px solid #dc3545 !important;
+}
+
+.expiration-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    font-weight: 600;
+    margin-left: 8px;
+}
+
+.expiring-soon-badge {
+    background: #ffc107;
+    color: #000;
+}
+
+.expired-badge {
+    background: #dc3545;
+    color: white;
+}
+
+/* Shopping List by Category */
+.shopping-category-section {
+    margin-bottom: 25px;
+}
+
+.shopping-category-section h4 {
+    color: #667eea;
+    font-size: 1.1em;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 2px solid #667eea;
+}
+
+/* Settings Section */
+.settings-card {
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+.settings-card h3 {
+    color: #2d3748;
+    margin-bottom: 15px;
+}
+
+.stat-item {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 2em;
+    font-weight: 700;
+    color: #667eea;
+    display: block;
+}
+
+.stat-label {
+    color: #6c757d;
+    font-size: 0.9em;
+    margin-top: 5px;
+}
+
+/* Responsive Updates */
+@media (max-width: 768px) {
+    .recipe-search-container input {
+        font-size: 1em;
+    }
+    
+    .category-filter-container,
+    .shopping-category-filter {
+        justify-content: center;
+    }
+    
+    .category-filter-btn,
+    .shop-cat-btn {
+        font-size: 0.85em;
+        padding: 6px 12px;
+    }
+}
