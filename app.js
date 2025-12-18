@@ -59,10 +59,52 @@ function loadFromLocalStorage() {
     const savedShopping = localStorage.getItem('smartPantry_shopping');
     const savedMealPlan = localStorage.getItem('smartPantry_mealPlan');
 
-    if (savedIngredients) ingredients = JSON.parse(savedIngredients);
-    if (savedRecipes) recipes = JSON.parse(savedRecipes);
-    if (savedShopping) shoppingList = JSON.parse(savedShopping);
-    if (savedMealPlan) mealPlan = JSON.parse(savedMealPlan);
+    if (savedIngredients) {
+        try {
+            ingredients = JSON.parse(savedIngredients);
+        } catch (e) {
+            console.error('Failed to parse ingredients:', e);
+            ingredients = { pantry: [], fridge: [], freezer: [] };
+        }
+    }
+
+    if (savedRecipes) {
+        try {
+            const parsed = JSON.parse(savedRecipes);
+            // CRITICAL: Ensure recipes is always an array
+            recipes = Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+            console.error('Failed to parse recipes:', e);
+            recipes = [];
+        }
+    }
+
+    if (savedShopping) {
+        try {
+            const parsed = JSON.parse(savedShopping);
+            shoppingList = Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+            console.error('Failed to parse shopping list:', e);
+            shoppingList = [];
+        }
+    }
+
+    if (savedMealPlan) {
+        try {
+            mealPlan = JSON.parse(savedMealPlan);
+        } catch (e) {
+            console.error('Failed to parse meal plan:', e);
+            mealPlan = {
+                monday: { breakfast: null, lunch: null, dinner: null },
+                tuesday: { breakfast: null, lunch: null, dinner: null },
+                wednesday: { breakfast: null, lunch: null, dinner: null },
+                thursday: { breakfast: null, lunch: null, dinner: null },
+                friday: { breakfast: null, lunch: null, dinner: null },
+                saturday: { breakfast: null, lunch: null, dinner: null },
+                sunday: { breakfast: null, lunch: null, dinner: null }
+            };
+        }
+    }
 }
 
 // Navigation
@@ -1220,19 +1262,24 @@ async function syncFromServer() {
         const ingResponse = await fetch(API_BASE_URL + '/api/pantry/ingredients/' + userToken);
         const ingData = await ingResponse.json();
         if (ingData.success && ingData.data) {
-            ingredients = ingData.data;
+            // Ensure ingredients has correct structure
+            if (ingData.data.pantry && ingData.data.fridge && ingData.data.freezer) {
+                ingredients = ingData.data;
+            }
         }
 
         const recResponse = await fetch(API_BASE_URL + '/api/pantry/recipes/' + userToken);
         const recData = await recResponse.json();
         if (recData.success && recData.data) {
-            recipes = recData.data;
+            // CRITICAL: Ensure recipes is always an array
+            recipes = Array.isArray(recData.data) ? recData.data : [];
         }
 
         const shopResponse = await fetch(API_BASE_URL + '/api/pantry/shopping/' + userToken);
         const shopData = await shopResponse.json();
         if (shopData.success && shopData.data) {
-            shoppingList = shopData.data;
+            // Ensure shopping list is an array
+            shoppingList = Array.isArray(shopData.data) ? shopData.data : [];
         }
 
         const mealResponse = await fetch(API_BASE_URL + '/api/pantry/mealplan/' + userToken);
