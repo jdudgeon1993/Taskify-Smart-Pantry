@@ -1,6 +1,6 @@
 // Smart Pantry Application v2.0
-// API Configuration
-const API_BASE_URL = 'https://rtd-n-line-api.onrender.com';
+// API Configuration (DISABLED - using localStorage only)
+// const API_BASE_URL = 'https://rtd-n-line-api.onrender.com';
 
 // Data Storage
 let ingredients = {
@@ -947,35 +947,14 @@ function removeMealFromPlan(day, meal) {
 
 // Settings Section
 function initSettings() {
-    // Auth event listeners
-    const registerBtn = document.getElementById('register-btn');
-    const loginBtn = document.getElementById('login-btn');
-    const logoutBtn = document.getElementById('logout-btn');
-    const syncNowBtn = document.getElementById('sync-now-btn');
-    const loginInput = document.getElementById('login-token-input');
-
-    if (registerBtn) registerBtn.addEventListener('click', registerNewUser);
-    if (loginBtn) loginBtn.addEventListener('click', () => {
-        const token = loginInput.value;
-        if (token) {
-            loginWithToken(token);
-        } else {
-            alert('Please enter a token');
-        }
-    });
-    if (logoutBtn) logoutBtn.addEventListener('click', logout);
-    if (syncNowBtn) syncNowBtn.addEventListener('click', syncToServer);
-
-    // Allow Enter key in login input
-    if (loginInput) {
-        loginInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                loginWithToken(loginInput.value);
-            }
-        });
+    // CLOUD SYNC DISABLED - Using localStorage only
+    // Hiding cloud sync UI
+    const cloudSyncCard = document.querySelector('.settings-card h3');
+    if (cloudSyncCard && cloudSyncCard.textContent.includes('Cloud Sync')) {
+        cloudSyncCard.parentElement.style.display = 'none';
     }
 
-    // Data management listeners
+    // Data management listeners (Export/Import still work!)
     document.getElementById('export-data-btn').addEventListener('click', exportData);
     document.getElementById('import-trigger-btn').addEventListener('click', () => {
         document.getElementById('import-data-file').click();
