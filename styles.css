@@ -1857,3 +1857,65 @@ textarea:focus-visible {
         min-width: 0;
     }
 }
+
+/* Two-Person Meal Planning Styles */
+.person-meal {
+    margin: 10px 0;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.person-meal label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.9em;
+}
+
+.recipe-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    margin: 4px;
+    font-size: 0.85em;
+    font-weight: 500;
+}
+
+.recipe-tag.joint-tag {
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+}
+
+.remove-tag-btn {
+    background: rgba(255, 255, 255, 0.3);
+    border: none;
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    line-height: 1;
+    padding: 0;
+    transition: all 0.2s;
+}
+
+.remove-tag-btn:hover {
+    background: rgba(255, 255, 255, 0.5);
+    transform: scale(1.1);
+}
+
+.person-meal select {
+    width: 100%;
+    padding: 8px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    background: white;
+    font-size: 0.9em;
+}
