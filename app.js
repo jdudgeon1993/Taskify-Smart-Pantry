@@ -1722,7 +1722,8 @@ async function syncToServer() {
 
         // Store all pantry data as a single "task" object (server expects tasks array)
         const pantryData = {
-            id: 1, // Use a fixed ID since we only have one data object
+            id: Date.now(), // Use timestamp for unique ID
+            type: 'smartpantry', // Tag to identify our data
             ingredients: safeIngredients,
             recipes: safeRecipes,
             shoppingList: safeShoppingList,
@@ -1774,8 +1775,8 @@ async function syncFromServer() {
         if (result.success && result.tasks && Array.isArray(result.tasks)) {
             console.log('📦 Found tasks:', result.tasks.length);
 
-            // Extract our pantry data from the tasks array (we stored it as task with id: 1)
-            const pantryTask = result.tasks.find(task => task.id === 1);
+            // Extract our pantry data from the tasks array (find by type tag)
+            const pantryTask = result.tasks.find(task => task.type === 'smartpantry');
             console.log('🔍 Pantry task:', pantryTask);
             const pantryData = pantryTask || null;
 
@@ -1806,7 +1807,7 @@ async function syncFromServer() {
                     console.log('  ✓ Meal plan restored');
                 }
             } else {
-                console.warn('❌ No pantry task found with id === 1');
+                console.warn('❌ No pantry task found with type === smartpantry');
             }
 
             saveToLocalStorage();
