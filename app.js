@@ -269,7 +269,31 @@ function getExpirationStatus(expiration) {
     return 'fresh';
 }
 
+// Calculate ingredients reserved by meal plan
+function getReservedQuantities() {
+    const reserved = {};
+
+    Object.keys(mealPlan).forEach(day => {
+        Object.keys(mealPlan[day]).forEach(meal => {
+            const recipeId = mealPlan[day][meal];
+            if (recipeId) {
+                const recipe = recipes.find(r => r.id === recipeId);
+                if (recipe && recipe.ingredients) {
+                    recipe.ingredients.forEach(ing => {
+                        const key = `${ing.name.toLowerCase()}|${ing.unit.toLowerCase()}`;
+                        reserved[key] = (reserved[key] || 0) + ing.quantity;
+                    });
+                }
+            }
+        });
+    });
+
+    return reserved;
+}
+
 function renderIngredients() {
+    const reservedQty = getReservedQuantities();
+
     ['pantry', 'fridge', 'freezer'].forEach(location => {
         const listElement = document.getElementById(`${location}-items`);
         const items = ingredients[location];
@@ -292,11 +316,22 @@ function renderIngredients() {
                 expBadge = '<span class="expiration-badge expiring-soon-badge">EXPIRING SOON</span>';
             }
 
+            // Calculate available quantity after meal plan
+            const key = `${item.name.toLowerCase()}|${item.unit.toLowerCase()}`;
+            const reserved = reservedQty[key] || 0;
+            const available = item.quantity - reserved;
+
+            let quantityDisplay = `${item.quantity} ${item.unit}`;
+            if (reserved > 0) {
+                const availColor = available <= 0 ? '#e53e3e' : (available < item.quantity * 0.3 ? '#ed8936' : '#48bb78');
+                quantityDisplay += ` <span style="color: ${availColor}; font-size: 0.85em;">(${available} available)</span>`;
+            }
+
             return `
             <li class="${classList}">
                 <div class="ingredient-info">
                     <span class="ingredient-name">${item.name}</span>
-                    <span class="ingredient-quantity">${item.quantity} ${item.unit}${expBadge}</span>
+                    <span class="ingredient-quantity">${quantityDisplay}${expBadge}</span>
                 </div>
                 <div style="display: flex; gap: 10px;">
                     <button style="background: #48bb78;" onclick="editIngredient('${location}', ${item.id})">Edit</button>
@@ -517,15 +552,37 @@ function checkRecipeStatus(recipe) {
     const have = [];
 
     recipe.ingredients.forEach(reqIng => {
+        // Find ingredient with matching name and unit
         const found = allIngredients.find(ing =>
             ing.name.toLowerCase() === reqIng.name.toLowerCase() &&
-            ing.quantity >= reqIng.quantity
+            ing.unit.toLowerCase() === reqIng.unit.toLowerCase()
         );
 
-        if (found) {
+        if (found && found.quantity >= reqIng.quantity) {
+            // Have enough - fully satisfied
             have.push(reqIng);
         } else {
-            missing.push(reqIng);
+            // Calculate how much more we need
+            const haveQty = found ? found.quantity : 0;
+            const needQty = reqIng.quantity - haveQty;
+
+            if (needQty > 0) {
+                missing.push({
+                    name: reqIng.name,
+                    quantity: needQty,  // ✅ Only the shortage amount!
+                    unit: reqIng.unit
+                });
+            }
+
+            // If we have some but not enough, still mark as "have partial"
+            if (haveQty > 0) {
+                have.push({
+                    name: reqIng.name,
+                    quantity: haveQty,
+                    unit: reqIng.unit,
+                    partial: true
+                });
+            }
         }
     });
 
