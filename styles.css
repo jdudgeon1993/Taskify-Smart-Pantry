@@ -442,10 +442,9 @@ button:active {
 }
 
 .recipe-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 25px;
+    display: block;
     margin-top: 25px;
+    width: 100%;
 }
 
 .recipe-card {
@@ -1519,6 +1518,13 @@ button:active {
 /* Enhanced Section Spacing */
 .section {
     padding: 40px;
+}
+
+/* Reduce padding for recipes section on desktop to maximize column width */
+@media (min-width: 1025px) {
+    #recipes.section {
+        padding: 20px 30px;
+    }
 }
 
 /* Cleaner Navigation */
