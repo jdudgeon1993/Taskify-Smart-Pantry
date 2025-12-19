@@ -676,22 +676,29 @@ button:active {
     display: flex;
     gap: 10px;
     margin-bottom: 10px;
+    align-items: center;
 }
 
 .recipe-ingredient-row input {
     margin-bottom: 0;
+    padding: 12px;
+    font-size: 16px;
+    min-height: 48px;
 }
 
 .recipe-ing-name {
     flex: 2;
+    min-width: 150px;
 }
 
 .recipe-ing-qty {
     flex: 0.5;
+    min-width: 70px;
 }
 
 .recipe-ing-unit {
     flex: 0.8;
+    min-width: 100px;
 }
 
 .remove-ing-btn {
@@ -771,14 +778,6 @@ button:active {
     font-weight: 700;
     padding-bottom: 12px;
     border-bottom: 3px solid #667eea;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.meal-day h3::before {
-    content: "📅";
-    font-size: 1.2em;
 }
 
 .meal-slots {
@@ -1860,28 +1859,31 @@ textarea:focus-visible {
 
 /* Two-Person Meal Planning Styles */
 .person-meal {
-    margin: 10px 0;
-    padding: 10px;
+    margin: 8px 0;
+    padding: 8px;
     background: #f8f9fa;
-    border-radius: 8px;
+    border-radius: 6px;
+    border-left: 3px solid #e9ecef;
 }
 
 .person-meal label {
     display: block;
-    margin-bottom: 8px;
-    font-size: 0.9em;
+    margin-bottom: 6px;
+    font-size: 0.75em;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .recipe-tag {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    padding: 6px 12px;
-    border-radius: 20px;
-    margin: 4px;
-    font-size: 0.85em;
+    padding: 4px 10px;
+    border-radius: 16px;
+    margin: 3px;
+    font-size: 0.8em;
     font-weight: 500;
 }
 
