@@ -102,7 +102,8 @@
                     <h3>Add New Ingredient</h3>
                     <div class="form-group">
                         <label>Ingredient Name</label>
-                        <input type="text" id="ingredient-name" placeholder="e.g., Flour, Milk, Tomatoes" />
+                        <input type="text" id="ingredient-name" placeholder="e.g., Flour, Milk, Tomatoes" list="ingredient-names-list" />
+                        <datalist id="ingredient-names-list"></datalist>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
@@ -111,7 +112,8 @@
                         </div>
                         <div class="form-group">
                             <label>Unit</label>
-                            <input type="text" id="ingredient-unit" placeholder="cups, lbs, etc." />
+                            <input type="text" id="ingredient-unit" placeholder="cups, lbs, etc." list="units-list" />
+                            <datalist id="units-list"></datalist>
                         </div>
                         <div class="form-group">
                             <label>Expiration (optional)</label>

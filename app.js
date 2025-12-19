@@ -67,9 +67,81 @@ let editingIngredientData = null;
 let userToken = null;
 let isSyncing = false;
 
+// Helper function to get all unique units from ingredients and recipes
+function getAllUnits() {
+    const units = new Set();
+
+    // Get units from ingredients
+    ['pantry', 'fridge', 'freezer'].forEach(location => {
+        ingredients[location].forEach(item => {
+            if (item.unit && item.unit.trim()) {
+                units.add(item.unit.trim().toLowerCase());
+            }
+        });
+    });
+
+    // Get units from recipes
+    recipes.forEach(recipe => {
+        if (recipe.ingredients) {
+            recipe.ingredients.forEach(ing => {
+                if (ing.unit && ing.unit.trim()) {
+                    units.add(ing.unit.trim().toLowerCase());
+                }
+            });
+        }
+    });
+
+    return Array.from(units).sort();
+}
+
+// Helper function to get all unique ingredient names
+function getAllIngredientNames() {
+    const names = new Set();
+
+    // Get from ingredients
+    ['pantry', 'fridge', 'freezer'].forEach(location => {
+        ingredients[location].forEach(item => {
+            if (item.name && item.name.trim()) {
+                names.add(item.name.trim().toLowerCase());
+            }
+        });
+    });
+
+    // Get from recipes
+    recipes.forEach(recipe => {
+        if (recipe.ingredients) {
+            recipe.ingredients.forEach(ing => {
+                if (ing.name && ing.name.trim()) {
+                    names.add(ing.name.trim().toLowerCase());
+                }
+            });
+        }
+    });
+
+    return Array.from(names).sort();
+}
+
+// Update datalists for autocomplete
+function updateDataLists() {
+    // Update units datalist
+    const unitsList = document.getElementById('units-list');
+    if (unitsList) {
+        const units = getAllUnits();
+        unitsList.innerHTML = units.map(unit => `<option value="${unit}">`).join('');
+    }
+
+    // Update ingredient names datalist
+    const namesList = document.getElementById('ingredient-names-list');
+    if (namesList) {
+        const names = getAllIngredientNames();
+        namesList.innerHTML = names.map(name => `<option value="${name}">`).join('');
+    }
+}
+
 // Initialize App
 document.addEventListener('DOMContentLoaded', () => {
     loadFromLocalStorage();
+    updateDataLists(); // Populate autocomplete lists
     initAuth();
     initNavigation();
     initDashboard();
@@ -269,6 +341,7 @@ function initIngredients() {
         toggleAddIngredientBtn.addEventListener('click', () => {
             formContainer.classList.toggle('hidden');
             if (!formContainer.classList.contains('hidden')) {
+                updateDataLists(); // Refresh autocomplete options
                 document.getElementById('ingredient-name').focus();
             }
         });
@@ -362,6 +435,7 @@ function addIngredient() {
     renderIngredients();
     updateRecipeStatus();
     updateDashboardStats();
+    updateDataLists(); // Update autocomplete options
 
     // Hide form and clear inputs
     const formContainer = document.getElementById('add-ingredient-form-container');
@@ -620,12 +694,13 @@ function addRecipeIngredientRow() {
     const row = document.createElement('div');
     row.className = 'recipe-ingredient-row';
     row.innerHTML = `
-        <input type="text" class="recipe-ing-name" placeholder="Ingredient" />
+        <input type="text" class="recipe-ing-name" placeholder="Ingredient" list="ingredient-names-list" />
         <input type="number" class="recipe-ing-qty" placeholder="Qty" min="0.1" step="0.1" value="1" />
-        <input type="text" class="recipe-ing-unit" placeholder="Unit" />
+        <input type="text" class="recipe-ing-unit" placeholder="Unit" list="units-list" />
         <button type="button" class="remove-ing-btn" onclick="this.parentElement.remove()">Remove</button>
     `;
     container.appendChild(row);
+    updateDataLists(); // Refresh autocomplete options when adding new row
 }
 
 function clearRecipeForm() {
@@ -637,12 +712,13 @@ function clearRecipeForm() {
     document.getElementById('recipe-instructions').value = '';
     document.getElementById('recipe-ingredient-inputs').innerHTML = `
         <div class="recipe-ingredient-row">
-            <input type="text" class="recipe-ing-name" placeholder="Ingredient" />
+            <input type="text" class="recipe-ing-name" placeholder="Ingredient" list="ingredient-names-list" />
             <input type="number" class="recipe-ing-qty" placeholder="Qty" min="0.1" step="0.1" value="1" />
-            <input type="text" class="recipe-ing-unit" placeholder="Unit" />
+            <input type="text" class="recipe-ing-unit" placeholder="Unit" list="units-list" />
             <button type="button" class="remove-ing-btn" onclick="this.parentElement.remove()">Remove</button>
         </div>
     `;
+    updateDataLists(); // Refresh autocomplete options
 }
 
 function saveRecipe() {
@@ -707,6 +783,7 @@ function saveRecipe() {
     renderRecipes();
     renderMealPlan();
     updateDashboardStats();
+    updateDataLists(); // Update autocomplete options
 
     document.getElementById('add-recipe-form').classList.add('hidden');
 
@@ -736,14 +813,15 @@ function editRecipe(id) {
         const row = document.createElement('div');
         row.className = 'recipe-ingredient-row';
         row.innerHTML = `
-            <input type="text" class="recipe-ing-name" placeholder="Ingredient" value="${ing.name}" />
+            <input type="text" class="recipe-ing-name" placeholder="Ingredient" value="${ing.name}" list="ingredient-names-list" />
             <input type="number" class="recipe-ing-qty" placeholder="Qty" min="0.1" step="0.1" value="${ing.quantity}" />
-            <input type="text" class="recipe-ing-unit" placeholder="Unit" value="${ing.unit}" />
+            <input type="text" class="recipe-ing-unit" placeholder="Unit" value="${ing.unit}" list="units-list" />
             <button type="button" class="remove-ing-btn" onclick="this.parentElement.remove()">Remove</button>
         `;
         container.appendChild(row);
     });
 
+    updateDataLists(); // Refresh autocomplete options
     document.getElementById('add-recipe-form').classList.remove('hidden');
 }
 
