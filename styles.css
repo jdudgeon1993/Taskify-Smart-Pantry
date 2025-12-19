@@ -1595,3 +1595,265 @@ button:active {
         align-items: center;
     }
 }
+
+/* ========================================
+   ENHANCED FEATURES
+   ======================================== */
+
+/* Toast Notifications */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 400px;
+}
+
+.toast {
+    background: white;
+    padding: 16px 20px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-left: 4px solid #667eea;
+    animation: slideIn 0.3s ease-out;
+    min-width: 300px;
+}
+
+.toast.success {
+    border-left-color: #48bb78;
+}
+
+.toast.error {
+    border-left-color: #e53e3e;
+}
+
+.toast.warning {
+    border-left-color: #ed8936;
+}
+
+.toast-icon {
+    font-size: 1.5em;
+    flex-shrink: 0;
+}
+
+.toast-content {
+    flex: 1;
+}
+
+.toast-title {
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 2px;
+}
+
+.toast-message {
+    font-size: 0.9em;
+    color: #6c757d;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 4px;
+    font-size: 1.2em;
+    transition: color 0.2s;
+}
+
+.toast-close:hover {
+    color: #2d3748;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+}
+
+.toast.removing {
+    animation: slideOut 0.3s ease-in forwards;
+}
+
+/* Enhanced Dashboard Stats */
+.dashboard-alert {
+    background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 4px 15px rgba(237, 137, 54, 0.3);
+}
+
+.dashboard-alert-icon {
+    font-size: 2em;
+}
+
+.dashboard-alert-content h3 {
+    margin: 0 0 5px 0;
+    font-size: 1.1em;
+}
+
+.dashboard-alert-content p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 0.95em;
+}
+
+/* Search/Filter for Ingredients */
+.ingredient-search-bar {
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.ingredient-search-bar input {
+    width: 100%;
+    padding: 14px 20px 14px 45px;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    font-size: 1em;
+    transition: all 0.3s;
+}
+
+.ingredient-search-bar input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.ingredient-search-bar::before {
+    content: "🔍";
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.2em;
+}
+
+/* Quick Quantity Adjustment */
+.quantity-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.quantity-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+    background: white;
+    color: #667eea;
+    font-size: 1.2em;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.quantity-btn:hover {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+    transform: scale(1.1);
+}
+
+/* Loading State */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Enhanced Empty States */
+.empty-state-action {
+    margin-top: 20px;
+}
+
+.empty-state-action button {
+    background: #667eea;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.empty-state-action button:hover {
+    background: #5568d3;
+    transform: translateY(-2px);
+}
+
+/* Smooth Transitions */
+* {
+    transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+}
+
+button, .dashboard-card, .recipe-card, .ingredient-list li,
+.meal-day, .location-btn, .nav-btn {
+    transition: all 0.3s ease;
+}
+
+/* Accessibility Improvements */
+*:focus-visible {
+    outline: 3px solid #667eea;
+    outline-offset: 2px;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 3px solid #667eea;
+    outline-offset: 2px;
+}
+
+/* Mobile Toast Adjustments */
+@media (max-width: 768px) {
+    .toast-container {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+
+    .toast {
+        min-width: 0;
+    }
+}

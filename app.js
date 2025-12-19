@@ -1,6 +1,39 @@
-// Smart Pantry Application v2.0
+// Smart Pantry Application v2.5 - Enhanced Edition
 // API Configuration (DISABLED - using localStorage only)
 // const API_BASE_URL = 'https://rtd-n-line-api.onrender.com';
+
+// ========================================
+// TOAST NOTIFICATION SYSTEM
+// ========================================
+function showToast(title, message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+
+    const icons = {
+        success: '✅',
+        error: '❌',
+        warning: '⚠️',
+        info: 'ℹ️'
+    };
+
+    toast.innerHTML = `
+        <div class="toast-icon">${icons[type]}</div>
+        <div class="toast-content">
+            <div class="toast-title">${title}</div>
+            ${message ? `<div class="toast-message">${message}</div>` : ''}
+        </div>
+        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+    `;
+
+    container.appendChild(toast);
+
+    // Auto remove after 4 seconds
+    setTimeout(() => {
+        toast.classList.add('removing');
+        setTimeout(() => toast.remove(), 300);
+    }, 4000);
+}
 
 // Data Storage
 let ingredients = {
@@ -26,6 +59,7 @@ let currentRecipeFilter = 'all';
 let currentRecipeCategory = 'all';
 let currentShoppingCategory = 'all';
 let recipeSearchQuery = '';
+let ingredientSearchQuery = '';
 let editingRecipeId = null;
 let editingIngredientData = null;
 

@@ -28,6 +28,15 @@
                 <p class="dashboard-subtitle">Your smart cooking companion</p>
             </div>
 
+            <!-- Expiring Items Alert -->
+            <div id="expiring-alert" class="dashboard-alert" style="display: none;">
+                <div class="dashboard-alert-icon">⚠️</div>
+                <div class="dashboard-alert-content">
+                    <h3>Items Expiring Soon!</h3>
+                    <p id="expiring-alert-text"></p>
+                </div>
+            </div>
+
             <div class="dashboard-grid">
                 <div class="dashboard-card" data-navigate="ingredients">
                     <div class="card-icon">🥫</div>
@@ -113,6 +122,10 @@
                         <button id="cancel-add-ingredient" class="secondary-btn">Cancel</button>
                     </div>
                 </div>
+            </div>
+
+            <div class="ingredient-search-bar">
+                <input type="text" id="ingredient-search" placeholder="Search ingredients..." />
             </div>
 
             <div class="location-tabs">
@@ -408,6 +421,9 @@
             </div>
         </section>
     </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
 
     <script src="app.js"></script>
 </body>
