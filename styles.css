@@ -13,12 +13,19 @@ body {
 }
 
 .container {
-    max-width: 1200px;
+    max-width: 95%;
+    width: 100%;
     margin: 0 auto;
     background: white;
     border-radius: 20px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     overflow: hidden;
+}
+
+@media (min-width: 1920px) {
+    .container {
+        max-width: 1800px;
+    }
 }
 
 header {
@@ -1924,14 +1931,16 @@ textarea:focus-visible {
 
 /* Recipe Sections 3-Column Layout */
 .recipe-sections-container {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 20px;
     margin-top: 20px;
+    width: 100%;
 }
 
 .recipe-section {
-    flex: 1;
     min-width: 0;
+    width: 100%;
 }
 
 .section-header-card {
@@ -1950,7 +1959,7 @@ textarea:focus-visible {
 /* Mobile: Stack sections with Cook Soon first */
 @media (max-width: 1024px) {
     .recipe-sections-container {
-        flex-direction: column;
+        grid-template-columns: 1fr;
     }
 
     /* Reorder for mobile: Cook Soon, Ready, Need Ingredients */
@@ -1962,24 +1971,6 @@ textarea:focus-visible {
         order: 2;
     }
 
-    .need-ingredients-section {
-        order: 3;
-    }
-}
-
-/* Desktop: Side-by-side with Cook Soon in center */
-@media (min-width: 1025px) {
-    /* Ready on left */
-    .ready-section {
-        order: 1;
-    }
-
-    /* Cook Soon in center (priority position) */
-    .cook-soon-section {
-        order: 2;
-    }
-
-    /* Need Ingredients on right */
     .need-ingredients-section {
         order: 3;
     }
