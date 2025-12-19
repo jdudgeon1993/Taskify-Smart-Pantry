@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadFromLocalStorage();
     initAuth();
     initNavigation();
+    initDashboard();
     initIngredients();
     initRecipes();
     initShopping();
@@ -129,10 +130,66 @@ function initNavigation() {
     });
 }
 
+// Global navigation function for dashboard cards
+function navigateToSection(sectionId) {
+    const targetBtn = document.querySelector(`.nav-btn[data-section="${sectionId}"]`);
+    if (targetBtn) {
+        targetBtn.click();
+    }
+}
+
+// Dashboard
+function initDashboard() {
+    // Update dashboard stats
+    updateDashboardStats();
+
+    // Dashboard card navigation
+    const dashboardCards = document.querySelectorAll('.dashboard-card');
+    dashboardCards.forEach(card => {
+        card.addEventListener('click', () => {
+            const targetSection = card.dataset.navigate;
+            if (targetSection) {
+                navigateToSection(targetSection);
+            }
+        });
+    });
+}
+
+function updateDashboardStats() {
+    const totalIngredients = ingredients.pantry.length + ingredients.fridge.length + ingredients.freezer.length;
+    const totalRecipes = recipes.length;
+    const totalShoppingItems = shoppingList.length;
+
+    document.getElementById('dashboard-ingredients-count').textContent =
+        `${totalIngredients} ${totalIngredients === 1 ? 'item' : 'items'}`;
+    document.getElementById('dashboard-recipes-count').textContent =
+        `${totalRecipes} ${totalRecipes === 1 ? 'recipe' : 'recipes'}`;
+    document.getElementById('dashboard-shopping-count').textContent =
+        `${totalShoppingItems} ${totalShoppingItems === 1 ? 'item' : 'items'}`;
+}
+
 // Ingredients Section
 function initIngredients() {
     const locationButtons = document.querySelectorAll('.location-btn');
     const addIngredientBtn = document.getElementById('add-ingredient-btn');
+    const toggleAddIngredientBtn = document.getElementById('toggle-add-ingredient');
+    const cancelAddIngredientBtn = document.getElementById('cancel-add-ingredient');
+    const formContainer = document.getElementById('add-ingredient-form-container');
+
+    // Toggle add ingredient form
+    if (toggleAddIngredientBtn) {
+        toggleAddIngredientBtn.addEventListener('click', () => {
+            formContainer.classList.toggle('hidden');
+        });
+    }
+
+    // Cancel button
+    if (cancelAddIngredientBtn) {
+        cancelAddIngredientBtn.addEventListener('click', () => {
+            formContainer.classList.add('hidden');
+            clearIngredientForm();
+        });
+    }
 
     locationButtons.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -164,6 +221,13 @@ function initIngredients() {
     document.getElementById('save-ingredient-edit-btn').addEventListener('click', saveIngredientEdit);
 
     renderIngredients();
+}
+
+function clearIngredientForm() {
+    document.getElementById('ingredient-name').value = '';
+    document.getElementById('ingredient-quantity').value = '1';
+    document.getElementById('ingredient-unit').value = '';
+    document.getElementById('ingredient-expiration').value = '';
 }
 
 function addIngredient() {
@@ -206,12 +270,18 @@ function addIngredient() {
     saveToLocalStorage();
     renderIngredients();
     updateRecipeStatus();
+    updateDashboardStats();
+
+    // Hide form and clear inputs
+    const formContainer = document.getElementById('add-ingredient-form-container');
+    if (formContainer) {
+        formContainer.classList.add('hidden');
+    }
 
     nameInput.value = '';
     quantityInput.value = '1';
     unitInput.value = '';
     expirationInput.value = '';
-    nameInput.focus();
 }
 
 function editIngredient(location, id) {
@@ -254,6 +324,7 @@ function deleteIngredient(location, id) {
     saveToLocalStorage();
     renderIngredients();
     updateRecipeStatus();
+    updateDashboardStats();
 }
 
 function getExpirationStatus(expiration) {
@@ -351,6 +422,15 @@ function initRecipes() {
     const filterButtons = document.querySelectorAll('.filter-btn');
     const categoryButtons = document.querySelectorAll('.category-filter-btn');
     const searchInput = document.getElementById('recipe-search');
+    const toggleFiltersBtn = document.getElementById('toggle-filters');
+    const filtersContainer = document.getElementById('filters-container');
+
+    // Toggle filters
+    if (toggleFiltersBtn) {
+        toggleFiltersBtn.addEventListener('click', () => {
+            filtersContainer.classList.toggle('hidden');
+        });
+    }
 
     addRecipeBtn.addEventListener('click', () => {
         document.getElementById('recipe-modal-title').textContent = 'Add New Recipe';
@@ -488,6 +568,7 @@ function saveRecipe() {
     saveToLocalStorage();
     renderRecipes();
     renderMealPlan();
+    updateDashboardStats();
 
     document.getElementById('add-recipe-form').classList.add('hidden');
 }
@@ -538,6 +619,7 @@ function deleteRecipe(id) {
         saveToLocalStorage();
         renderRecipes();
         renderMealPlan();
+        updateDashboardStats();
     }
 }
 
@@ -837,6 +919,33 @@ function initShopping() {
     const generateFromMealPlanBtn = document.getElementById('generate-from-meal-plan-btn');
     const clearListBtn = document.getElementById('clear-shopping-list-btn');
     const categoryButtons = document.querySelectorAll('.shop-cat-btn');
+    const toggleAddShoppingBtn = document.getElementById('toggle-add-shopping');
+    const toggleShoppingActionsBtn = document.getElementById('toggle-shopping-actions');
+    const cancelAddShoppingBtn = document.getElementById('cancel-add-shopping');
+    const shoppingFormContainer = document.getElementById('add-shopping-form-container');
+    const shoppingActionsContainer = document.getElementById('shopping-actions-container');
+
+    // Toggle add shopping form
+    if (toggleAddShoppingBtn) {
+        toggleAddShoppingBtn.addEventListener('click', () => {
+            shoppingFormContainer.classList.toggle('hidden');
+        });
+    }
+
+    // Toggle shopping actions
+    if (toggleShoppingActionsBtn) {
+        toggleShoppingActionsBtn.addEventListener('click', () => {
+            shoppingActionsContainer.classList.toggle('hidden');
+        });
+    }
+
+    // Cancel button
+    if (cancelAddShoppingBtn) {
+        cancelAddShoppingBtn.addEventListener('click', () => {
+            shoppingFormContainer.classList.add('hidden');
+            clearShoppingForm();
+        });
+    }
 
     addShoppingItemBtn.addEventListener('click', addShoppingItem);
     autoGenerateBtn.addEventListener('click', autoGenerateShoppingList);
@@ -880,6 +989,13 @@ function autoCategorizeShopping(itemName) {
     return 'other';
 }
 
+function clearShoppingForm() {
+    document.getElementById('shopping-item-name').value = '';
+    document.getElementById('shopping-item-qty').value = '1';
+    document.getElementById('shopping-item-unit').value = '';
+    document.getElementById('shopping-item-category').value = 'produce';
+}
+
 function addShoppingItem() {
     const nameInput = document.getElementById('shopping-item-name');
     const quantityInput = document.getElementById('shopping-item-qty');
@@ -908,6 +1024,13 @@ function addShoppingItem() {
     shoppingList.push(item);
     saveToLocalStorage();
     renderShoppingList();
+    updateDashboardStats();
+
+    // Hide form and clear inputs
+    const formContainer = document.getElementById('add-shopping-form-container');
+    if (formContainer) {
+        formContainer.classList.add('hidden');
+    }
 
     nameInput.value = '';
     quantityInput.value = '1';
@@ -928,6 +1051,7 @@ function deleteShoppingItem(id) {
     shoppingList = shoppingList.filter(item => item.id !== id);
     saveToLocalStorage();
     renderShoppingList();
+    updateDashboardStats();
 }
 
 function autoGenerateShoppingList() {

@@ -9,6 +9,7 @@ body {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
     padding: 20px;
+    line-height: 1.6;
 }
 
 .container {
@@ -925,4 +926,371 @@ button:active {
 .meal-suggestions button:hover {
     background: white;
     color: #48bb78;
+}
+
+/* ========================================
+   REDESIGNED CLEAN LAYOUT
+   ======================================== */
+
+/* Utility Classes */
+.hidden {
+    display: none !important;
+}
+
+/* Dashboard Section */
+.dashboard-welcome {
+    text-align: center;
+    padding: 40px 20px;
+    margin-bottom: 40px;
+}
+
+.dashboard-welcome h2 {
+    font-size: 2.5em;
+    color: #2d3748;
+    margin-bottom: 10px;
+    font-weight: 700;
+}
+
+.dashboard-subtitle {
+    font-size: 1.2em;
+    color: #6c757d;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+    margin-bottom: 50px;
+}
+
+.dashboard-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 35px 25px;
+    border-radius: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 3px solid transparent;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+    border-color: #667eea;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+}
+
+.card-icon {
+    font-size: 3.5em;
+    margin-bottom: 15px;
+}
+
+.dashboard-card h3 {
+    color: #2d3748;
+    font-size: 1.4em;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.card-stat {
+    color: #667eea;
+    font-size: 1.3em;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.card-description {
+    color: #6c757d;
+    font-size: 0.95em;
+}
+
+/* Quick Actions */
+.quick-actions {
+    background: #f8f9fa;
+    padding: 30px;
+    border-radius: 16px;
+    margin-top: 30px;
+}
+
+.quick-actions h3 {
+    color: #2d3748;
+    margin-bottom: 20px;
+    font-size: 1.3em;
+    text-align: center;
+}
+
+.quick-action-buttons {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.quick-action-btn {
+    background: white;
+    color: #667eea;
+    border: 2px solid #667eea;
+    padding: 15px 30px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1em;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.quick-action-btn:hover {
+    background: #667eea;
+    color: white;
+    transform: translateY(-3px);
+}
+
+.action-icon {
+    font-size: 1.2em;
+}
+
+/* Section Headers */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 3px solid #e9ecef;
+}
+
+.section-header h2 {
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* Primary Action Button */
+.primary-action-btn {
+    background: #667eea;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s;
+    font-size: 1em;
+}
+
+.primary-action-btn:hover {
+    background: #5568d3;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+}
+
+.secondary-action-btn {
+    background: white;
+    color: #667eea;
+    border: 2px solid #667eea;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s;
+}
+
+.secondary-action-btn:hover {
+    background: #667eea;
+    color: white;
+}
+
+/* Form Cards */
+.form-card {
+    background: #f8f9fa;
+    padding: 30px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    border: 2px solid #e9ecef;
+}
+
+.form-card h3 {
+    color: #2d3748;
+    margin-bottom: 25px;
+    font-size: 1.3em;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #4a5568;
+    font-weight: 600;
+    font-size: 0.95em;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 25px;
+}
+
+.primary-btn {
+    background: #667eea;
+    color: white;
+    flex: 1;
+}
+
+.primary-btn:hover {
+    background: #5568d3;
+}
+
+.secondary-btn {
+    background: white;
+    color: #6c757d;
+    border: 2px solid #e9ecef;
+    flex: 1;
+}
+
+.secondary-btn:hover {
+    background: #e9ecef;
+    color: #495057;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Filter Toggle */
+.recipe-search-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.filter-toggle-btn {
+    background: white;
+    color: #667eea;
+    border: 2px solid #667eea;
+    padding: 12px 24px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: all 0.3s;
+}
+
+.filter-toggle-btn:hover {
+    background: #667eea;
+    color: white;
+}
+
+.filters-container {
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    border: 2px solid #e9ecef;
+}
+
+.filter-group {
+    margin-bottom: 20px;
+}
+
+.filter-group:last-child {
+    margin-bottom: 0;
+}
+
+.filter-group label {
+    display: block;
+    margin-bottom: 12px;
+    color: #4a5568;
+    font-weight: 600;
+    font-size: 1em;
+}
+
+/* Shopping Actions */
+.shopping-actions {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    border: 2px solid #e9ecef;
+}
+
+.shopping-actions button {
+    flex: 1;
+    min-width: 200px;
+}
+
+/* Enhanced Section Spacing */
+.section {
+    padding: 40px;
+}
+
+/* Cleaner Navigation */
+.main-nav {
+    padding: 0;
+}
+
+.nav-btn {
+    padding: 18px 25px;
+    font-size: 1.05em;
+}
+
+/* Better Responsive */
+@media (max-width: 768px) {
+    .section {
+        padding: 25px;
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .header-actions {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .primary-action-btn,
+    .secondary-action-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .dashboard-welcome h2 {
+        font-size: 2em;
+    }
+
+    .quick-action-buttons {
+        flex-direction: column;
+    }
+
+    .quick-action-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
 }
