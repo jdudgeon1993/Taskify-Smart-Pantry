@@ -1731,19 +1731,24 @@ async function syncToServer() {
             lastUpdated: new Date().toISOString()
         };
 
+        const payload = { tasks: [pantryData] };
+        console.log('📤 Sending to server:', payload);
+
         const response = await fetch(API_BASE_URL + '/api/planner/tasks/' + userToken, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tasks: [pantryData] }) // Wrap in tasks array
+            body: JSON.stringify(payload)
         });
 
         const result = await response.json();
+        console.log('📬 Server response:', result);
 
         if (result.success) {
             localStorage.setItem('smartPantry_lastSync', new Date().toISOString());
             updateSyncStatus();
-            console.log('Sync complete');
+            console.log('✅ Sync complete - ' + result.count + ' tasks saved');
         } else {
+            console.error('❌ Sync failed:', result);
             updateSyncStatus('Sync failed - will retry');
         }
     } catch (error) {
