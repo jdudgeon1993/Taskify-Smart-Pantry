@@ -392,21 +392,48 @@ function renderIngredients() {
             const reserved = reservedQty[key] || 0;
             const available = item.quantity - reserved;
 
-            let quantityDisplay = `${item.quantity} ${item.unit}`;
+            // Build availability display
+            let availabilityHTML = '';
             if (reserved > 0) {
                 const availColor = available <= 0 ? '#e53e3e' : (available < item.quantity * 0.3 ? '#ed8936' : '#48bb78');
-                quantityDisplay += ` <span style="color: ${availColor}; font-size: 0.85em;">(${available} available)</span>`;
+                availabilityHTML = `
+                    <div class="ingredient-availability">
+                        <div class="availability-item">
+                            <span class="availability-label">On Hand:</span>
+                            <span class="availability-value">${item.quantity} ${item.unit}</span>
+                        </div>
+                        <div class="availability-item">
+                            <span class="availability-label">Available:</span>
+                            <span class="availability-value" style="color: ${availColor}; font-weight: 700;">${available} ${item.unit}</span>
+                        </div>
+                        <div class="availability-item reserved-info">
+                            <span class="availability-label">Reserved:</span>
+                            <span class="availability-value">${reserved} ${item.unit}</span>
+                        </div>
+                    </div>
+                `;
             }
 
             return `
             <li class="${classList}">
-                <div class="ingredient-info">
-                    <span class="ingredient-name">${item.name}</span>
-                    <span class="ingredient-quantity">${quantityDisplay}${expBadge}</span>
+                <div class="ingredient-card-content">
+                    <div class="ingredient-header">
+                        <span class="ingredient-name">${item.name}</span>
+                        ${expBadge}
+                    </div>
+                    <div class="ingredient-quantity-display">
+                        <span class="quantity-number">${item.quantity}</span>
+                        <span class="quantity-unit">${item.unit}</span>
+                    </div>
+                    ${availabilityHTML}
                 </div>
-                <div style="display: flex; gap: 10px;">
-                    <button style="background: #48bb78;" onclick="editIngredient('${location}', ${item.id})">Edit</button>
-                    <button class="delete-btn" onclick="deleteIngredient('${location}', ${item.id})">Delete</button>
+                <div class="ingredient-actions">
+                    <button class="icon-btn edit-btn" onclick="editIngredient('${location}', ${item.id})" title="Edit">
+                        ✏️
+                    </button>
+                    <button class="icon-btn delete-btn" onclick="deleteIngredient('${location}', ${item.id})" title="Delete">
+                        🗑️
+                    </button>
                 </div>
             </li>
         `}).join('');
