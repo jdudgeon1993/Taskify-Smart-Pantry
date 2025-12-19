@@ -1148,10 +1148,13 @@ function renderRecipes() {
 
                 ${!status.isReady ? `
                     <div class="missing-ingredients">
-                        <h5>Missing:</h5>
+                        <h5>Missing ${status.missing.length} ingredient${status.missing.length > 1 ? 's' : ''}:</h5>
                         <ul>
                             ${status.missing.map(ing => `<li>${ing.quantity} ${ing.unit} ${ing.name}</li>`).join('')}
                         </ul>
+                        <button style="background: #f59e0b; margin-top: 10px; width: 100%;" onclick="addMissingToShopping(${recipe.id})">
+                            📝 Add Missing to Shopping List
+                        </button>
                     </div>
                 ` : ''}
 
@@ -1276,7 +1279,9 @@ function addShoppingItem() {
         quantity,
         unit,
         category,
-        checked: false
+        checked: false,
+        purchasedQuantity: null,
+        targetLocation: 'pantry'
     };
 
     shoppingList.push(item);
@@ -1312,6 +1317,52 @@ function deleteShoppingItem(id) {
     updateDashboardStats();
 }
 
+function addMissingToShopping(recipeId) {
+    const recipe = recipes.find(r => r.id === recipeId);
+    if (!recipe) return;
+
+    const status = checkRecipeStatus(recipe);
+    if (status.missing.length === 0) {
+        showToast('All Set!', 'You have all ingredients for this recipe', 'info');
+        return;
+    }
+
+    let addedCount = 0;
+    status.missing.forEach(ing => {
+        // Check if already in shopping list
+        const existing = shoppingList.find(item =>
+            item.name.toLowerCase() === ing.name.toLowerCase() &&
+            item.unit.toLowerCase() === ing.unit.toLowerCase()
+        );
+
+        if (existing) {
+            // Update quantity if larger
+            if (ing.quantity > existing.quantity) {
+                existing.quantity = ing.quantity;
+                addedCount++;
+            }
+        } else {
+            // Add new item
+            shoppingList.push({
+                id: Date.now() + Math.random(),
+                name: ing.name,
+                quantity: ing.quantity,
+                unit: ing.unit,
+                category: autoCategorizeShopping(ing.name),
+                checked: false,
+                purchasedQuantity: null,
+                targetLocation: 'pantry'
+            });
+            addedCount++;
+        }
+    });
+
+    saveToLocalStorage();
+    renderShoppingList();
+    updateDashboardStats();
+    showToast('Added to Shopping List', `${addedCount} ingredient${addedCount > 1 ? 's' : ''} added from ${recipe.name}`, 'success');
+}
+
 function autoGenerateShoppingList() {
     const missingIngredients = [];
 
@@ -1341,7 +1392,9 @@ function autoGenerateShoppingList() {
                 quantity: ing.quantity,
                 unit: ing.unit,
                 category: autoCategorizeShopping(ing.name),
-                checked: false
+                checked: false,
+                purchasedQuantity: null,
+                targetLocation: 'pantry'
             });
         }
     });
@@ -1413,7 +1466,9 @@ function generateFromMealPlan() {
                 quantity: ing.quantity,
                 unit: ing.unit,
                 category: autoCategorizeShopping(ing.name),
-                checked: false
+                checked: false,
+                purchasedQuantity: null,
+                targetLocation: 'pantry'
             });
         }
     });
@@ -1452,25 +1507,150 @@ function renderShoppingList() {
         byCategory[cat].push(item);
     });
 
-    container.innerHTML = Object.keys(byCategory).sort().map(category => {
+    const hasCheckedItems = shoppingList.some(item => item.checked);
+
+    let html = '';
+
+    // Add "Move to Inventory" button if there are checked items
+    if (hasCheckedItems) {
+        html += `
+            <div style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                <button onclick="moveCheckedToInventory()" style="background: white; color: #38a169; width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 700; font-size: 16px; cursor: pointer;">
+                    ✅ Move Checked Items to Inventory
+                </button>
+            </div>
+        `;
+    }
+
+    html += Object.keys(byCategory).sort().map(category => {
         const items = byCategory[category];
         return `
             <div class="shopping-category-section">
                 <h4>${category.charAt(0).toUpperCase() + category.slice(1)}</h4>
                 <ul style="list-style: none;">
                     ${items.map(item => `
-                        <li class="${item.checked ? 'checked' : ''}" onclick="toggleShoppingItem(${item.id})" style="background: #f8f9fa; padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
-                            <div>
-                                <span style="font-weight: 600;">${item.name}</span>
-                                <span style="color: #667eea; margin-left: 10px;">${item.quantity} ${item.unit}</span>
+                        <li class="${item.checked ? 'checked' : ''}" style="background: #f8f9fa; padding: 15px; margin-bottom: 10px; border-radius: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${item.checked ? '10px' : '0'};">
+                                <div onclick="toggleShoppingItem(${item.id})" style="cursor: pointer; flex: 1;">
+                                    <span style="font-weight: 600;">${item.name}</span>
+                                    <span style="color: #667eea; margin-left: 10px;">Need: ${item.quantity} ${item.unit}</span>
+                                </div>
+                                <button class="delete-btn" onclick="deleteShoppingItem(${item.id})">Delete</button>
                             </div>
-                            <button class="delete-btn" onclick="event.stopPropagation(); deleteShoppingItem(${item.id})">Delete</button>
+                            ${item.checked ? `
+                                <div style="background: white; padding: 12px; border-radius: 8px; margin-top: 10px; border-left: 3px solid #48bb78;">
+                                    <div style="display: flex; gap: 10px; margin-bottom: 8px;">
+                                        <div style="flex: 1;">
+                                            <label style="display: block; font-size: 12px; color: #718096; margin-bottom: 4px;">Quantity Purchased</label>
+                                            <input type="number"
+                                                   value="${item.purchasedQuantity || item.quantity}"
+                                                   onchange="updatePurchasedQuantity(${item.id}, this.value)"
+                                                   onclick="event.stopPropagation()"
+                                                   step="0.1"
+                                                   min="0"
+                                                   style="width: 100%; padding: 8px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 14px;">
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <label style="display: block; font-size: 12px; color: #718096; margin-bottom: 4px;">Unit</label>
+                                            <input type="text"
+                                                   value="${item.unit}"
+                                                   readonly
+                                                   style="width: 100%; padding: 8px; border: 2px solid #e2e8f0; border-radius: 6px; background: #f7fafc; font-size: 14px;">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label style="display: block; font-size: 12px; color: #718096; margin-bottom: 4px;">Move To</label>
+                                        <select onchange="updateTargetLocation(${item.id}, this.value)"
+                                                onclick="event.stopPropagation()"
+                                                style="width: 100%; padding: 8px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 14px;">
+                                            <option value="pantry" ${item.targetLocation === 'pantry' ? 'selected' : ''}>🏺 Pantry</option>
+                                            <option value="fridge" ${item.targetLocation === 'fridge' ? 'selected' : ''}>❄️ Fridge</option>
+                                            <option value="freezer" ${item.targetLocation === 'freezer' ? 'selected' : ''}>🧊 Freezer</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            ` : ''}
                         </li>
                     `).join('')}
                 </ul>
             </div>
         `;
     }).join('');
+
+    container.innerHTML = html;
+}
+
+function updatePurchasedQuantity(id, value) {
+    const item = shoppingList.find(item => item.id === id);
+    if (item) {
+        item.purchasedQuantity = parseFloat(value) || 0;
+        saveToLocalStorage();
+    }
+}
+
+function updateTargetLocation(id, value) {
+    const item = shoppingList.find(item => item.id === id);
+    if (item) {
+        item.targetLocation = value;
+        saveToLocalStorage();
+    }
+}
+
+function moveCheckedToInventory() {
+    const checkedItems = shoppingList.filter(item => item.checked);
+
+    if (checkedItems.length === 0) {
+        showToast('No Items', 'No items are checked', 'warning');
+        return;
+    }
+
+    let movedCount = 0;
+    const locations = { pantry: 0, fridge: 0, freezer: 0 };
+
+    checkedItems.forEach(item => {
+        const purchasedQty = item.purchasedQuantity || item.quantity;
+        const location = item.targetLocation || 'pantry';
+
+        // Check if ingredient already exists in target location
+        const existing = ingredients[location].find(ing =>
+            ing.name.toLowerCase() === item.name.toLowerCase() &&
+            ing.unit.toLowerCase() === item.unit.toLowerCase()
+        );
+
+        if (existing) {
+            // Add to existing quantity
+            existing.quantity += purchasedQty;
+        } else {
+            // Create new ingredient
+            ingredients[location].push({
+                id: Date.now() + Math.random(),
+                name: item.name,
+                quantity: purchasedQty,
+                unit: item.unit,
+                category: item.category
+            });
+        }
+
+        locations[location]++;
+        movedCount++;
+    });
+
+    // Remove checked items from shopping list
+    shoppingList = shoppingList.filter(item => !item.checked);
+
+    saveToLocalStorage();
+    renderShoppingList();
+    renderIngredients();
+    updateDashboardStats();
+    updateDataLists();
+
+    // Show summary toast
+    const locationSummary = Object.entries(locations)
+        .filter(([_, count]) => count > 0)
+        .map(([loc, count]) => `${count} to ${loc}`)
+        .join(', ');
+
+    showToast('Items Moved!', `${movedCount} item${movedCount > 1 ? 's' : ''} moved: ${locationSummary}`, 'success');
 }
 
 // Meal Plan Section
