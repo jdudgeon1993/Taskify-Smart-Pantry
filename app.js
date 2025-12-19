@@ -1764,10 +1764,10 @@ async function syncFromServer() {
         const response = await fetch(API_BASE_URL + '/api/planner/tasks/' + userToken);
         const result = await response.json();
 
-        if (result.success && result.data && Array.isArray(result.data)) {
+        if (result.success && result.tasks && Array.isArray(result.tasks)) {
             // Extract our pantry data from the tasks array (we stored it as task with id: 1)
-            const pantryTask = result.data.find(task => task.data && task.data.id === 1);
-            const pantryData = pantryTask ? pantryTask.data : null;
+            const pantryTask = result.tasks.find(task => task.id === 1);
+            const pantryData = pantryTask || null;
 
             if (pantryData) {
                 // Restore ingredients
