@@ -1121,55 +1121,58 @@ function renderRecipes() {
         );
     }
 
-    // Sort: Ready recipes first, then alphabetically within each group
-    filteredRecipes.sort((a, b) => {
-        const aReady = checkRecipeStatus(a).isReady;
-        const bReady = checkRecipeStatus(b).isReady;
-
-        // If one is ready and the other isn't, ready comes first
-        if (aReady && !bReady) return -1;
-        if (!aReady && bReady) return 1;
-
-        // If both same status, sort alphabetically
-        return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
-    });
-
     if (filteredRecipes.length === 0) {
         recipeList.innerHTML = '<div class="empty-state"><p>No recipes match your filters</p></div>';
         return;
     }
 
-    // Group recipes by ready status
-    let html = '';
-    let lastStatus = null;
+    // Helper function to check if recipe has expiring ingredients
+    function hasExpiringIngredients(recipe) {
+        const allIngredients = [...ingredients.pantry, ...ingredients.fridge, ...ingredients.freezer];
+        return recipe.ingredients.some(recipeIng => {
+            const ingredient = allIngredients.find(inv =>
+                inv.name.toLowerCase() === recipeIng.name.toLowerCase()
+            );
+            if (!ingredient || !ingredient.expiration) return false;
+            const expStatus = getExpirationStatus(ingredient.expiration);
+            return expStatus === 'expiring-soon' || expStatus === 'expired';
+        });
+    }
 
-    filteredRecipes.forEach((recipe, index) => {
+    // Categorize recipes into three groups
+    const readyRecipes = [];
+    const cookSoonRecipes = [];
+    const needIngredientsRecipes = [];
+
+    filteredRecipes.forEach(recipe => {
         const status = checkRecipeStatus(recipe);
-        const isReady = status.isReady;
-
-        // Add section header when status changes
-        if (lastStatus !== isReady) {
-            if (index > 0) html += '</div>'; // Close previous section
-            const sectionTitle = isReady ? '✅ Ready to Cook' : '📝 Need Ingredients';
-            const sectionColor = isReady ? '#48bb78' : '#ed8936';
-            const sectionBg = isReady ? '#f0fff4' : '#fffaf0';
-            html += `
-                <div style="margin-bottom: 20px;">
-                    <div style="background: ${sectionBg}; border-left: 4px solid ${sectionColor}; padding: 12px 15px; margin-bottom: 15px; border-radius: 8px;">
-                        <h3 style="margin: 0; color: ${sectionColor}; font-size: 16px; font-weight: 700;">${sectionTitle}</h3>
-                    </div>
-            `;
-            lastStatus = isReady;
+        if (status.isReady) {
+            if (hasExpiringIngredients(recipe)) {
+                cookSoonRecipes.push(recipe);
+            } else {
+                readyRecipes.push(recipe);
+            }
+        } else {
+            needIngredientsRecipes.push(recipe);
         }
+    });
 
+    // Sort each group alphabetically
+    readyRecipes.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+    cookSoonRecipes.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+    needIngredientsRecipes.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+
+    // Render function for recipe cards
+    function renderRecipeCard(recipe, showExpiringBadge = false) {
+        const status = checkRecipeStatus(recipe);
         const statusClass = status.isReady ? 'ready' : 'missing';
         const statusText = status.isReady ? 'Ready to Cook' : 'Need Ingredients';
 
-        html += `
+        return `
             <div class="recipe-card ${statusClass}">
                 ${recipe.image ? `<img src="${recipe.image}" alt="${recipe.name}" class="recipe-image" onerror="this.style.display='none'">` : ''}
                 ${recipe.category ? `<span class="recipe-category-badge">${recipe.category}</span>` : ''}
-                <span class="recipe-status ${statusClass}">${statusText}</span>
+                ${showExpiringBadge ? `<span class="recipe-status expiring" style="background: #f59e0b;">🔥 Cook These Soon!</span>` : `<span class="recipe-status ${statusClass}">${statusText}</span>`}
                 <h3>${recipe.name}</h3>
                 <p class="recipe-servings">Serves: ${recipe.servings || 4}</p>
 
@@ -1214,12 +1217,43 @@ function renderRecipes() {
                 </div>
             </div>
         `;
-    });
-
-    // Close the last section
-    if (filteredRecipes.length > 0) {
-        html += '</div>';
     }
+
+    // Build 3-column responsive layout
+    let html = `
+        <div class="recipe-sections-container">
+            <div class="recipe-section ready-section">
+                <div class="section-header-card" style="background: #f0fff4; border-left: 4px solid #48bb78;">
+                    <h3 style="margin: 0; color: #48bb78; font-size: 16px; font-weight: 700;">✅ Ready to Cook (${readyRecipes.length})</h3>
+                </div>
+                <div class="recipe-cards-wrapper">
+                    ${readyRecipes.map(recipe => renderRecipeCard(recipe)).join('')}
+                    ${readyRecipes.length === 0 ? '<p style="text-align: center; color: #718096; padding: 20px;">No ready recipes</p>' : ''}
+                </div>
+            </div>
+
+            <div class="recipe-section cook-soon-section">
+                <div class="section-header-card" style="background: #fffaf0; border-left: 4px solid #f59e0b;">
+                    <h3 style="margin: 0; color: #f59e0b; font-size: 16px; font-weight: 700;">🔥 Cook These Soon! (${cookSoonRecipes.length})</h3>
+                    <p style="margin: 5px 0 0 0; font-size: 12px; color: #c05621;">Ingredients expiring soon</p>
+                </div>
+                <div class="recipe-cards-wrapper">
+                    ${cookSoonRecipes.map(recipe => renderRecipeCard(recipe, true)).join('')}
+                    ${cookSoonRecipes.length === 0 ? '<p style="text-align: center; color: #718096; padding: 20px;">No expiring ingredients</p>' : ''}
+                </div>
+            </div>
+
+            <div class="recipe-section need-ingredients-section">
+                <div class="section-header-card" style="background: #fef5e7; border-left: 4px solid #ed8936;">
+                    <h3 style="margin: 0; color: #ed8936; font-size: 16px; font-weight: 700;">📝 Need Ingredients (${needIngredientsRecipes.length})</h3>
+                </div>
+                <div class="recipe-cards-wrapper">
+                    ${needIngredientsRecipes.map(recipe => renderRecipeCard(recipe)).join('')}
+                    ${needIngredientsRecipes.length === 0 ? '<p style="text-align: center; color: #718096; padding: 20px;">All recipes ready!</p>' : ''}
+                </div>
+            </div>
+        </div>
+    `;
 
     recipeList.innerHTML = html;
 
@@ -1944,10 +1978,30 @@ function renderMealPlan() {
         .map(recipe => `<option value="${recipe.id}">${recipe.name}</option>`)
         .join('');
 
-    mealPlanGrid.innerHTML = days.map(day => `
-        <div class="meal-day">
-            <h3>${day.charAt(0).toUpperCase() + day.slice(1)}</h3>
-            <div class="meal-slots">
+    // Add quick day filter buttons at top
+    let html = `
+        <div class="meal-plan-quick-filters" style="display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center;">
+            ${days.map(day => `
+                <button onclick="toggleMealDay('${day}')" class="day-filter-btn" style="padding: 8px 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                    ${day.charAt(0).toUpperCase() + day.slice(1)}
+                </button>
+            `).join('')}
+            <button onclick="expandAllMealDays()" style="padding: 8px 16px; background: #48bb78; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                Expand All
+            </button>
+            <button onclick="collapseAllMealDays()" style="padding: 8px 16px; background: #718096; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                Collapse All
+            </button>
+        </div>
+    `;
+
+    html += days.map(day => `
+        <div class="meal-day" id="meal-day-${day}">
+            <h3 onclick="toggleMealDay('${day}')" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none;">
+                <span>${day.charAt(0).toUpperCase() + day.slice(1)}</span>
+                <span class="collapse-icon" id="collapse-icon-${day}" style="font-size: 20px; transition: transform 0.3s;">▼</span>
+            </h3>
+            <div class="meal-slots" id="meal-slots-${day}" style="display: none;">
                 ${meals.map(meal => {
                     const mealSlot = mealPlan[day][meal];
 
@@ -2014,6 +2068,49 @@ function renderMealPlan() {
             </div>
         </div>
     `).join('');
+
+    mealPlanGrid.innerHTML = html;
+}
+
+function toggleMealDay(day) {
+    const slotsElement = document.getElementById(`meal-slots-${day}`);
+    const iconElement = document.getElementById(`collapse-icon-${day}`);
+
+    if (slotsElement.style.display === 'none') {
+        slotsElement.style.display = 'block';
+        iconElement.style.transform = 'rotate(180deg)';
+        iconElement.textContent = '▲';
+    } else {
+        slotsElement.style.display = 'none';
+        iconElement.style.transform = 'rotate(0deg)';
+        iconElement.textContent = '▼';
+    }
+}
+
+function expandAllMealDays() {
+    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    days.forEach(day => {
+        const slotsElement = document.getElementById(`meal-slots-${day}`);
+        const iconElement = document.getElementById(`collapse-icon-${day}`);
+        if (slotsElement && iconElement) {
+            slotsElement.style.display = 'block';
+            iconElement.style.transform = 'rotate(180deg)';
+            iconElement.textContent = '▲';
+        }
+    });
+}
+
+function collapseAllMealDays() {
+    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    days.forEach(day => {
+        const slotsElement = document.getElementById(`meal-slots-${day}`);
+        const iconElement = document.getElementById(`collapse-icon-${day}`);
+        if (slotsElement && iconElement) {
+            slotsElement.style.display = 'none';
+            iconElement.style.transform = 'rotate(0deg)';
+            iconElement.textContent = '▼';
+        }
+    });
 }
 
 function addRecipeToMeal(day, meal, person, recipeId) {
