@@ -1764,31 +1764,44 @@ async function syncFromServer() {
         const response = await fetch(API_BASE_URL + '/api/planner/tasks/' + userToken);
         const result = await response.json();
 
+        console.log('📥 Sync response:', result);
+
         if (result.success && result.tasks && Array.isArray(result.tasks)) {
+            console.log('📦 Found tasks:', result.tasks.length);
+
             // Extract our pantry data from the tasks array (we stored it as task with id: 1)
             const pantryTask = result.tasks.find(task => task.id === 1);
+            console.log('🔍 Pantry task:', pantryTask);
             const pantryData = pantryTask || null;
 
             if (pantryData) {
+                console.log('✅ Restoring data...');
+
                 // Restore ingredients
                 if (pantryData.ingredients && pantryData.ingredients.pantry && pantryData.ingredients.fridge && pantryData.ingredients.freezer) {
                     ingredients = pantryData.ingredients;
+                    console.log('  ✓ Ingredients restored:', ingredients);
                 }
 
                 // Restore recipes
                 if (pantryData.recipes) {
                     recipes = Array.isArray(pantryData.recipes) ? pantryData.recipes : [];
+                    console.log('  ✓ Recipes restored:', recipes.length);
                 }
 
                 // Restore shopping list
                 if (pantryData.shoppingList) {
                     shoppingList = Array.isArray(pantryData.shoppingList) ? pantryData.shoppingList : [];
+                    console.log('  ✓ Shopping list restored:', shoppingList.length);
                 }
 
                 // Restore meal plan
                 if (pantryData.mealPlan && typeof pantryData.mealPlan === 'object') {
                     mealPlan = pantryData.mealPlan;
+                    console.log('  ✓ Meal plan restored');
                 }
+            } else {
+                console.warn('❌ No pantry task found with id === 1');
             }
 
             saveToLocalStorage();
