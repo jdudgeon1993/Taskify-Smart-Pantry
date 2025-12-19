@@ -860,3 +860,69 @@ button:active {
         padding: 6px 12px;
     }
 }
+
+/* Smart Meal Suggestions Banner */
+.meal-suggestions {
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);
+}
+
+.meal-suggestions.warning {
+    background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+    box-shadow: 0 4px 15px rgba(237, 137, 54, 0.3);
+}
+
+.meal-suggestions h3 {
+    margin-bottom: 12px;
+    font-size: 1.2em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.meal-suggestions ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.meal-suggestions li {
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.meal-suggestions li:last-child {
+    border-bottom: none;
+}
+
+.meal-suggestions .suggestion-recipe {
+    font-weight: 600;
+}
+
+.meal-suggestions .suggestion-reason {
+    font-size: 0.9em;
+    opacity: 0.9;
+}
+
+.meal-suggestions button {
+    background: rgba(255, 255, 255, 0.25);
+    color: white;
+    border: 2px solid white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.meal-suggestions button:hover {
+    background: white;
+    color: #48bb78;
+}

@@ -541,6 +541,66 @@ function deleteRecipe(id) {
     }
 }
 
+function cookRecipe(id) {
+    const recipe = recipes.find(r => r.id === id);
+    if (!recipe) return;
+
+    const status = checkRecipeStatus(recipe);
+    if (!status.isReady) {
+        alert('You don\'t have all ingredients for this recipe!');
+        return;
+    }
+
+    if (!confirm(`Cook "${recipe.name}"?\n\nThis will deduct ingredients from your pantry.`)) {
+        return;
+    }
+
+    let deductedCount = 0;
+
+    // Deduct each ingredient
+    recipe.ingredients.forEach(reqIng => {
+        let remaining = reqIng.quantity;
+
+        // Check all locations for this ingredient
+        ['pantry', 'fridge', 'freezer'].forEach(location => {
+            if (remaining <= 0) return;
+
+            const ingIndex = ingredients[location].findIndex(ing =>
+                ing.name.toLowerCase() === reqIng.name.toLowerCase() &&
+                ing.unit.toLowerCase() === reqIng.unit.toLowerCase()
+            );
+
+            if (ingIndex !== -1) {
+                const available = ingredients[location][ingIndex].quantity;
+
+                if (available >= remaining) {
+                    // We have enough in this location
+                    ingredients[location][ingIndex].quantity -= remaining;
+                    deductedCount++;
+
+                    // Remove ingredient if quantity hits zero
+                    if (ingredients[location][ingIndex].quantity <= 0) {
+                        ingredients[location].splice(ingIndex, 1);
+                    }
+
+                    remaining = 0;
+                } else {
+                    // Use all from this location and continue
+                    remaining -= available;
+                    ingredients[location].splice(ingIndex, 1);
+                    deductedCount++;
+                }
+            }
+        });
+    });
+
+    saveToLocalStorage();
+    renderIngredients();
+    renderRecipes();
+
+    alert(`✅ Cooked "${recipe.name}"!\n\n${deductedCount} ingredient types deducted from your pantry.\n\nEnjoy your meal! 🍽️`);
+}
+
 function checkRecipeStatus(recipe) {
     const allIngredients = [
         ...ingredients.pantry,
@@ -604,11 +664,95 @@ function adjustServings(recipeId, newServings) {
     return ratio;
 }
 
+// Smart Meal Suggestions
+function updateMealSuggestions() {
+    const suggestionsDiv = document.getElementById('meal-suggestions');
+    if (!suggestionsDiv) return;
+
+    const allIngredients = [...ingredients.pantry, ...ingredients.fridge, ...ingredients.freezer];
+    const suggestions = [];
+
+    recipes.forEach(recipe => {
+        const status = checkRecipeStatus(recipe);
+
+        if (status.isReady) {
+            // Check if any ingredients are expiring soon
+            const expiringIngredients = [];
+
+            recipe.ingredients.forEach(reqIng => {
+                const found = allIngredients.find(ing =>
+                    ing.name.toLowerCase() === reqIng.name.toLowerCase() &&
+                    ing.unit.toLowerCase() === reqIng.unit.toLowerCase()
+                );
+
+                if (found && found.expiration) {
+                    const expStatus = getExpirationStatus(found.expiration);
+                    if (expStatus === 'expiring-soon' || expStatus === 'expired') {
+                        expiringIngredients.push({ name: found.name, status: expStatus });
+                    }
+                }
+            });
+
+            if (expiringIngredients.length > 0) {
+                suggestions.push({
+                    recipe,
+                    priority: expiringIngredients.some(i => i.status === 'expired') ? 'urgent' : 'warning',
+                    reason: `${expiringIngredients.length} ingredient(s) ${expiringIngredients.some(i => i.status === 'expired') ? 'expired' : 'expiring soon'}`
+                });
+            } else {
+                // Just ready to cook
+                suggestions.push({
+                    recipe,
+                    priority: 'ready',
+                    reason: 'All ingredients available'
+                });
+            }
+        }
+    });
+
+    if (suggestions.length === 0) {
+        suggestionsDiv.style.display = 'none';
+        return;
+    }
+
+    // Sort by priority: urgent > warning > ready
+    suggestions.sort((a, b) => {
+        const order = { urgent: 0, warning: 1, ready: 2 };
+        return order[a.priority] - order[b.priority];
+    });
+
+    // Take top 5 suggestions
+    const topSuggestions = suggestions.slice(0, 5);
+    const hasUrgent = topSuggestions.some(s => s.priority === 'urgent' || s.priority === 'warning');
+
+    suggestionsDiv.className = 'meal-suggestions' + (hasUrgent ? ' warning' : '');
+    suggestionsDiv.style.display = 'block';
+
+    const icon = hasUrgent ? '⚠️' : '💡';
+    const title = hasUrgent ? 'Cook These Soon!' : 'Ready to Cook';
+
+    suggestionsDiv.innerHTML = `
+        <h3>${icon} ${title}</h3>
+        <ul>
+            ${topSuggestions.map(s => `
+                <li>
+                    <div>
+                        <div class="suggestion-recipe">${s.recipe.name}</div>
+                        <div class="suggestion-reason">${s.reason}</div>
+                    </div>
+                    <button onclick="cookRecipe(${s.recipe.id})">🍳 Cook</button>
+                </li>
+            `).join('')}
+        </ul>
+    `;
+}
+
 function renderRecipes() {
     const recipeList = document.getElementById('recipe-list');
 
     if (recipes.length === 0) {
         recipeList.innerHTML = '<div class="empty-state"><p>No recipes yet. Add your first recipe!</p></div>';
+        document.getElementById('meal-suggestions').style.display = 'none';
         return;
     }
 
@@ -674,12 +818,16 @@ function renderRecipes() {
                 ${recipe.instructions ? `<p style="margin-top: 10px; font-size: 0.9em; color: #4a5568;"><strong>Instructions:</strong> ${recipe.instructions}</p>` : ''}
 
                 <div class="recipe-actions">
+                    ${status.isReady ? `<button style="background: #667eea; font-weight: bold;" onclick="cookRecipe(${recipe.id})">🍳 Cook This</button>` : ''}
                     <button style="background: #48bb78;" onclick="editRecipe(${recipe.id})">Edit</button>
                     <button class="delete-btn" onclick="deleteRecipe(${recipe.id})">Delete</button>
                 </div>
             </div>
         `;
     }).join('');
+
+    // Update smart meal suggestions
+    updateMealSuggestions();
 }
 
 // Shopping List Section
