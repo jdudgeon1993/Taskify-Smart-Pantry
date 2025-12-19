@@ -200,6 +200,43 @@ function updateDashboardStats() {
         `${totalRecipes} ${totalRecipes === 1 ? 'recipe' : 'recipes'}`;
     document.getElementById('dashboard-shopping-count').textContent =
         `${totalShoppingItems} ${totalShoppingItems === 1 ? 'item' : 'items'}`;
+
+    // Check for expiring items
+    checkExpiringItems();
+}
+
+function checkExpiringItems() {
+    const allIngredients = [...ingredients.pantry, ...ingredients.fridge, ...ingredients.freezer];
+    const expiring = [];
+    const expired = [];
+
+    allIngredients.forEach(item => {
+        if (item.expiration) {
+            const status = getExpirationStatus(item.expiration);
+            if (status === 'expired') {
+                expired.push(item.name);
+            } else if (status === 'expiring-soon') {
+                expiring.push(item.name);
+            }
+        }
+    });
+
+    const alert = document.getElementById('expiring-alert');
+    const alertText = document.getElementById('expiring-alert-text');
+
+    if (expired.length > 0 || expiring.length > 0) {
+        let message = '';
+        if (expired.length > 0) {
+            message += `${expired.length} item${expired.length > 1 ? 's have' : ' has'} expired. `;
+        }
+        if (expiring.length > 0) {
+            message += `${expiring.length} item${expiring.length > 1 ? 's are' : ' is'} expiring soon.`;
+        }
+        alertText.textContent = message;
+        alert.style.display = 'flex';
+    } else {
+        alert.style.display = 'none';
+    }
 }
 
 // Ingredients Section
@@ -209,11 +246,23 @@ function initIngredients() {
     const toggleAddIngredientBtn = document.getElementById('toggle-add-ingredient');
     const cancelAddIngredientBtn = document.getElementById('cancel-add-ingredient');
     const formContainer = document.getElementById('add-ingredient-form-container');
+    const searchInput = document.getElementById('ingredient-search');
+
+    // Ingredient search
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            ingredientSearchQuery = e.target.value.toLowerCase();
+            renderIngredients();
+        });
+    }
 
     // Toggle add ingredient form
     if (toggleAddIngredientBtn) {
         toggleAddIngredientBtn.addEventListener('click', () => {
             formContainer.classList.toggle('hidden');
+            if (!formContainer.classList.contains('hidden')) {
+                document.getElementById('ingredient-name').focus();
+            }
         });
     }
 
@@ -316,6 +365,9 @@ function addIngredient() {
     quantityInput.value = '1';
     unitInput.value = '';
     expirationInput.value = '';
+
+    // Show success toast
+    showToast('Ingredient Added!', `${name} has been added to your ${currentLocation}`, 'success');
 }
 
 function editIngredient(location, id) {
@@ -354,11 +406,17 @@ function saveIngredientEdit() {
 }
 
 function deleteIngredient(location, id) {
+    const ingredient = ingredients[location].find(ing => ing.id === id);
+    const ingredientName = ingredient ? ingredient.name : 'Item';
+
     ingredients[location] = ingredients[location].filter(ing => ing.id !== id);
     saveToLocalStorage();
     renderIngredients();
     updateRecipeStatus();
     updateDashboardStats();
+
+    // Show success toast
+    showToast('Ingredient Deleted', `${ingredientName} has been removed`, 'success');
 }
 
 function getExpirationStatus(expiration) {
@@ -401,10 +459,21 @@ function renderIngredients() {
 
     ['pantry', 'fridge', 'freezer'].forEach(location => {
         const listElement = document.getElementById(`${location}-items`);
-        const items = ingredients[location];
+        let items = ingredients[location];
+
+        // Filter by search query
+        if (ingredientSearchQuery) {
+            items = items.filter(item =>
+                item.name.toLowerCase().includes(ingredientSearchQuery) ||
+                item.unit.toLowerCase().includes(ingredientSearchQuery)
+            );
+        }
 
         if (items.length === 0) {
-            listElement.innerHTML = '<li style="background: none; text-align: center; color: #6c757d;">No items yet</li>';
+            const message = ingredientSearchQuery ?
+                'No ingredients match your search' :
+                'No items yet';
+            listElement.innerHTML = `<li style="background: none; text-align: center; color: #6c757d;">${message}</li>`;
             return;
         }
 
@@ -632,6 +701,11 @@ function saveRecipe() {
     updateDashboardStats();
 
     document.getElementById('add-recipe-form').classList.add('hidden');
+
+    // Show success toast
+    const action = editingRecipeId ? 'updated' : 'added';
+    showToast(`Recipe ${action.charAt(0).toUpperCase() + action.slice(1)}!`, `${name} has been ${action} to your recipes`, 'success');
+    editingRecipeId = null;
 }
 
 function editRecipe(id) {
@@ -666,7 +740,10 @@ function editRecipe(id) {
 }
 
 function deleteRecipe(id) {
+    const recipe = recipes.find(r => r.id === id);
     if (confirm('Are you sure you want to delete this recipe?')) {
+        const recipeName = recipe ? recipe.name : 'Recipe';
+
         recipes = recipes.filter(recipe => recipe.id !== id);
 
         Object.keys(mealPlan).forEach(day => {
@@ -681,6 +758,9 @@ function deleteRecipe(id) {
         renderRecipes();
         renderMealPlan();
         updateDashboardStats();
+
+        // Show success toast
+        showToast('Recipe Deleted', `${recipeName} has been removed`, 'success');
     }
 }
 
