@@ -1,6 +1,6 @@
-// Smart Pantry Application v2.5 - Enhanced Edition
-// API Configuration (DISABLED - using localStorage only)
-// const API_BASE_URL = 'https://rtd-n-line-api.onrender.com';
+// Smart Pantry Application v2.5 - Enhanced Edition with Cloud Sync
+// API Configuration
+const API_BASE_URL = 'https://rtd-n-line-api.onrender.com';
 
 // ========================================
 // TOAST NOTIFICATION SYSTEM
@@ -86,6 +86,14 @@ function saveToLocalStorage() {
     localStorage.setItem('smartPantry_recipes', JSON.stringify(recipes));
     localStorage.setItem('smartPantry_shopping', JSON.stringify(shoppingList));
     localStorage.setItem('smartPantry_mealPlan', JSON.stringify(mealPlan));
+
+    // Auto-sync to cloud if logged in
+    if (userToken && !isSyncing) {
+        clearTimeout(window.syncTimeout);
+        window.syncTimeout = setTimeout(() => {
+            syncToServer();
+        }, 2000); // Debounce for 2 seconds
+    }
 }
 
 function loadFromLocalStorage() {
@@ -1417,20 +1425,48 @@ function removeMealFromPlan(day, meal) {
 
 // Settings Section
 function initSettings() {
-    // CLOUD SYNC DISABLED - Using localStorage only
-    // Hiding cloud sync UI
-    const cloudSyncCard = document.querySelector('.settings-card h3');
-    if (cloudSyncCard && cloudSyncCard.textContent.includes('Cloud Sync')) {
-        cloudSyncCard.parentElement.style.display = 'none';
-    }
-
-    // Data management listeners (Export/Import still work!)
+    // Cloud sync UI is now enabled!
+    // Data management listeners
     document.getElementById('export-data-btn').addEventListener('click', exportData);
     document.getElementById('import-trigger-btn').addEventListener('click', () => {
         document.getElementById('import-data-file').click();
     });
     document.getElementById('import-data-file').addEventListener('change', importData);
     document.getElementById('clear-all-data-btn').addEventListener('click', clearAllData);
+
+    // Cloud sync button listeners
+    const registerBtn = document.getElementById('register-btn');
+    const loginBtn = document.getElementById('login-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+    const manualSyncBtn = document.getElementById('manual-sync-btn');
+    const copyTokenBtn = document.getElementById('copy-token-btn');
+
+    if (registerBtn) {
+        registerBtn.addEventListener('click', registerNewUser);
+    }
+
+    if (loginBtn) {
+        loginBtn.addEventListener('click', () => {
+            const token = prompt('Enter your sync token:');
+            if (token) {
+                loginWithToken(token);
+            }
+        });
+    }
+
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', logout);
+    }
+
+    if (manualSyncBtn) {
+        manualSyncBtn.addEventListener('click', () => {
+            syncToServer();
+        });
+    }
+
+    if (copyTokenBtn) {
+        copyTokenBtn.addEventListener('click', copyToken);
+    }
 
     updateStats();
 }
@@ -1602,7 +1638,7 @@ function updateAuthUI() {
 
 async function registerNewUser() {
     try {
-        const response = await fetch(API_BASE_URL + '/api/pantry/register', {
+        const response = await fetch(API_BASE_URL + '/api/planner/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
         });
@@ -1614,19 +1650,19 @@ async function registerNewUser() {
             localStorage.setItem('smartPantry_token', userToken);
             updateAuthUI();
             await syncToServer();
-            alert('Token Generated: ' + userToken + '\n\nSave this to access your data from any device!');
+            showToast('Account Created!', 'Token: ' + userToken + ' - Save this to access your data from any device!', 'success');
         } else {
-            alert('Registration failed. Please try again.');
+            showToast('Registration Failed', 'Please try again', 'error');
         }
     } catch (error) {
         console.error('Registration error:', error);
-        alert('Network error. Please check your connection.');
+        showToast('Network Error', 'Please check your connection', 'error');
     }
 }
 
 async function loginWithToken(token) {
     try {
-        const response = await fetch(API_BASE_URL + '/api/pantry/login', {
+        const response = await fetch(API_BASE_URL + '/api/planner/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ token: token.trim().toUpperCase() })
@@ -1639,13 +1675,13 @@ async function loginWithToken(token) {
             localStorage.setItem('smartPantry_token', userToken);
             await syncFromServer();
             updateAuthUI();
-            alert('Login successful! Your data has been synced.');
+            showToast('Login Successful!', 'Your data has been synced', 'success');
         } else {
-            alert('Invalid token. Please check and try again.');
+            showToast('Invalid Token', 'Please check and try again', 'error');
         }
     } catch (error) {
         console.error('Login error:', error);
-        alert('Network error. Please check your connection.');
+        showToast('Network Error', 'Please check your connection', 'error');
     }
 }
 
@@ -1684,33 +1720,31 @@ async function syncToServer() {
             sunday: { breakfast: null, lunch: null, dinner: null }
         };
 
-        await fetch(API_BASE_URL + '/api/pantry/ingredients/' + userToken, {
+        // Store all pantry data in a single object using the /api/planner/tasks endpoint
+        const pantryData = {
+            ingredients: safeIngredients,
+            recipes: safeRecipes,
+            shoppingList: safeShoppingList,
+            mealPlan: safeMealPlan,
+            version: '2.5',
+            lastUpdated: new Date().toISOString()
+        };
+
+        const response = await fetch(API_BASE_URL + '/api/planner/tasks/' + userToken, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ data: safeIngredients })
+            body: JSON.stringify(pantryData)
         });
 
-        await fetch(API_BASE_URL + '/api/pantry/recipes/' + userToken, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ data: safeRecipes })
-        });
+        const result = await response.json();
 
-        await fetch(API_BASE_URL + '/api/pantry/shopping/' + userToken, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ data: safeShoppingList })
-        });
-
-        await fetch(API_BASE_URL + '/api/pantry/mealplan/' + userToken, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ data: safeMealPlan })
-        });
-
-        localStorage.setItem('smartPantry_lastSync', new Date().toISOString());
-        updateSyncStatus();
-        console.log('Sync complete');
+        if (result.success) {
+            localStorage.setItem('smartPantry_lastSync', new Date().toISOString());
+            updateSyncStatus();
+            console.log('Sync complete');
+        } else {
+            updateSyncStatus('Sync failed - will retry');
+        }
     } catch (error) {
         console.error('Sync error:', error);
         updateSyncStatus('Sync failed - will retry');
@@ -1726,45 +1760,47 @@ async function syncFromServer() {
     updateSyncStatus('Downloading from cloud...');
 
     try {
-        const ingResponse = await fetch(API_BASE_URL + '/api/pantry/ingredients/' + userToken);
-        const ingData = await ingResponse.json();
-        if (ingData.success && ingData.data) {
-            // Ensure ingredients has correct structure
-            if (ingData.data.pantry && ingData.data.fridge && ingData.data.freezer) {
-                ingredients = ingData.data;
+        const response = await fetch(API_BASE_URL + '/api/planner/tasks/' + userToken);
+        const result = await response.json();
+
+        if (result.success && result.data) {
+            const pantryData = result.data;
+
+            // Restore ingredients
+            if (pantryData.ingredients && pantryData.ingredients.pantry && pantryData.ingredients.fridge && pantryData.ingredients.freezer) {
+                ingredients = pantryData.ingredients;
             }
+
+            // Restore recipes
+            if (pantryData.recipes) {
+                recipes = Array.isArray(pantryData.recipes) ? pantryData.recipes : [];
+            }
+
+            // Restore shopping list
+            if (pantryData.shoppingList) {
+                shoppingList = Array.isArray(pantryData.shoppingList) ? pantryData.shoppingList : [];
+            }
+
+            // Restore meal plan
+            if (pantryData.mealPlan && typeof pantryData.mealPlan === 'object') {
+                mealPlan = pantryData.mealPlan;
+            }
+
+            saveToLocalStorage();
+            renderIngredients();
+            renderRecipes();
+            renderShoppingList();
+            renderMealPlan();
+            updateStats();
+            updateDashboardStats();
+
+            localStorage.setItem('smartPantry_lastSync', new Date().toISOString());
+            updateSyncStatus();
+            console.log('Download complete');
+        } else {
+            console.log('No data found on server');
+            updateSyncStatus();
         }
-
-        const recResponse = await fetch(API_BASE_URL + '/api/pantry/recipes/' + userToken);
-        const recData = await recResponse.json();
-        if (recData.success && recData.data) {
-            // CRITICAL: Ensure recipes is always an array
-            recipes = Array.isArray(recData.data) ? recData.data : [];
-        }
-
-        const shopResponse = await fetch(API_BASE_URL + '/api/pantry/shopping/' + userToken);
-        const shopData = await shopResponse.json();
-        if (shopData.success && shopData.data) {
-            // Ensure shopping list is an array
-            shoppingList = Array.isArray(shopData.data) ? shopData.data : [];
-        }
-
-        const mealResponse = await fetch(API_BASE_URL + '/api/pantry/mealplan/' + userToken);
-        const mealData = await mealResponse.json();
-        if (mealData.success && mealData.data) {
-            mealPlan = mealData.data;
-        }
-
-        saveToLocalStorage();
-        renderIngredients();
-        renderRecipes();
-        renderShoppingList();
-        renderMealPlan();
-        updateStats();
-
-        localStorage.setItem('smartPantry_lastSync', new Date().toISOString());
-        updateSyncStatus();
-        console.log('Download complete');
     } catch (error) {
         console.error('Sync error:', error);
         updateSyncStatus('Download failed');
