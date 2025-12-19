@@ -1152,9 +1152,19 @@ function renderRecipes() {
                         <ul>
                             ${status.missing.map(ing => `<li>${ing.quantity} ${ing.unit} ${ing.name}</li>`).join('')}
                         </ul>
-                        <button style="background: #f59e0b; margin-top: 10px; width: 100%;" onclick="addMissingToShopping(${recipe.id})">
-                            📝 Add Missing to Shopping List
-                        </button>
+                        <div style="display: flex; gap: 10px; align-items: center; margin-top: 10px;">
+                            <select id="servings-multiplier-${recipe.id}" style="padding: 8px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 14px;">
+                                <option value="0.5">×0.5 (Half)</option>
+                                <option value="1" selected>×1 (Original)</option>
+                                <option value="1.5">×1.5</option>
+                                <option value="2">×2 (Double)</option>
+                                <option value="3">×3 (Triple)</option>
+                                <option value="4">×4</option>
+                            </select>
+                            <button style="background: #f59e0b; flex: 1; padding: 10px;" onclick="addMissingToShopping(${recipe.id}, parseFloat(document.getElementById('servings-multiplier-${recipe.id}').value))">
+                                📝 Add to Shopping
+                            </button>
+                        </div>
                     </div>
                 ` : ''}
 
@@ -1281,7 +1291,7 @@ function addShoppingItem() {
         category,
         checked: false,
         purchasedQuantity: null,
-        targetLocation: 'pantry'
+        targetLocation: getSuggestedLocation(category)
     };
 
     shoppingList.push(item);
@@ -1317,7 +1327,7 @@ function deleteShoppingItem(id) {
     updateDashboardStats();
 }
 
-function addMissingToShopping(recipeId) {
+function addMissingToShopping(recipeId, servingsMultiplier = 1) {
     const recipe = recipes.find(r => r.id === recipeId);
     if (!recipe) return;
 
@@ -1329,6 +1339,8 @@ function addMissingToShopping(recipeId) {
 
     let addedCount = 0;
     status.missing.forEach(ing => {
+        const scaledQuantity = ing.quantity * servingsMultiplier;
+
         // Check if already in shopping list
         const existing = shoppingList.find(item =>
             item.name.toLowerCase() === ing.name.toLowerCase() &&
@@ -1336,22 +1348,21 @@ function addMissingToShopping(recipeId) {
         );
 
         if (existing) {
-            // Update quantity if larger
-            if (ing.quantity > existing.quantity) {
-                existing.quantity = ing.quantity;
-                addedCount++;
-            }
+            // Add to existing quantity
+            existing.quantity += scaledQuantity;
+            addedCount++;
         } else {
             // Add new item
+            const category = autoCategorizeShopping(ing.name);
             shoppingList.push({
                 id: Date.now() + Math.random(),
                 name: ing.name,
-                quantity: ing.quantity,
+                quantity: scaledQuantity,
                 unit: ing.unit,
-                category: autoCategorizeShopping(ing.name),
+                category: category,
                 checked: false,
                 purchasedQuantity: null,
-                targetLocation: 'pantry'
+                targetLocation: getSuggestedLocation(category)
             });
             addedCount++;
         }
@@ -1360,7 +1371,9 @@ function addMissingToShopping(recipeId) {
     saveToLocalStorage();
     renderShoppingList();
     updateDashboardStats();
-    showToast('Added to Shopping List', `${addedCount} ingredient${addedCount > 1 ? 's' : ''} added from ${recipe.name}`, 'success');
+
+    const multiplierText = servingsMultiplier !== 1 ? ` (×${servingsMultiplier})` : '';
+    showToast('Added to Shopping List', `${addedCount} ingredient${addedCount > 1 ? 's' : ''} from ${recipe.name}${multiplierText}`, 'success');
 }
 
 function autoGenerateShoppingList() {
@@ -1379,29 +1392,36 @@ function autoGenerateShoppingList() {
     });
 
     if (missingIngredients.length === 0) {
-        alert('You have all ingredients for your recipes!');
+        showToast('All Set!', 'You have all ingredients for your recipes!', 'success');
         return;
     }
 
+    let addedCount = 0;
     missingIngredients.forEach(ing => {
-        const alreadyInList = shoppingList.find(item => item.name.toLowerCase() === ing.name.toLowerCase());
+        const alreadyInList = shoppingList.find(item =>
+            item.name.toLowerCase() === ing.name.toLowerCase() &&
+            item.unit.toLowerCase() === ing.unit.toLowerCase()
+        );
         if (!alreadyInList) {
+            const category = autoCategorizeShopping(ing.name);
             shoppingList.push({
                 id: Date.now() + Math.random(),
                 name: ing.name,
                 quantity: ing.quantity,
                 unit: ing.unit,
-                category: autoCategorizeShopping(ing.name),
+                category: category,
                 checked: false,
                 purchasedQuantity: null,
-                targetLocation: 'pantry'
+                targetLocation: getSuggestedLocation(category)
             });
+            addedCount++;
         }
     });
 
     saveToLocalStorage();
     renderShoppingList();
-    alert(`Added ${missingIngredients.length} missing ingredients to shopping list!`);
+    updateDashboardStats();
+    showToast('Added to Shopping List', `${addedCount} missing ingredient${addedCount > 1 ? 's' : ''} from recipes`, 'success');
 }
 
 function generateFromMealPlan() {
@@ -1409,12 +1429,31 @@ function generateFromMealPlan() {
 
     Object.keys(mealPlan).forEach(day => {
         Object.keys(mealPlan[day]).forEach(meal => {
-            const recipeId = mealPlan[day][meal];
-            if (recipeId) {
+            const mealSlot = mealPlan[day][meal];
+
+            // Handle both old format (single recipeId) and new format (personA/personB/joint)
+            let recipeIds = [];
+            if (typeof mealSlot === 'number') {
+                // Old format - single recipe ID
+                recipeIds = [mealSlot];
+            } else if (mealSlot && typeof mealSlot === 'object') {
+                // New format - personA/personB/joint arrays
+                recipeIds = [
+                    ...(mealSlot.personA || []),
+                    ...(mealSlot.personB || []),
+                    ...(mealSlot.joint || [])
+                ];
+            }
+
+            // Process all recipes in this meal slot
+            recipeIds.forEach(recipeId => {
                 const recipe = recipes.find(r => r.id === recipeId);
-                if (recipe) {
+                if (recipe && recipe.ingredients) {
                     recipe.ingredients.forEach(ing => {
-                        const existing = requiredIngredients.find(ri => ri.name === ing.name && ri.unit === ing.unit);
+                        const existing = requiredIngredients.find(ri =>
+                            ri.name.toLowerCase() === ing.name.toLowerCase() &&
+                            ri.unit.toLowerCase() === ing.unit.toLowerCase()
+                        );
                         if (existing) {
                             existing.quantity += ing.quantity;
                         } else {
@@ -1422,12 +1461,12 @@ function generateFromMealPlan() {
                         }
                     });
                 }
-            }
+            });
         });
     });
 
     if (requiredIngredients.length === 0) {
-        alert('Your meal plan is empty!');
+        showToast('Empty Meal Plan', 'Your meal plan is empty! Add some recipes first.', 'info');
         return;
     }
 
@@ -1453,29 +1492,36 @@ function generateFromMealPlan() {
     });
 
     if (missing.length === 0) {
-        alert('You have all ingredients for your meal plan!');
+        showToast('All Set!', 'You have all ingredients for your meal plan!', 'success');
         return;
     }
 
+    let addedCount = 0;
     missing.forEach(ing => {
-        const alreadyInList = shoppingList.find(item => item.name.toLowerCase() === ing.name.toLowerCase());
+        const alreadyInList = shoppingList.find(item =>
+            item.name.toLowerCase() === ing.name.toLowerCase() &&
+            item.unit.toLowerCase() === ing.unit.toLowerCase()
+        );
         if (!alreadyInList) {
+            const category = autoCategorizeShopping(ing.name);
             shoppingList.push({
                 id: Date.now() + Math.random(),
                 name: ing.name,
                 quantity: ing.quantity,
                 unit: ing.unit,
-                category: autoCategorizeShopping(ing.name),
+                category: category,
                 checked: false,
                 purchasedQuantity: null,
-                targetLocation: 'pantry'
+                targetLocation: getSuggestedLocation(category)
             });
+            addedCount++;
         }
     });
 
     saveToLocalStorage();
     renderShoppingList();
-    alert(`Added ${missing.length} ingredients needed for your meal plan!`);
+    updateDashboardStats();
+    showToast('Added to Shopping List', `${addedCount} ingredient${addedCount > 1 ? 's' : ''} from meal plan`, 'success');
 }
 
 function clearShoppingList() {
@@ -1508,8 +1554,30 @@ function renderShoppingList() {
     });
 
     const hasCheckedItems = shoppingList.some(item => item.checked);
+    const hasUncheckedItems = shoppingList.some(item => !item.checked);
 
     let html = '';
+
+    // Add bulk action buttons
+    if (shoppingList.length > 0) {
+        html += `
+            <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                ${hasUncheckedItems ? `
+                    <button onclick="checkAllShoppingItems()" style="flex: 1; min-width: 140px; padding: 10px 15px; background: #667eea; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                        ✓ Check All
+                    </button>
+                ` : ''}
+                ${hasCheckedItems ? `
+                    <button onclick="uncheckAllShoppingItems()" style="flex: 1; min-width: 140px; padding: 10px 15px; background: #718096; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                        ✗ Uncheck All
+                    </button>
+                    <button onclick="clearCheckedShoppingItems()" style="flex: 1; min-width: 140px; padding: 10px 15px; background: #e53e3e; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                        🗑️ Clear Checked
+                    </button>
+                ` : ''}
+            </div>
+        `;
+    }
 
     // Add "Move to Inventory" button if there are checked items
     if (hasCheckedItems) {
@@ -1530,13 +1598,21 @@ function renderShoppingList() {
                 <ul style="list-style: none;">
                     ${items.map(item => `
                         <li class="${item.checked ? 'checked' : ''}" style="background: #f8f9fa; padding: 15px; margin-bottom: 10px; border-radius: 8px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${item.checked ? '10px' : '0'};">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${item.checked ? '10px' : '5px'};">
                                 <div onclick="toggleShoppingItem(${item.id})" style="cursor: pointer; flex: 1;">
-                                    <span style="font-weight: 600;">${item.name}</span>
-                                    <span style="color: #667eea; margin-left: 10px;">Need: ${item.quantity} ${item.unit}</span>
+                                    <span style="font-weight: 600; font-size: 15px;">${item.name}</span>
                                 </div>
-                                <button class="delete-btn" onclick="deleteShoppingItem(${item.id})">Delete</button>
+                                <div style="display: flex; gap: 5px;">
+                                    <button onclick="editShoppingItem(${item.id})" style="padding: 6px 12px; background: #667eea; color: white; border: none; border-radius: 6px; font-size: 12px; cursor: pointer;">Edit</button>
+                                    <button class="delete-btn" onclick="deleteShoppingItem(${item.id})">Delete</button>
+                                </div>
                             </div>
+                            ${!item.checked ? `
+                                <div onclick="toggleShoppingItem(${item.id})" style="cursor: pointer; color: #667eea; font-size: 14px; margin-bottom: 5px;">
+                                    <span>Need: ${item.quantity} ${item.unit}</span>
+                                    <span style="margin-left: 10px; color: #718096;">→ ${item.targetLocation === 'pantry' ? '🏺 Pantry' : item.targetLocation === 'fridge' ? '❄️ Fridge' : '🧊 Freezer'}</span>
+                                </div>
+                            ` : ''}
                             ${item.checked ? `
                                 <div style="background: white; padding: 12px; border-radius: 8px; margin-top: 10px; border-left: 3px solid #48bb78;">
                                     <div style="display: flex; gap: 10px; margin-bottom: 8px;">
@@ -1651,6 +1727,74 @@ function moveCheckedToInventory() {
         .join(', ');
 
     showToast('Items Moved!', `${movedCount} item${movedCount > 1 ? 's' : ''} moved: ${locationSummary}`, 'success');
+}
+
+function checkAllShoppingItems() {
+    shoppingList.forEach(item => item.checked = true);
+    saveToLocalStorage();
+    renderShoppingList();
+    showToast('All Checked', `${shoppingList.length} item${shoppingList.length > 1 ? 's' : ''} checked`, 'success');
+}
+
+function uncheckAllShoppingItems() {
+    shoppingList.forEach(item => {
+        item.checked = false;
+        item.purchasedQuantity = null; // Reset purchased quantity
+    });
+    saveToLocalStorage();
+    renderShoppingList();
+    showToast('All Unchecked', 'Shopping list items unchecked', 'info');
+}
+
+function clearCheckedShoppingItems() {
+    const checkedCount = shoppingList.filter(item => item.checked).length;
+    if (checkedCount === 0) {
+        showToast('No Items', 'No items are checked', 'warning');
+        return;
+    }
+
+    if (confirm(`Remove ${checkedCount} checked item${checkedCount > 1 ? 's' : ''} from shopping list?`)) {
+        shoppingList = shoppingList.filter(item => !item.checked);
+        saveToLocalStorage();
+        renderShoppingList();
+        updateDashboardStats();
+        showToast('Items Removed', `${checkedCount} item${checkedCount > 1 ? 's' : ''} removed`, 'success');
+    }
+}
+
+function editShoppingItem(id) {
+    const item = shoppingList.find(item => item.id === id);
+    if (!item) return;
+
+    const newName = prompt('Edit item name:', item.name);
+    if (newName && newName.trim()) {
+        item.name = newName.trim();
+        item.category = autoCategorizeShopping(item.name);
+        saveToLocalStorage();
+        renderShoppingList();
+        showToast('Item Updated', `${item.name} updated`, 'success');
+    }
+}
+
+function updateShoppingItemQuantity(id, quantity, unit) {
+    const item = shoppingList.find(item => item.id === id);
+    if (!item) return;
+
+    item.quantity = parseFloat(quantity) || 1;
+    if (unit && unit.trim()) {
+        item.unit = unit.trim();
+    }
+    saveToLocalStorage();
+    renderShoppingList();
+}
+
+function getSuggestedLocation(category) {
+    const fridgeCategories = ['dairy', 'meat', 'produce', 'beverages'];
+    const freezerCategories = ['frozen'];
+
+    if (fridgeCategories.includes(category)) return 'fridge';
+    if (freezerCategories.includes(category)) return 'freezer';
+    return 'pantry';
 }
 
 // Meal Plan Section
