@@ -569,6 +569,9 @@ function renderIngredients() {
             );
         }
 
+        // Sort alphabetically
+        items = items.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+
         if (items.length === 0) {
             const message = ingredientSearchQuery ?
                 'No ingredients match your search' :
@@ -1118,17 +1121,51 @@ function renderRecipes() {
         );
     }
 
+    // Sort: Ready recipes first, then alphabetically within each group
+    filteredRecipes.sort((a, b) => {
+        const aReady = checkRecipeStatus(a).isReady;
+        const bReady = checkRecipeStatus(b).isReady;
+
+        // If one is ready and the other isn't, ready comes first
+        if (aReady && !bReady) return -1;
+        if (!aReady && bReady) return 1;
+
+        // If both same status, sort alphabetically
+        return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+    });
+
     if (filteredRecipes.length === 0) {
         recipeList.innerHTML = '<div class="empty-state"><p>No recipes match your filters</p></div>';
         return;
     }
 
-    recipeList.innerHTML = filteredRecipes.map(recipe => {
+    // Group recipes by ready status
+    let html = '';
+    let lastStatus = null;
+
+    filteredRecipes.forEach((recipe, index) => {
         const status = checkRecipeStatus(recipe);
+        const isReady = status.isReady;
+
+        // Add section header when status changes
+        if (lastStatus !== isReady) {
+            if (index > 0) html += '</div>'; // Close previous section
+            const sectionTitle = isReady ? '✅ Ready to Cook' : '📝 Need Ingredients';
+            const sectionColor = isReady ? '#48bb78' : '#ed8936';
+            const sectionBg = isReady ? '#f0fff4' : '#fffaf0';
+            html += `
+                <div style="margin-bottom: 20px;">
+                    <div style="background: ${sectionBg}; border-left: 4px solid ${sectionColor}; padding: 12px 15px; margin-bottom: 15px; border-radius: 8px;">
+                        <h3 style="margin: 0; color: ${sectionColor}; font-size: 16px; font-weight: 700;">${sectionTitle}</h3>
+                    </div>
+            `;
+            lastStatus = isReady;
+        }
+
         const statusClass = status.isReady ? 'ready' : 'missing';
         const statusText = status.isReady ? 'Ready to Cook' : 'Need Ingredients';
 
-        return `
+        html += `
             <div class="recipe-card ${statusClass}">
                 ${recipe.image ? `<img src="${recipe.image}" alt="${recipe.name}" class="recipe-image" onerror="this.style.display='none'">` : ''}
                 ${recipe.category ? `<span class="recipe-category-badge">${recipe.category}</span>` : ''}
@@ -1177,7 +1214,14 @@ function renderRecipes() {
                 </div>
             </div>
         `;
-    }).join('');
+    });
+
+    // Close the last section
+    if (filteredRecipes.length > 0) {
+        html += '</div>';
+    }
+
+    recipeList.innerHTML = html;
 
     // Update smart meal suggestions
     updateMealSuggestions();
@@ -1558,6 +1602,27 @@ function renderShoppingList() {
 
     let html = '';
 
+    // Add quick-add common items
+    html += `
+        <div style="background: #f7fafc; padding: 15px; border-radius: 12px; margin-bottom: 15px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h4 style="margin: 0; font-size: 14px; color: #4a5568;">Quick Add Common Items</h4>
+                ${shoppingList.length > 0 ? `
+                    <button onclick="copyShoppingListToClipboard()" style="padding: 6px 12px; background: #667eea; color: white; border: none; border-radius: 6px; font-size: 12px; cursor: pointer;">
+                        📋 Copy List
+                    </button>
+                ` : ''}
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                ${['Milk', 'Eggs', 'Bread', 'Butter', 'Chicken', 'Rice', 'Pasta', 'Onions', 'Garlic', 'Tomatoes'].map(item => `
+                    <button onclick="quickAddItem('${item}')" style="padding: 6px 12px; background: white; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 13px; cursor: pointer; transition: all 0.2s;">
+                        + ${item}
+                    </button>
+                `).join('')}
+            </div>
+        </div>
+    `;
+
     // Add bulk action buttons
     if (shoppingList.length > 0) {
         html += `
@@ -1591,7 +1656,7 @@ function renderShoppingList() {
     }
 
     html += Object.keys(byCategory).sort().map(category => {
-        const items = byCategory[category];
+        const items = byCategory[category].sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
         return `
             <div class="shopping-category-section">
                 <h4>${category.charAt(0).toUpperCase() + category.slice(1)}</h4>
@@ -1797,6 +1862,68 @@ function getSuggestedLocation(category) {
     return 'pantry';
 }
 
+function quickAddItem(itemName) {
+    // Check if already in shopping list
+    const existing = shoppingList.find(item => item.name.toLowerCase() === itemName.toLowerCase());
+
+    if (existing) {
+        existing.quantity += 1;
+        showToast('Quantity Updated', `${itemName} quantity increased to ${existing.quantity}`, 'info');
+    } else {
+        const category = autoCategorizeShopping(itemName);
+        shoppingList.push({
+            id: Date.now() + Math.random(),
+            name: itemName,
+            quantity: 1,
+            unit: 'unit',
+            category: category,
+            checked: false,
+            purchasedQuantity: null,
+            targetLocation: getSuggestedLocation(category)
+        });
+        showToast('Added to Shopping List', `${itemName} added`, 'success');
+    }
+
+    saveToLocalStorage();
+    renderShoppingList();
+    updateDashboardStats();
+}
+
+function copyShoppingListToClipboard() {
+    if (shoppingList.length === 0) {
+        showToast('Empty List', 'Shopping list is empty', 'warning');
+        return;
+    }
+
+    // Group by category
+    const byCategory = {};
+    shoppingList.forEach(item => {
+        const cat = item.category || 'other';
+        if (!byCategory[cat]) byCategory[cat] = [];
+        byCategory[cat].push(item);
+    });
+
+    // Format as text
+    let text = '🛒 SHOPPING LIST\n\n';
+    Object.keys(byCategory).sort().forEach(category => {
+        text += `${category.toUpperCase()}\n`;
+        byCategory[category]
+            .sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()))
+            .forEach(item => {
+                const checkbox = item.checked ? '✅' : '☐';
+                text += `${checkbox} ${item.quantity} ${item.unit} ${item.name}\n`;
+            });
+        text += '\n';
+    });
+
+    // Copy to clipboard
+    navigator.clipboard.writeText(text).then(() => {
+        showToast('Copied!', 'Shopping list copied to clipboard', 'success');
+    }).catch(() => {
+        showToast('Copy Failed', 'Could not copy to clipboard', 'error');
+    });
+}
+
 // Meal Plan Section
 function initMealPlan() {
     renderMealPlan();
@@ -1812,9 +1939,10 @@ function renderMealPlan() {
         return;
     }
 
-    const recipeOptions = recipes.map(recipe =>
-        `<option value="${recipe.id}">${recipe.name}</option>`
-    ).join('');
+    const recipeOptions = recipes
+        .sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()))
+        .map(recipe => `<option value="${recipe.id}">${recipe.name}</option>`)
+        .join('');
 
     mealPlanGrid.innerHTML = days.map(day => `
         <div class="meal-day">
