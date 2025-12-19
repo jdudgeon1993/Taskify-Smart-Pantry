@@ -1720,8 +1720,9 @@ async function syncToServer() {
             sunday: { breakfast: null, lunch: null, dinner: null }
         };
 
-        // Store all pantry data in a single object using the /api/planner/tasks endpoint
+        // Store all pantry data as a single "task" object (server expects tasks array)
         const pantryData = {
+            id: 1, // Use a fixed ID since we only have one data object
             ingredients: safeIngredients,
             recipes: safeRecipes,
             shoppingList: safeShoppingList,
@@ -1733,7 +1734,7 @@ async function syncToServer() {
         const response = await fetch(API_BASE_URL + '/api/planner/tasks/' + userToken, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(pantryData)
+            body: JSON.stringify({ tasks: [pantryData] }) // Wrap in tasks array
         });
 
         const result = await response.json();
@@ -1763,27 +1764,31 @@ async function syncFromServer() {
         const response = await fetch(API_BASE_URL + '/api/planner/tasks/' + userToken);
         const result = await response.json();
 
-        if (result.success && result.data) {
-            const pantryData = result.data;
+        if (result.success && result.data && Array.isArray(result.data)) {
+            // Extract our pantry data from the tasks array (we stored it as task with id: 1)
+            const pantryTask = result.data.find(task => task.data && task.data.id === 1);
+            const pantryData = pantryTask ? pantryTask.data : null;
 
-            // Restore ingredients
-            if (pantryData.ingredients && pantryData.ingredients.pantry && pantryData.ingredients.fridge && pantryData.ingredients.freezer) {
-                ingredients = pantryData.ingredients;
-            }
+            if (pantryData) {
+                // Restore ingredients
+                if (pantryData.ingredients && pantryData.ingredients.pantry && pantryData.ingredients.fridge && pantryData.ingredients.freezer) {
+                    ingredients = pantryData.ingredients;
+                }
 
-            // Restore recipes
-            if (pantryData.recipes) {
-                recipes = Array.isArray(pantryData.recipes) ? pantryData.recipes : [];
-            }
+                // Restore recipes
+                if (pantryData.recipes) {
+                    recipes = Array.isArray(pantryData.recipes) ? pantryData.recipes : [];
+                }
 
-            // Restore shopping list
-            if (pantryData.shoppingList) {
-                shoppingList = Array.isArray(pantryData.shoppingList) ? pantryData.shoppingList : [];
-            }
+                // Restore shopping list
+                if (pantryData.shoppingList) {
+                    shoppingList = Array.isArray(pantryData.shoppingList) ? pantryData.shoppingList : [];
+                }
 
-            // Restore meal plan
-            if (pantryData.mealPlan && typeof pantryData.mealPlan === 'object') {
-                mealPlan = pantryData.mealPlan;
+                // Restore meal plan
+                if (pantryData.mealPlan && typeof pantryData.mealPlan === 'object') {
+                    mealPlan = pantryData.mealPlan;
+                }
             }
 
             saveToLocalStorage();
