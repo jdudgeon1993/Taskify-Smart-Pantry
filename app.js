@@ -67,6 +67,9 @@ let editingIngredientData = null;
 let userToken = null;
 let isSyncing = false;
 
+// Meal Plan UI State
+let expandedMealDays = new Set(); // Track which days are expanded
+
 // Helper function to get all unique units from ingredients and recipes
 function getAllUnits() {
     const units = new Set();
@@ -237,8 +240,13 @@ function initNavigation() {
             });
             document.getElementById(targetSection).classList.add('active');
 
+            // Refresh sections when navigating to them
             if (targetSection === 'settings') {
                 updateStats();
+            } else if (targetSection === 'recipes') {
+                renderRecipes(); // Refresh recipe sections to update Cook Soon etc.
+            } else if (targetSection === 'dashboard') {
+                updateDashboardStats(); // Refresh dashboard stats
             }
         });
     });
@@ -283,6 +291,72 @@ function updateDashboardStats() {
 
     // Check for expiring items
     checkExpiringItems();
+
+    // Show today's meal plan
+    updateTodaysMeals();
+}
+
+function updateTodaysMeals() {
+    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const today = days[new Date().getDay()];
+    const todayMeals = mealPlan[today];
+
+    const container = document.getElementById('today-meal-plan');
+    const content = document.getElementById('today-meals-content');
+
+    if (!todayMeals) {
+        container.style.display = 'none';
+        return;
+    }
+
+    // Check if there are any meals planned for today
+    const hasMeals = ['breakfast', 'lunch', 'dinner'].some(meal => {
+        const mealSlot = todayMeals[meal];
+        if (typeof mealSlot === 'object' && mealSlot !== null) {
+            return (mealSlot.personA && mealSlot.personA.length > 0) ||
+                   (mealSlot.personB && mealSlot.personB.length > 0) ||
+                   (mealSlot.joint && mealSlot.joint.length > 0);
+        }
+        return false;
+    });
+
+    if (!hasMeals) {
+        container.style.display = 'none';
+        return;
+    }
+
+    container.style.display = 'block';
+
+    const mealsHtml = ['breakfast', 'lunch', 'dinner'].map(meal => {
+        const mealSlot = todayMeals[meal];
+        if (!mealSlot || typeof mealSlot !== 'object') return '';
+
+        const allRecipes = [
+            ...(mealSlot.personA || []),
+            ...(mealSlot.personB || []),
+            ...(mealSlot.joint || [])
+        ].filter((id, index, self) => self.indexOf(id) === index); // Unique IDs
+
+        if (allRecipes.length === 0) return '';
+
+        const recipeNames = allRecipes.map(id => {
+            const recipe = recipes.find(r => r.id === id);
+            return recipe ? recipe.name : 'Unknown Recipe';
+        }).join(', ');
+
+        const mealIcon = meal === 'breakfast' ? '🌅' : meal === 'lunch' ? '☀️' : '🌙';
+
+        return `
+            <div style="padding: 12px; background: #f7fafc; border-radius: 8px; margin-bottom: 10px;">
+                <div style="font-weight: 700; color: #667eea; margin-bottom: 5px;">
+                    ${mealIcon} ${meal.charAt(0).toUpperCase() + meal.slice(1)}
+                </div>
+                <div style="color: #4a5568;">${recipeNames}</div>
+            </div>
+        `;
+    }).filter(html => html).join('');
+
+    content.innerHTML = mealsHtml;
 }
 
 function checkExpiringItems() {
@@ -1960,7 +2034,30 @@ function copyShoppingListToClipboard() {
 
 // Meal Plan Section
 function initMealPlan() {
+    // Wire up Clear Meal Plan button
+    const clearBtn = document.getElementById('clear-meal-plan');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', clearMealPlan);
+    }
+
     renderMealPlan();
+}
+
+function clearMealPlan() {
+    if (confirm('Are you sure you want to clear the entire meal plan?')) {
+        const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        days.forEach(day => {
+            mealPlan[day] = {
+                breakfast: { personA: [], personB: [], joint: [] },
+                lunch: { personA: [], personB: [], joint: [] },
+                dinner: { personA: [], personB: [], joint: [] }
+            };
+        });
+        saveToLocalStorage();
+        renderMealPlan();
+        renderIngredients(); // Update ingredient availability
+        showToast('Meal Plan Cleared', 'All meals removed from plan', 'success');
+    }
 }
 
 function renderMealPlan() {
@@ -1995,13 +2092,19 @@ function renderMealPlan() {
         </div>
     `;
 
-    html += days.map(day => `
+    html += days.map(day => {
+        const isExpanded = expandedMealDays.has(day);
+        const displayStyle = isExpanded ? 'block' : 'none';
+        const iconText = isExpanded ? '▲' : '▼';
+        const iconRotation = isExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
+
+        return `
         <div class="meal-day" id="meal-day-${day}">
             <h3 onclick="toggleMealDay('${day}')" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none;">
                 <span>${day.charAt(0).toUpperCase() + day.slice(1)}</span>
-                <span class="collapse-icon" id="collapse-icon-${day}" style="font-size: 20px; transition: transform 0.3s;">▼</span>
+                <span class="collapse-icon" id="collapse-icon-${day}" style="font-size: 20px; transition: transform 0.3s; transform: ${iconRotation};">${iconText}</span>
             </h3>
-            <div class="meal-slots" id="meal-slots-${day}" style="display: none;">
+            <div class="meal-slots" id="meal-slots-${day}" style="display: ${displayStyle};">
                 ${meals.map(meal => {
                     const mealSlot = mealPlan[day][meal];
 
@@ -2067,16 +2170,24 @@ function renderMealPlan() {
                 }).join('')}
             </div>
         </div>
-    `).join('');
+        `;
+    }).join('');
 
     mealPlanGrid.innerHTML = html;
 }
 
 function toggleMealDay(day) {
+    if (expandedMealDays.has(day)) {
+        expandedMealDays.delete(day);
+    } else {
+        expandedMealDays.add(day);
+    }
+
+    // Update UI immediately
     const slotsElement = document.getElementById(`meal-slots-${day}`);
     const iconElement = document.getElementById(`collapse-icon-${day}`);
 
-    if (slotsElement.style.display === 'none') {
+    if (expandedMealDays.has(day)) {
         slotsElement.style.display = 'block';
         iconElement.style.transform = 'rotate(180deg)';
         iconElement.textContent = '▲';
@@ -2089,28 +2200,13 @@ function toggleMealDay(day) {
 
 function expandAllMealDays() {
     const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-    days.forEach(day => {
-        const slotsElement = document.getElementById(`meal-slots-${day}`);
-        const iconElement = document.getElementById(`collapse-icon-${day}`);
-        if (slotsElement && iconElement) {
-            slotsElement.style.display = 'block';
-            iconElement.style.transform = 'rotate(180deg)';
-            iconElement.textContent = '▲';
-        }
-    });
+    days.forEach(day => expandedMealDays.add(day));
+    renderMealPlan();
 }
 
 function collapseAllMealDays() {
-    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-    days.forEach(day => {
-        const slotsElement = document.getElementById(`meal-slots-${day}`);
-        const iconElement = document.getElementById(`collapse-icon-${day}`);
-        if (slotsElement && iconElement) {
-            slotsElement.style.display = 'none';
-            iconElement.style.transform = 'rotate(0deg)';
-            iconElement.textContent = '▼';
-        }
-    });
+    expandedMealDays.clear();
+    renderMealPlan();
 }
 
 function addRecipeToMeal(day, meal, person, recipeId) {
