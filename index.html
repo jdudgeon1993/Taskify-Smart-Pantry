@@ -183,6 +183,7 @@
                         <button class="filter-btn active" data-filter="all">All</button>
                         <button class="filter-btn" data-filter="ready">Ready to Cook</button>
                         <button class="filter-btn" data-filter="missing">Missing Items</button>
+                        <button class="filter-btn" data-filter="favorites">⭐ Favorites</button>
                     </div>
                 </div>
                 <div class="filter-group">
@@ -268,6 +269,7 @@
             <div class="shopping-actions hidden" id="shopping-actions-container">
                 <button id="auto-generate-list-btn">📋 Auto-Generate from Recipes</button>
                 <button id="generate-from-meal-plan-btn">📅 Generate from Meal Plan</button>
+                <button id="print-shopping-list-btn">🖨️ Print List</button>
                 <button id="clear-shopping-list-btn">🗑️ Clear List</button>
             </div>
 
@@ -324,10 +326,16 @@
         <section id="meal-plan" class="section">
             <div class="section-header">
                 <h2>Weekly Meal Plan</h2>
-                <button class="secondary-action-btn" id="clear-meal-plan">
-                    <span>🗑️</span>
-                    Clear Plan
-                </button>
+                <div style="display: flex; gap: 10px;">
+                    <button class="primary-action-btn" id="duplicate-week-btn" style="font-size: 0.9em;">
+                        <span>📋</span>
+                        Duplicate Week
+                    </button>
+                    <button class="secondary-action-btn" id="clear-meal-plan">
+                        <span>🗑️</span>
+                        Clear Plan
+                    </button>
+                </div>
             </div>
 
             <div id="meal-plan-grid" class="meal-plan-grid">

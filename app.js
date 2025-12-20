@@ -958,6 +958,36 @@ function deleteRecipe(id) {
     }
 }
 
+function toggleFavorite(id) {
+    const recipe = recipes.find(r => r.id === id);
+    if (!recipe) return;
+
+    recipe.favorite = !recipe.favorite;
+    saveToLocalStorage();
+    renderRecipes();
+
+    const message = recipe.favorite ? `${recipe.name} added to favorites!` : `${recipe.name} removed from favorites`;
+    showToast(recipe.favorite ? 'Added to Favorites' : 'Removed from Favorites', message, 'success');
+}
+
+function scaleRecipe(recipeId, multiplier) {
+    const scale = parseFloat(multiplier);
+    const ingredientsList = document.getElementById(`ingredients-list-${recipeId}`);
+    if (!ingredientsList) return;
+
+    const items = ingredientsList.querySelectorAll('li');
+    items.forEach(item => {
+        const baseQty = parseFloat(item.getAttribute('data-base-qty'));
+        const qtyDisplay = item.querySelector('.qty-display');
+        if (qtyDisplay && !isNaN(baseQty)) {
+            const scaledQty = (baseQty * scale).toFixed(2);
+            // Remove trailing zeros and decimal point if whole number
+            const formatted = parseFloat(scaledQty).toString();
+            qtyDisplay.textContent = formatted;
+        }
+    });
+}
+
 function cookRecipe(id) {
     const recipe = recipes.find(r => r.id === id);
     if (!recipe) return;
@@ -1180,6 +1210,8 @@ function renderRecipes() {
         filteredRecipes = filteredRecipes.filter(recipe => checkRecipeStatus(recipe).isReady);
     } else if (currentRecipeFilter === 'missing') {
         filteredRecipes = filteredRecipes.filter(recipe => !checkRecipeStatus(recipe).isReady);
+    } else if (currentRecipeFilter === 'favorites') {
+        filteredRecipes = filteredRecipes.filter(recipe => recipe.favorite === true);
     }
 
     // Filter by category
@@ -1244,18 +1276,30 @@ function renderRecipes() {
 
         return `
             <div class="recipe-card ${statusClass}">
+                <button onclick="toggleFavorite(${recipe.id})" style="position: absolute; top: 10px; right: 10px; background: ${recipe.favorite ? '#fbbf24' : 'rgba(255,255,255,0.9)'}; border: 2px solid #fbbf24; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; z-index: 10; transition: all 0.2s;" title="${recipe.favorite ? 'Remove from favorites' : 'Add to favorites'}">
+                    ${recipe.favorite ? '⭐' : '☆'}
+                </button>
                 ${recipe.image ? `<img src="${recipe.image}" alt="${recipe.name}" class="recipe-image" onerror="this.style.display='none'">` : ''}
                 ${recipe.category ? `<span class="recipe-category-badge">${recipe.category}</span>` : ''}
                 ${showExpiringBadge ? `<span class="recipe-status expiring" style="background: #f59e0b;">🔥 Cook These Soon!</span>` : `<span class="recipe-status ${statusClass}">${statusText}</span>`}
                 <h3>${recipe.name}</h3>
-                <p class="recipe-servings">Serves: ${recipe.servings || 4}</p>
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <p class="recipe-servings" style="margin: 0;">Serves: ${recipe.servings || 4}</p>
+                    <select onchange="scaleRecipe(${recipe.id}, this.value)" style="padding: 4px 8px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 13px;">
+                        <option value="0.5">×0.5</option>
+                        <option value="1" selected>×1</option>
+                        <option value="1.5">×1.5</option>
+                        <option value="2">×2</option>
+                        <option value="3">×3</option>
+                    </select>
+                </div>
 
                 <div class="recipe-ingredients">
                     <h4>Ingredients:</h4>
-                    <ul>
+                    <ul id="ingredients-list-${recipe.id}">
                         ${recipe.ingredients.map(ing => {
                             const hasIt = status.have.some(h => h.name === ing.name);
-                            return `<li class="${hasIt ? 'have' : 'need'}">${ing.quantity} ${ing.unit} ${ing.name}</li>`;
+                            return `<li class="${hasIt ? 'have' : 'need'}" data-base-qty="${ing.quantity}"><span class="qty-display">${ing.quantity}</span> ${ing.unit} ${ing.name}</li>`;
                         }).join('')}
                     </ul>
                 </div>
@@ -1374,6 +1418,11 @@ function initShopping() {
     autoGenerateBtn.addEventListener('click', autoGenerateShoppingList);
     generateFromMealPlanBtn.addEventListener('click', generateFromMealPlan);
     clearListBtn.addEventListener('click', clearShoppingList);
+
+    const printListBtn = document.getElementById('print-shopping-list-btn');
+    if (printListBtn) {
+        printListBtn.addEventListener('click', printShoppingList);
+    }
 
     categoryButtons.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -1682,6 +1731,88 @@ function clearShoppingList() {
         saveToLocalStorage();
         renderShoppingList();
     }
+}
+
+function printShoppingList() {
+    if (shoppingList.length === 0) {
+        showToast('Nothing to Print', 'Shopping list is empty', 'info');
+        return;
+    }
+
+    // Group by category
+    const byCategory = {};
+    shoppingList.forEach(item => {
+        const cat = item.category || 'other';
+        if (!byCategory[cat]) byCategory[cat] = [];
+        byCategory[cat].push(item);
+    });
+
+    // Build print-friendly HTML
+    const categoryLabels = {
+        produce: '🥬 Produce',
+        dairy: '🥛 Dairy',
+        meat: '🥩 Meat/Seafood',
+        pantry: '🥫 Pantry',
+        frozen: '❄️ Frozen',
+        bakery: '🍞 Bakery',
+        other: '📦 Other'
+    };
+
+    let printHTML = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Shopping List - ${new Date().toLocaleDateString()}</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+                h1 { color: #667eea; border-bottom: 3px solid #667eea; padding-bottom: 10px; }
+                h2 { color: #4a5568; margin-top: 25px; font-size: 18px; }
+                ul { list-style: none; padding: 0; }
+                li { padding: 8px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; }
+                .checkbox { width: 20px; height: 20px; border: 2px solid #cbd5e0; margin-right: 15px; display: inline-block; }
+                .item-name { font-weight: 600; flex: 1; }
+                .item-qty { color: #718096; }
+                @media print { body { padding: 10px; } }
+            </style>
+        </head>
+        <body>
+            <h1>🛒 Shopping List</h1>
+            <p style="color: #718096;">Generated on ${new Date().toLocaleString()}</p>
+    `;
+
+    Object.keys(byCategory).sort().forEach(category => {
+        const items = byCategory[category];
+        printHTML += `<h2>${categoryLabels[category] || category}</h2><ul>`;
+        items.forEach(item => {
+            printHTML += `
+                <li>
+                    <span class="checkbox"></span>
+                    <span class="item-name">${item.name}</span>
+                    <span class="item-qty">${item.quantity} ${item.unit}</span>
+                </li>
+            `;
+        });
+        printHTML += '</ul>';
+    });
+
+    printHTML += `
+            <p style="margin-top: 40px; color: #718096; font-size: 14px;">
+                Total items: ${shoppingList.length}
+            </p>
+        </body>
+        </html>
+    `;
+
+    // Open print window
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(printHTML);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+        printWindow.print();
+    }, 250);
+
+    showToast('Print Ready', 'Shopping list opened in new window', 'success');
 }
 
 function renderShoppingList() {
@@ -2040,6 +2171,12 @@ function initMealPlan() {
         clearBtn.addEventListener('click', clearMealPlan);
     }
 
+    // Wire up Duplicate Week button
+    const duplicateBtn = document.getElementById('duplicate-week-btn');
+    if (duplicateBtn) {
+        duplicateBtn.addEventListener('click', duplicateWeek);
+    }
+
     renderMealPlan();
 }
 
@@ -2057,6 +2194,58 @@ function clearMealPlan() {
         renderMealPlan();
         renderIngredients(); // Update ingredient availability
         showToast('Meal Plan Cleared', 'All meals removed from plan', 'success');
+    }
+}
+
+function duplicateWeek() {
+    // Check if there's anything to duplicate
+    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    const hasMeals = days.some(day => {
+        const dayPlan = mealPlan[day];
+        return ['breakfast', 'lunch', 'dinner'].some(meal => {
+            const mealSlot = dayPlan[meal];
+            return (mealSlot.personA && mealSlot.personA.length > 0) ||
+                   (mealSlot.personB && mealSlot.personB.length > 0) ||
+                   (mealSlot.joint && mealSlot.joint.length > 0);
+        });
+    });
+
+    if (!hasMeals) {
+        showToast('Nothing to Duplicate', 'Current meal plan is empty', 'info');
+        return;
+    }
+
+    // Create a deep copy of the current meal plan
+    const mealPlanCopy = JSON.stringify(mealPlan);
+
+    // Store in clipboard-like temporary storage
+    localStorage.setItem('mealPlanClipboard', mealPlanCopy);
+
+    showToast('Week Copied!', 'Use "Paste Week" to apply this plan to a different week', 'success');
+
+    // Show paste option
+    const confirmPaste = confirm('Meal plan copied! Do you want to paste it now to replace the current week?');
+    if (confirmPaste) {
+        pasteWeek();
+    }
+}
+
+function pasteWeek() {
+    const clipboard = localStorage.getItem('mealPlanClipboard');
+    if (!clipboard) {
+        showToast('Nothing to Paste', 'No meal plan has been copied yet', 'info');
+        return;
+    }
+
+    try {
+        const copiedPlan = JSON.parse(clipboard);
+        mealPlan = copiedPlan;
+        saveToLocalStorage();
+        renderMealPlan();
+        renderIngredients();
+        showToast('Week Pasted!', 'Meal plan has been applied', 'success');
+    } catch (e) {
+        showToast('Error', 'Failed to paste meal plan', 'error');
     }
 }
 
