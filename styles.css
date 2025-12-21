@@ -448,6 +448,7 @@ button:active {
 }
 
 .recipe-card {
+    position: relative;
     background: white;
     border-radius: 16px;
     padding: 25px;
