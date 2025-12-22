@@ -162,17 +162,10 @@ function updateDateTime() {
 
     // Update greeting based on time
     let greeting = 'Good Morning';
-    let message = 'Time for breakfast!';
+    if (hours >= 12 && hours < 17) greeting = 'Good Afternoon';
+    else if (hours >= 17) greeting = 'Good Evening';
 
-    if (hours >= 12 && hours < 17) {
-        greeting = 'Good Afternoon';
-        message = 'What\'s for lunch?';
-    } else if (hours >= 17) {
-        greeting = 'Good Evening';
-        message = 'Time to prep dinner!';
-    }
-
-    document.getElementById('greeting-message').textContent = `${greeting} • ${message}`;
+    document.getElementById('greeting-message').textContent = `${greeting} • Have a great ${dayName.toLowerCase() === 'saturday' || dayName.toLowerCase() === 'sunday' ? 'weekend' : 'workday'}`;
 }
 
 // ========================================
