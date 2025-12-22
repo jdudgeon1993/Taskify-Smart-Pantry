@@ -3,144 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Taskify || Smart Pantry</title>
+    <title>Smart Pantry - Your Kitchen Companion</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <div class="header-top">
-                <div>
-                    <h1>Taskify <span class="app-divider">||</span> Smart Pantry</h1>
-                    <p class="subtitle" id="current-datetime">Loading...</p>
-                    <p class="greeting" id="greeting-message">Good Morning • Have a great day</p>
-                </div>
-                <div class="header-actions-top">
-                    <button class="theme-toggle-btn" id="theme-toggle" title="Toggle theme">🌙</button>
-                    <button class="settings-btn" id="quick-settings" onclick="document.querySelector('[data-section=settings]').click()" title="Settings">⚙️</button>
-                </div>
-            </div>
+            <h1>🍳 Smart Pantry</h1>
+            <p class="subtitle">Manage your kitchen, plan your meals</p>
         </header>
 
-        <!-- Dashboard Section -->
-        <section id="dashboard" class="section active">
-            <div class="dashboard-welcome">
-                <h2>Welcome to Taskify</h2>
-                <p class="dashboard-subtitle">Your kitchen organization hub</p>
-            </div>
-
-            <!-- Expiring Items Alert -->
-            <div id="expiring-alert" class="dashboard-alert" style="display: none;">
-                <div class="dashboard-alert-icon">⚠️</div>
-                <div class="dashboard-alert-content">
-                    <h3>Items Expiring Soon!</h3>
-                    <p id="expiring-alert-text"></p>
-                </div>
-            </div>
-
-            <!-- Today's Meal Plan -->
-            <div id="today-meal-plan" class="today-meals-section" style="display: none;">
-                <h3 style="margin-bottom: 15px; color: #e0e0e0; font-size: 1.3em;">🍽️ Today's Meals</h3>
-                <div id="today-meals-content"></div>
-            </div>
-
-            <div class="dashboard-grid">
-                <div class="dashboard-card" data-navigate="ingredients">
-                    <div class="card-icon">🥫</div>
-                    <h3>Pantry</h3>
-                    <p class="card-stat" id="dashboard-ingredients-count">0 items</p>
-                    <p class="card-description">Manage your ingredients</p>
-                </div>
-
-                <div class="dashboard-card" data-navigate="recipes">
-                    <div class="card-icon">📖</div>
-                    <h3>Recipes</h3>
-                    <p class="card-stat" id="dashboard-recipes-count">0 recipes</p>
-                    <p class="card-description">Browse and cook</p>
-                </div>
-
-                <div class="dashboard-card" data-navigate="shopping">
-                    <div class="card-icon">🛒</div>
-                    <h3>Shopping List</h3>
-                    <p class="card-stat" id="dashboard-shopping-count">0 items</p>
-                    <p class="card-description">What you need to buy</p>
-                </div>
-
-                <div class="dashboard-card" data-navigate="meal-plan">
-                    <div class="card-icon">📅</div>
-                    <h3>Meal Plan</h3>
-                    <p class="card-stat" id="dashboard-meals-count">Plan your week</p>
-                    <p class="card-description">Weekly planning</p>
-                </div>
-            </div>
-
-            <div class="quick-actions">
-                <h3>Quick Actions</h3>
-                <div class="quick-action-buttons">
-                    <button class="quick-action-btn" onclick="navigateToSection('ingredients')">
-                        <span class="action-icon">➕</span>
-                        Add Ingredient
-                    </button>
-                    <button class="quick-action-btn" onclick="navigateToSection('recipes')">
-                        <span class="action-icon">🍳</span>
-                        Browse Recipes
-                    </button>
-                    <button class="quick-action-btn" onclick="navigateToSection('shopping')">
-                        <span class="action-icon">📝</span>
-                        View Shopping List
-                    </button>
-                </div>
-            </div>
-        </section>
+        <nav class="main-nav">
+            <button class="nav-btn active" data-section="ingredients">Ingredients</button>
+            <button class="nav-btn" data-section="recipes">Recipes</button>
+            <button class="nav-btn" data-section="shopping">Shopping List</button>
+            <button class="nav-btn" data-section="meal-plan">Meal Plan</button>
+        </nav>
 
         <!-- Ingredients Section -->
-        <section id="ingredients" class="section">
-            <div class="section-header">
-                <h2>My Pantry</h2>
-                <button class="primary-action-btn" id="toggle-add-ingredient">
-                    <span class="action-icon">➕</span>
-                    Add Ingredient
-                </button>
-            </div>
-
-            <div class="add-ingredient-form hidden" id="add-ingredient-form-container">
-                <div class="form-card">
-                    <h3>Add New Ingredient</h3>
-                    <div class="form-group">
-                        <label>Ingredient Name</label>
-                        <input type="text" id="ingredient-name" placeholder="e.g., Flour, Milk, Tomatoes" list="ingredient-names-list" />
-                        <datalist id="ingredient-names-list"></datalist>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Quantity</label>
-                            <input type="number" id="ingredient-quantity" placeholder="1" min="0.1" step="0.1" value="1" />
-                        </div>
-                        <div class="form-group">
-                            <label>Unit</label>
-                            <input type="text" id="ingredient-unit" placeholder="cups, lbs, etc." list="units-list" />
-                            <datalist id="units-list"></datalist>
-                        </div>
-                        <div class="form-group">
-                            <label>Expiration (optional)</label>
-                            <input type="date" id="ingredient-expiration" />
-                        </div>
-                    </div>
-                    <div class="form-actions">
-                        <button id="add-ingredient-btn" class="primary-btn">Save Ingredient</button>
-                        <button id="cancel-add-ingredient" class="secondary-btn">Cancel</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="ingredient-search-bar">
-                <input type="text" id="ingredient-search" placeholder="Search ingredients..." />
-            </div>
+        <section id="ingredients" class="section active">
+            <h2>My Ingredients</h2>
 
             <div class="location-tabs">
-                <button class="location-btn active" data-location="pantry">🥫 Pantry</button>
-                <button class="location-btn" data-location="fridge">🧊 Fridge</button>
-                <button class="location-btn" data-location="freezer">❄️ Freezer</button>
+                <button class="location-btn active" data-location="pantry">Pantry</button>
+                <button class="location-btn" data-location="fridge">Fridge</button>
+                <button class="location-btn" data-location="freezer">Freezer</button>
+            </div>
+
+            <div class="add-ingredient-form">
+                <input type="text" id="ingredient-name" placeholder="Ingredient name" />
+                <input type="number" id="ingredient-quantity" placeholder="Quantity" min="1" value="1" />
+                <input type="text" id="ingredient-unit" placeholder="Unit (e.g., cups, lbs)" />
+                <button id="add-ingredient-btn">Add Ingredient</button>
             </div>
 
             <div class="ingredient-lists">
@@ -161,41 +55,14 @@
 
         <!-- Recipes Section -->
         <section id="recipes" class="section">
-            <div class="section-header">
-                <h2>My Recipes</h2>
-                <button class="primary-action-btn" id="add-recipe-btn">
-                    <span class="action-icon">➕</span>
-                    Add Recipe
-                </button>
-            </div>
+            <h2>My Recipes</h2>
 
-            <div class="recipe-search-container">
-                <input type="text" id="recipe-search" placeholder="🔍 Search recipes..." />
-                <button class="filter-toggle-btn" id="toggle-filters">
-                    <span>⚙️ Filters</span>
-                </button>
-            </div>
-
-            <div class="filters-container hidden" id="filters-container">
-                <div class="filter-group">
-                    <label>Status</label>
-                    <div class="recipe-filters">
-                        <button class="filter-btn active" data-filter="all">All</button>
-                        <button class="filter-btn" data-filter="ready">Ready to Cook</button>
-                        <button class="filter-btn" data-filter="missing">Missing Items</button>
-                        <button class="filter-btn" data-filter="favorites">⭐ Favorites</button>
-                    </div>
-                </div>
-                <div class="filter-group">
-                    <label>Category</label>
-                    <div class="category-filter-container">
-                        <button class="category-filter-btn active" data-category="all">All</button>
-                        <button class="category-filter-btn" data-category="breakfast">Breakfast</button>
-                        <button class="category-filter-btn" data-category="lunch">Lunch</button>
-                        <button class="category-filter-btn" data-category="dinner">Dinner</button>
-                        <button class="category-filter-btn" data-category="dessert">Dessert</button>
-                        <button class="category-filter-btn" data-category="snack">Snack</button>
-                    </div>
+            <div class="recipe-controls">
+                <button id="add-recipe-btn">Add New Recipe</button>
+                <div class="recipe-filters">
+                    <button class="filter-btn active" data-filter="all">All Recipes</button>
+                    <button class="filter-btn" data-filter="ready">Ready to Cook</button>
+                    <button class="filter-btn" data-filter="missing">Need Ingredients</button>
                 </div>
             </div>
 
@@ -203,28 +70,8 @@
             <div id="add-recipe-form" class="modal hidden">
                 <div class="modal-content">
                     <span class="close-modal">&times;</span>
-                    <h3 id="recipe-modal-title">Add New Recipe</h3>
+                    <h3>Add New Recipe</h3>
                     <input type="text" id="recipe-name" placeholder="Recipe name" />
-
-                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                        <div style="flex: 1;">
-                            <label style="display: block; margin-bottom: 5px; font-weight: 600;">Servings:</label>
-                            <input type="number" id="recipe-servings" placeholder="Servings" min="1" value="4" style="width: 100%;" />
-                        </div>
-                        <div style="flex: 1;">
-                            <label style="display: block; margin-bottom: 5px; font-weight: 600;">Category:</label>
-                            <select id="recipe-category" style="width: 100%; padding: 12px; border: 2px solid #333; border-radius: 8px;">
-                                <option value="">Select category</option>
-                                <option value="breakfast">Breakfast</option>
-                                <option value="lunch">Lunch</option>
-                                <option value="dinner">Dinner</option>
-                                <option value="dessert">Dessert</option>
-                                <option value="snack">Snack</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <input type="text" id="recipe-image" placeholder="Image URL (optional)" />
                     <textarea id="recipe-instructions" placeholder="Instructions (optional)" rows="4"></textarea>
 
                     <div class="recipe-ingredients-input">
@@ -244,212 +91,36 @@
                 </div>
             </div>
 
-            <!-- Smart Meal Suggestions Banner -->
-            <div id="meal-suggestions" class="meal-suggestions" style="display: none;"></div>
-
             <div id="recipe-list" class="recipe-grid"></div>
         </section>
 
         <!-- Shopping List Section -->
         <section id="shopping" class="section">
-            <div class="section-header">
-                <h2>Shopping List</h2>
-                <div class="header-actions">
-                    <button class="primary-action-btn" id="toggle-add-shopping">
-                        <span class="action-icon">➕</span>
-                        Add Item
-                    </button>
-                    <button class="secondary-action-btn" id="toggle-shopping-actions">
-                        <span>⚡</span>
-                        Quick Actions
-                    </button>
-                </div>
+            <h2>Shopping List</h2>
+
+            <div class="shopping-actions">
+                <button id="auto-generate-list-btn">Auto-Generate from Recipes</button>
+                <button id="clear-shopping-list-btn">Clear List</button>
             </div>
 
-            <div class="shopping-actions hidden" id="shopping-actions-container">
-                <button id="auto-generate-list-btn">📋 Auto-Generate from Recipes</button>
-                <button id="generate-from-meal-plan-btn">📅 Generate from Meal Plan</button>
-                <button id="print-shopping-list-btn">🖨️ Print List</button>
-                <button id="clear-shopping-list-btn">🗑️ Clear List</button>
+            <div class="add-shopping-item">
+                <input type="text" id="shopping-item-name" placeholder="Item name" />
+                <input type="number" id="shopping-item-qty" placeholder="Qty" min="1" value="1" />
+                <input type="text" id="shopping-item-unit" placeholder="Unit" />
+                <button id="add-shopping-item-btn">Add to List</button>
             </div>
 
-            <div class="add-shopping-item hidden" id="add-shopping-form-container">
-                <div class="form-card">
-                    <h3>Add Shopping Item</h3>
-                    <div class="form-group">
-                        <label>Item Name</label>
-                        <input type="text" id="shopping-item-name" placeholder="e.g., Milk, Bread" />
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Quantity</label>
-                            <input type="number" id="shopping-item-qty" placeholder="1" min="0.1" step="0.1" value="1" />
-                        </div>
-                        <div class="form-group">
-                            <label>Unit</label>
-                            <input type="text" id="shopping-item-unit" placeholder="lbs, pcs" />
-                        </div>
-                        <div class="form-group">
-                            <label>Category</label>
-                            <select id="shopping-item-category">
-                                <option value="produce">Produce</option>
-                                <option value="dairy">Dairy</option>
-                                <option value="meat">Meat/Seafood</option>
-                                <option value="pantry">Pantry</option>
-                                <option value="frozen">Frozen</option>
-                                <option value="bakery">Bakery</option>
-                                <option value="other">Other</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-actions">
-                        <button id="add-shopping-item-btn" class="primary-btn">Add to List</button>
-                        <button id="cancel-add-shopping" class="secondary-btn">Cancel</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="shopping-category-filter">
-                <button class="shop-cat-btn active" data-shop-category="all">All</button>
-                <button class="shop-cat-btn" data-shop-category="produce">🥬 Produce</button>
-                <button class="shop-cat-btn" data-shop-category="dairy">🥛 Dairy</button>
-                <button class="shop-cat-btn" data-shop-category="meat">🥩 Meat</button>
-                <button class="shop-cat-btn" data-shop-category="pantry">🥫 Pantry</button>
-                <button class="shop-cat-btn" data-shop-category="frozen">❄️ Frozen</button>
-                <button class="shop-cat-btn" data-shop-category="bakery">🍞 Bakery</button>
-            </div>
-
-            <div id="shopping-list-by-category"></div>
+            <ul id="shopping-list-items"></ul>
         </section>
 
         <!-- Meal Plan Section -->
         <section id="meal-plan" class="section">
-            <div class="section-header">
-                <h2>Weekly Meal Plan</h2>
-                <div style="display: flex; gap: 10px;">
-                    <button class="primary-action-btn" id="duplicate-week-btn" style="font-size: 0.9em;">
-                        <span>📋</span>
-                        Duplicate Week
-                    </button>
-                    <button class="secondary-action-btn" id="clear-meal-plan">
-                        <span>🗑️</span>
-                        Clear Plan
-                    </button>
-                </div>
-            </div>
+            <h2>Weekly Meal Plan</h2>
 
             <div id="meal-plan-grid" class="meal-plan-grid">
                 <!-- Days will be generated dynamically -->
             </div>
         </section>
-
-        <!-- Settings Section -->
-        <section id="settings" class="section">
-            <h2>Settings & Data Management</h2>
-
-            <div class="settings-card">
-                <h3>☁️ Cloud Sync</h3>
-                <p style="color: #6c757d; margin-bottom: 15px;">
-                    Sync your data across all devices with a secure token. Your token works like a password - keep it safe!
-                </p>
-
-                <div id="logged-out-state" style="display: none;">
-                    <button id="register-btn" style="background: #48bb78;">
-                        🎫 Generate New Token
-                    </button>
-                    <div style="margin-top: 20px;">
-                        <p style="color: #6c757d; margin-bottom: 10px;">Already have a token?</p>
-                        <input type="text" id="login-token-input"
-                               placeholder="Enter your token (e.g., KITCH-ABC123)"
-                               style="width: 100%; margin-bottom: 10px; text-transform: uppercase;" />
-                        <button id="login-btn" style="background: #667eea;">
-                            🔐 Login with Token
-                        </button>
-                    </div>
-                </div>
-
-                <div id="logged-in-state" style="display: none;">
-                    <div style="background: #1a2a1a; padding: 15px; border-radius: 8px;
-                                border-left: 4px solid #48bb78; margin-bottom: 15px;">
-                        <strong style="display: block; margin-bottom: 8px;">Your Sync Token:</strong>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span id="display-token" style="color: #667eea; font-family: 'Courier New', monospace;
-                                                           font-size: 1.2em; font-weight: 700;"></span>
-                            <button onclick="copyToken()" style="padding: 6px 12px; font-size: 0.85em; background: #667eea;">
-                                📋 Copy
-                            </button>
-                        </div>
-                    </div>
-                    <p style="color: #6c757d; font-size: 0.9em; margin-bottom: 15px;">
-                        💡 Save this token to access your data from any device. Data syncs automatically when online.
-                    </p>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <button id="sync-now-btn" style="background: #667eea;">
-                            🔄 Sync Now
-                        </button>
-                        <button id="logout-btn" style="background: #e53e3e;">
-                            🚪 Logout
-                        </button>
-                    </div>
-                    <div id="sync-status" style="margin-top: 10px; padding: 10px; background: #1a1a1a;
-                                                  border-radius: 6px; font-size: 0.9em; color: #6c757d;">
-                        Last synced: Never
-                    </div>
-                </div>
-            </div>
-
-            <div class="settings-card">
-                <h3>💾 Data Backup & Restore</h3>
-                <p style="color: #6c757d; margin-bottom: 15px;">Export your data for backup or import from a previous backup.</p>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <button id="export-data-btn" style="background: #48bb78;">Export All Data</button>
-                    <label for="import-data-file" style="cursor: pointer; display: inline-block;">
-                        <button type="button" id="import-trigger-btn" style="background: #667eea;">Import Data</button>
-                        <input type="file" id="import-data-file" accept=".json" style="display: none;" />
-                    </label>
-                    <button id="clear-all-data-btn" style="background: #e53e3e;">Clear All Data</button>
-                </div>
-            </div>
-
-            <div class="settings-card">
-                <h3>Statistics</h3>
-                <div id="stats-display" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
-                    <!-- Stats will be populated here -->
-                </div>
-            </div>
-
-            <div class="settings-card">
-                <h3>About Taskify || Smart Pantry</h3>
-                <p style="color: #6c757d;">Version 2.5 - Cloud Sync Edition</p>
-                <p style="color: #6c757d; margin-top: 10px;">Your complete kitchen organization system. Track ingredients, plan meals, generate shopping lists, and stay on top of your weekly cooking schedule!</p>
-            </div>
-        </section>
-
-        <!-- Bottom Navigation -->
-        <nav class="main-nav">
-            <button class="nav-btn active" data-section="dashboard" data-icon="🏠">Home</button>
-            <button class="nav-btn" data-section="ingredients" data-icon="🥫">Pantry</button>
-            <button class="nav-btn" data-section="recipes" data-icon="📖">Recipes</button>
-            <button class="nav-btn" data-section="shopping" data-icon="🛒">Shopping</button>
-            <button class="nav-btn" data-section="meal-plan" data-icon="📅">Plan</button>
-            <button class="nav-btn" data-section="settings" data-icon="⚙️">Settings</button>
-        </nav>
-    </div>
-
-    <!-- Toast Notification Container -->
-    <div id="toast-container" class="toast-container"></div>
-
-    <!-- Edit Ingredient Modal -->
-    <div id="edit-ingredient-modal" class="modal hidden">
-        <div class="modal-content" style="max-width: 400px;">
-            <span class="close-edit-ingredient">&times;</span>
-            <h3>Edit Ingredient</h3>
-            <input type="text" id="edit-ing-name" placeholder="Ingredient name" />
-            <input type="number" id="edit-ing-quantity" placeholder="Quantity" min="0.1" step="0.1" />
-            <input type="text" id="edit-ing-unit" placeholder="Unit" />
-            <input type="date" id="edit-ing-expiration" placeholder="Expiration (optional)" />
-            <button id="save-ingredient-edit-btn">Save Changes</button>
-        </div>
     </div>
 
     <script src="app.js"></script>
