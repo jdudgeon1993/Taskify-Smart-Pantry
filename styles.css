@@ -11,7 +11,7 @@ body {
     padding: 0;
     line-height: 1.6;
     color: #ffffff;
-    padding-bottom: 80px; /* Space for bottom nav */
+    padding-bottom: 65px; /* Reduced space for smaller bottom nav */
 }
 
 .container {
@@ -33,6 +33,38 @@ header {
     color: white;
     padding: 30px 20px 20px 20px;
     text-align: left;
+}
+
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.header-actions-top {
+    display: flex;
+    gap: 10px;
+}
+
+.theme-toggle-btn,
+.settings-btn {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.2em;
+    transition: all 0.3s;
+}
+
+.theme-toggle-btn:hover,
+.settings-btn:hover {
+    background: #2a2a2a;
+    border-color: #444;
 }
 
 header h1 {
@@ -74,7 +106,7 @@ header h1 {
     display: flex;
     background: #1a1a1a;
     border-top: 1px solid #333;
-    padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+    padding: 4px 0 calc(4px + env(safe-area-inset-bottom));
     z-index: 1000;
     justify-content: space-around;
 }
@@ -84,15 +116,15 @@ header h1 {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 8px 12px;
+    padding: 6px 8px;
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 0.75em;
+    font-size: 0.7em;
     font-weight: 500;
     color: #888;
     transition: all 0.3s;
-    gap: 4px;
+    gap: 2px;
 }
 
 .nav-btn:hover {
@@ -105,7 +137,7 @@ header h1 {
 
 .nav-btn::before {
     content: attr(data-icon);
-    font-size: 1.8em;
+    font-size: 1.6em;
     display: block;
 }
 
@@ -293,7 +325,7 @@ button:active {
 
 .ingredient-list li,
 #shopping-list-items li {
-    background: white;
+    background: #1a1a1a;
     padding: 20px;
     margin-bottom: 0;
     border-radius: 12px;
@@ -362,7 +394,7 @@ button:active {
     display: flex;
     gap: 15px;
     padding: 12px;
-    background: #f8f9fa;
+    background: #1a1a1a;
     border-radius: 8px;
     flex-wrap: wrap;
 }
@@ -403,7 +435,7 @@ button:active {
     padding: 8px;
     border-radius: 10px;
     border: 2px solid #e9ecef;
-    background: white;
+    background: #1a1a1a;
     font-size: 1.3em;
     cursor: pointer;
     transition: all 0.2s;
@@ -479,7 +511,7 @@ button:active {
 
 .filter-btn {
     padding: 8px 16px;
-    background: white;
+    background: #1a1a1a;
     color: #667eea;
     border: 2px solid #667eea;
     font-size: 0.9em;
@@ -559,7 +591,7 @@ button:active {
 .recipe-ingredients {
     margin: 20px 0;
     padding: 15px;
-    background: #f8f9fa;
+    background: #1a1a1a;
     border-radius: 10px;
 }
 
@@ -600,7 +632,7 @@ button:active {
 .missing-ingredients {
     margin-top: 10px;
     padding: 10px;
-    background: #fff5f5;
+    background: #2a1a1a;
     border-radius: 6px;
     border-left: 4px solid #e53e3e;
 }
@@ -650,7 +682,7 @@ button:active {
 }
 
 .edit-recipe-btn {
-    background: white;
+    background: #1a1a1a;
     color: #667eea;
     border: 2px solid #667eea;
 }
@@ -661,7 +693,7 @@ button:active {
 }
 
 .delete-recipe-btn {
-    background: white;
+    background: #1a1a1a;
     color: #e53e3e;
     border: 2px solid #e53e3e;
 }
@@ -822,7 +854,7 @@ button:active {
 }
 
 .meal-day {
-    background: white;
+    background: #1a1a1a;
     padding: 25px;
     border-radius: 16px;
     border: 2px solid #e9ecef;
@@ -850,7 +882,7 @@ button:active {
 }
 
 .meal-slot {
-    background: #f8f9fa;
+    background: #1a1a1a;
     padding: 18px;
     border-radius: 12px;
     border: 2px solid #e9ecef;
@@ -882,7 +914,7 @@ button:active {
     border: 2px solid #e9ecef;
     border-radius: 8px;
     font-size: 0.95em;
-    background: white;
+    background: #1a1a1a;
     cursor: pointer;
     font-weight: 500;
     transition: all 0.3s;
@@ -906,7 +938,7 @@ button:active {
 }
 
 .remove-meal-btn {
-    background: white;
+    background: #1a1a1a;
     color: #e53e3e;
     border: 2px solid #e53e3e;
     padding: 8px 16px;
@@ -1018,7 +1050,7 @@ button:active {
 .category-filter-btn,
 .shop-cat-btn {
     padding: 10px 20px;
-    background: white;
+    background: #1a1a1a;
     color: #667eea;
     border: 2px solid #e9ecef;
     border-radius: 25px;
@@ -1086,7 +1118,7 @@ button:active {
     gap: 10px;
     margin: 10px 0;
     padding: 10px;
-    background: #f8f9fa;
+    background: #1a1a1a;
     border-radius: 8px;
 }
 
@@ -1097,7 +1129,7 @@ button:active {
 
 /* Ingredient Expiration Warnings */
 .ingredient-expiring-soon {
-    background: #fff3cd !important;
+    background: #3a3020 !important;
     border-left: 5px solid #ffc107 !important;
 }
 
@@ -1264,7 +1296,7 @@ button:active {
 }
 
 .meal-suggestions button:hover {
-    background: white;
+    background: #1a1a1a;
     color: #48bb78;
 }
 
@@ -1346,7 +1378,7 @@ button:active {
 
 /* Quick Actions */
 .quick-actions {
-    background: #f8f9fa;
+    background: #1a1a1a;
     padding: 30px;
     border-radius: 16px;
     margin-top: 30px;
@@ -1367,7 +1399,7 @@ button:active {
 }
 
 .quick-action-btn {
-    background: white;
+    background: #1a1a1a;
     color: #667eea;
     border: 2px solid #667eea;
     padding: 15px 30px;
@@ -1502,14 +1534,14 @@ button:active {
 }
 
 .secondary-btn {
-    background: white;
+    background: #1a1a1a;
     color: #6c757d;
     border: 2px solid #e9ecef;
     flex: 1;
 }
 
 .secondary-btn:hover {
-    background: #e9ecef;
+    background: #222;
     color: #495057;
     transform: none;
     box-shadow: none;
@@ -1523,7 +1555,7 @@ button:active {
 }
 
 .filter-toggle-btn {
-    background: white;
+    background: #1a1a1a;
     color: #667eea;
     border: 2px solid #667eea;
     padding: 12px 24px;
@@ -1540,7 +1572,7 @@ button:active {
 }
 
 .filters-container {
-    background: #f8f9fa;
+    background: #1a1a1a;
     padding: 25px;
     border-radius: 12px;
     margin-bottom: 25px;
@@ -1565,7 +1597,7 @@ button:active {
 
 /* Shopping Actions */
 .shopping-actions {
-    background: #f8f9fa;
+    background: #1a1a1a;
     padding: 20px;
     border-radius: 12px;
     margin-bottom: 25px;
@@ -1690,7 +1722,7 @@ button:active {
 }
 
 .toast {
-    background: white;
+    background: #1a1a1a;
     padding: 16px 20px;
     border-radius: 12px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
@@ -1844,7 +1876,7 @@ button:active {
     height: 32px;
     border-radius: 8px;
     border: 2px solid #e9ecef;
-    background: white;
+    background: #1a1a1a;
     color: #667eea;
     font-size: 1.2em;
     font-weight: 700;
@@ -1939,7 +1971,7 @@ textarea:focus-visible {
 .person-meal {
     margin: 8px 0;
     padding: 8px;
-    background: #f8f9fa;
+    background: #1a1a1a;
     border-radius: 6px;
     border-left: 3px solid #e9ecef;
 }
@@ -1996,7 +2028,7 @@ textarea:focus-visible {
     padding: 8px;
     border: 2px solid #e9ecef;
     border-radius: 8px;
-    background: white;
+    background: #1a1a1a;
     font-size: 0.9em;
 }
 
