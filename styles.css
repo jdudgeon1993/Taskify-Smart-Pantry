@@ -311,12 +311,12 @@ button:active {
 }
 
 .ingredient-list h3 {
-    color: #4a5568;
+    color: #b0b0b0;
     margin-bottom: 20px;
     font-size: 1.1em;
     font-weight: 600;
     padding-bottom: 10px;
-    border-bottom: 2px solid #e9ecef;
+    border-bottom: 2px solid #333;
 }
 
 .ingredient-list ul,
@@ -336,7 +336,7 @@ button:active {
     justify-content: space-between;
     align-items: flex-start;
     transition: all 0.3s;
-    border: 2px solid #e9ecef;
+    border: 2px solid #333;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     gap: 15px;
 }
@@ -365,7 +365,7 @@ button:active {
 
 .ingredient-name {
     font-weight: 700;
-    color: #2d3748;
+    color: #e0e0e0;
     font-size: 1.2em;
     flex: 1;
 }
@@ -419,7 +419,7 @@ button:active {
 .availability-value {
     font-size: 1em;
     font-weight: 600;
-    color: #2d3748;
+    color: #e0e0e0;
 }
 
 .reserved-info .availability-value {
@@ -437,7 +437,7 @@ button:active {
     height: 44px;
     padding: 8px;
     border-radius: 10px;
-    border: 2px solid #e9ecef;
+    border: 2px solid #333;
     background: #1a1a1a;
     font-size: 1.3em;
     cursor: pointer;
@@ -469,14 +469,14 @@ button:active {
 
 .shopping-item-name {
     font-weight: 600;
-    color: #2d3748;
+    color: #e0e0e0;
     font-size: 1.05em;
 }
 
 .shopping-item-quantity {
     color: #667eea;
     font-weight: 600;
-    background: #f0f4ff;
+    background: #252530;
     padding: 4px 12px;
     border-radius: 6px;
     font-size: 0.95em;
@@ -599,7 +599,7 @@ button:active {
 }
 
 .recipe-ingredients h4 {
-    color: #2d3748;
+    color: #e0e0e0;
     margin-bottom: 12px;
     font-size: 0.95em;
     font-weight: 700;
@@ -612,7 +612,7 @@ button:active {
 
 .recipe-ingredients li {
     padding: 6px 0;
-    color: #4a5568;
+    color: #b0b0b0;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -658,7 +658,7 @@ button:active {
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
     padding-top: 15px;
-    border-top: 2px solid #e9ecef;
+    border-top: 2px solid #333;
 }
 
 .recipe-actions button {
@@ -767,7 +767,7 @@ button:active {
 }
 
 .recipe-ingredients-input h4 {
-    color: #4a5568;
+    color: #b0b0b0;
     margin-bottom: 10px;
 }
 
@@ -860,7 +860,7 @@ button:active {
     background: #1a1a1a;
     padding: 25px;
     border-radius: 16px;
-    border: 2px solid #e9ecef;
+    border: 2px solid #333;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     transition: all 0.3s;
 }
@@ -871,7 +871,7 @@ button:active {
 }
 
 .meal-day h3 {
-    color: #2d3748;
+    color: #e0e0e0;
     margin-bottom: 20px;
     font-size: 1.3em;
     font-weight: 700;
@@ -888,12 +888,12 @@ button:active {
     background: #1a1a1a;
     padding: 18px;
     border-radius: 12px;
-    border: 2px solid #e9ecef;
+    border: 2px solid #333;
     transition: all 0.3s;
 }
 
 .meal-slot.filled {
-    background: #f0f4ff;
+    background: #252530;
     border-color: #667eea;
     border-width: 2px;
 }
@@ -903,7 +903,7 @@ button:active {
 }
 
 .meal-slot h4 {
-    color: #2d3748;
+    color: #e0e0e0;
     font-size: 0.85em;
     margin-bottom: 10px;
     font-weight: 700;
@@ -914,7 +914,7 @@ button:active {
 .meal-slot select {
     width: 100%;
     padding: 12px;
-    border: 2px solid #e9ecef;
+    border: 2px solid #333;
     border-radius: 8px;
     font-size: 0.95em;
     background: #1a1a1a;
@@ -1031,7 +1031,7 @@ button:active {
     width: 100%;
     padding: 15px 20px;
     font-size: 1.1em;
-    border: 2px solid #e9ecef;
+    border: 2px solid #333;
     border-radius: 10px;
     transition: border-color 0.3s;
 }
@@ -1055,7 +1055,7 @@ button:active {
     padding: 10px 20px;
     background: #1a1a1a;
     color: #667eea;
-    border: 2px solid #e9ecef;
+    border: 2px solid #333;
     border-radius: 25px;
     font-size: 0.9em;
     cursor: pointer;
@@ -1066,7 +1066,7 @@ button:active {
 .category-filter-btn:hover,
 .shop-cat-btn:hover {
     border-color: #667eea;
-    background: #f0f4ff;
+    background: #252530;
     color: #667eea;
     transform: translateY(-2px);
     box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
@@ -1137,7 +1137,7 @@ button:active {
 }
 
 .ingredient-expired {
-    background: #f8d7da !important;
+    background: #2a1a1a !important;
     border-left: 5px solid #dc3545 !important;
 }
 
@@ -1152,7 +1152,7 @@ button:active {
 }
 
 .expiring-soon-badge {
-    background: #ffc107;
+    background: #f59e0b;
     color: #000;
 }
 
@@ -1167,7 +1167,7 @@ button:active {
 }
 
 .shopping-category-section h4 {
-    color: #2d3748;
+    color: #e0e0e0;
     font-size: 1.15em;
     margin-bottom: 15px;
     padding: 12px 15px;
@@ -1321,7 +1321,7 @@ button:active {
 
 .dashboard-welcome h2 {
     font-size: 2.5em;
-    color: #2d3748;
+    color: #e0e0e0;
     margin-bottom: 10px;
     font-weight: 700;
 }
@@ -1388,7 +1388,7 @@ button:active {
 }
 
 .quick-actions h3 {
-    color: #2d3748;
+    color: #e0e0e0;
     margin-bottom: 20px;
     font-size: 1.3em;
     text-align: center;
@@ -1432,7 +1432,7 @@ button:active {
     align-items: center;
     margin-bottom: 30px;
     padding-bottom: 15px;
-    border-bottom: 3px solid #e9ecef;
+    border-bottom: 3px solid #333;
 }
 
 .section-header h2 {
@@ -1508,7 +1508,7 @@ button:active {
 .form-group label {
     display: block;
     margin-bottom: 8px;
-    color: #4a5568;
+    color: #b0b0b0;
     font-weight: 600;
     font-size: 0.95em;
 }
@@ -1539,7 +1539,7 @@ button:active {
 .secondary-btn {
     background: #1a1a1a;
     color: #6c757d;
-    border: 2px solid #e9ecef;
+    border: 2px solid #333;
     flex: 1;
 }
 
@@ -1579,7 +1579,7 @@ button:active {
     padding: 25px;
     border-radius: 12px;
     margin-bottom: 25px;
-    border: 2px solid #e9ecef;
+    border: 2px solid #333;
 }
 
 .filter-group {
@@ -1593,7 +1593,7 @@ button:active {
 .filter-group label {
     display: block;
     margin-bottom: 12px;
-    color: #4a5568;
+    color: #b0b0b0;
     font-weight: 600;
     font-size: 1em;
 }
@@ -1607,7 +1607,7 @@ button:active {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
-    border: 2px solid #e9ecef;
+    border: 2px solid #333;
 }
 
 .shopping-actions button {
@@ -1760,7 +1760,7 @@ button:active {
 
 .toast-title {
     font-weight: 700;
-    color: #2d3748;
+    color: #e0e0e0;
     margin-bottom: 2px;
 }
 
@@ -1780,7 +1780,7 @@ button:active {
 }
 
 .toast-close:hover {
-    color: #2d3748;
+    color: #e0e0e0;
 }
 
 @keyframes slideIn {
@@ -1846,7 +1846,7 @@ button:active {
 .ingredient-search-bar input {
     width: 100%;
     padding: 14px 20px 14px 45px;
-    border: 2px solid #e9ecef;
+    border: 2px solid #333;
     border-radius: 12px;
     font-size: 1em;
     transition: all 0.3s;
@@ -1878,7 +1878,7 @@ button:active {
     width: 32px;
     height: 32px;
     border-radius: 8px;
-    border: 2px solid #e9ecef;
+    border: 2px solid #333;
     background: #1a1a1a;
     color: #667eea;
     font-size: 1.2em;
@@ -1976,7 +1976,7 @@ textarea:focus-visible {
     padding: 8px;
     background: #1a1a1a;
     border-radius: 6px;
-    border-left: 3px solid #e9ecef;
+    border-left: 3px solid #333;
 }
 
 .person-meal label {
@@ -2029,7 +2029,7 @@ textarea:focus-visible {
 .person-meal select {
     width: 100%;
     padding: 8px;
-    border: 2px solid #e9ecef;
+    border: 2px solid #333;
     border-radius: 8px;
     background: #1a1a1a;
     font-size: 0.9em;
