@@ -11,7 +11,7 @@ body {
     padding: 0;
     line-height: 1.6;
     color: #ffffff;
-    padding-bottom: 60px; /* Space for bottom nav */
+    padding-bottom: 50px; /* Much smaller nav bar */
 }
 
 .container {
@@ -97,7 +97,7 @@ header h1 {
     margin-top: 8px;
 }
 
-/* Bottom Navigation - 5 Items, Better Touch Targets */
+/* Bottom Navigation - Ultra Compact */
 .main-nav {
     position: fixed;
     bottom: 0;
@@ -106,10 +106,10 @@ header h1 {
     display: flex;
     background: #1a1a1a;
     border-top: 1px solid #333;
-    padding: 6px 0;
+    padding: 2px 0;
     z-index: 1000;
     justify-content: space-around;
-    height: 60px;
+    height: 50px;
 }
 
 .nav-btn {
@@ -118,22 +118,19 @@ header h1 {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 6px 8px;
+    padding: 3px 4px;
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 0.75em;
+    font-size: 0.65em;
     font-weight: 500;
     color: #888;
     transition: all 0.2s;
-    gap: 3px;
-    min-width: 60px;
+    gap: 1px;
 }
 
 .nav-btn:hover {
     color: #aaa;
-    background: rgba(91, 158, 255, 0.1);
-    border-radius: 8px;
 }
 
 .nav-btn.active {
@@ -142,7 +139,7 @@ header h1 {
 
 .nav-btn::before {
     content: attr(data-icon);
-    font-size: 1.6em;
+    font-size: 1.4em;
     display: block;
     line-height: 1;
 }
@@ -2083,207 +2080,4 @@ textarea:focus-visible {
     .need-ingredients-section {
         order: 3;
     }
-}
-}
-
-/* ========================================
-   LIGHT THEME
-   ======================================== */
-body[data-theme="light"] {
-    background: #f5f5f5;
-    color: #1a1a1a;
-}
-
-body[data-theme="light"] header {
-    background: #ffffff;
-    color: #1a1a1a;
-    border-bottom: 1px solid #e0e0e0;
-}
-
-body[data-theme="light"] .subtitle,
-body[data-theme="light"] .greeting {
-    color: #666;
-}
-
-body[data-theme="light"] .theme-toggle-btn,
-body[data-theme="light"] .settings-btn {
-    background: #f5f5f5;
-    border-color: #e0e0e0;
-    color: #1a1a1a;
-}
-
-body[data-theme="light"] .theme-toggle-btn:hover,
-body[data-theme="light"] .settings-btn:hover {
-    background: #e8e8e8;
-}
-
-body[data-theme="light"] .main-nav {
-    background: #ffffff;
-    border-top-color: #e0e0e0;
-}
-
-body[data-theme="light"] .nav-btn {
-    color: #666;
-}
-
-body[data-theme="light"] .nav-btn:hover {
-    color: #1a1a1a;
-    background: rgba(91, 158, 255, 0.1);
-}
-
-body[data-theme="light"] .nav-btn.active {
-    color: #5b9eff;
-}
-
-body[data-theme="light"] .section {
-    background: #f5f5f5;
-}
-
-body[data-theme="light"] .dashboard-card,
-body[data-theme="light"] .settings-card,
-body[data-theme="light"] .form-card {
-    background: #ffffff;
-    border-color: #e0e0e0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-body[data-theme="light"] .dashboard-card:hover {
-    background: #fafafa;
-    border-color: #5b9eff;
-}
-
-body[data-theme="light"] .dashboard-card h3,
-body[data-theme="light"] .settings-card h3,
-body[data-theme="light"] .form-card h3 {
-    color: #1a1a1a;
-}
-
-body[data-theme="light"] .card-description {
-    color: #666;
-}
-
-body[data-theme="light"] .settings-card p {
-    color: #666 !important;
-}
-
-body[data-theme="light"] input[type="text"],
-body[data-theme="light"] input[type="number"],
-body[data-theme="light"] input[type="date"],
-body[data-theme="light"] input[type="email"],
-body[data-theme="light"] input[type="password"],
-body[data-theme="light"] select,
-body[data-theme="light"] textarea {
-    background: #ffffff;
-    color: #1a1a1a;
-    border-color: #e0e0e0;
-}
-
-body[data-theme="light"] input:focus,
-body[data-theme="light"] select:focus,
-body[data-theme="light"] textarea:focus {
-    border-color: #5b9eff;
-}
-
-body[data-theme="light"] .ingredient-list li,
-body[data-theme="light"] .recipe-card,
-body[data-theme="light"] .meal-day,
-body[data-theme="light"] .meal-slot {
-    background: #ffffff;
-    border-color: #e0e0e0;
-}
-
-body[data-theme="light"] .ingredient-name,
-body[data-theme="light"] .shopping-item-name,
-body[data-theme="light"] .recipe-card h3,
-body[data-theme="light"] .meal-day h3,
-body[data-theme="light"] .meal-slot h4 {
-    color: #1a1a1a;
-}
-
-body[data-theme="light"] .ingredient-list h3,
-body[data-theme="light"] .recipe-ingredients h4,
-body[data-theme="light"] .recipe-ingredients-input h4,
-body[data-theme="light"] .shopping-category-section h4 {
-    color: #1a1a1a;
-}
-
-body[data-theme="light"] .recipe-ingredients li {
-    color: #666;
-}
-
-body[data-theme="light"] .availability-label {
-    color: #888;
-}
-
-body[data-theme="light"] .availability-value {
-    color: #1a1a1a;
-}
-
-body[data-theme="light"] .icon-btn {
-    border-color: #e0e0e0;
-    background: #ffffff;
-}
-
-body[data-theme="light"] .shopping-item-quantity {
-    background: #e8f2ff;
-    color: #5b9eff;
-}
-
-body[data-theme="light"] .modal {
-    background: rgba(0, 0, 0, 0.5);
-}
-
-body[data-theme="light"] .modal-content {
-    background: #ffffff;
-    border-color: #e0e0e0;
-}
-
-body[data-theme="light"] .modal-content h3 {
-    color: #1a1a1a;
-}
-
-body[data-theme="light"] .close-modal,
-body[data-theme="light"] .close-edit-ingredient {
-    color: #666;
-}
-
-body[data-theme="light"] .empty-state {
-    background: #ffffff;
-    border-color: #e0e0e0;
-}
-
-body[data-theme="light"] .empty-state p {
-    color: #666;
-}
-
-body[data-theme="light"] .toast-title {
-    color: #1a1a1a;
-}
-
-body[data-theme="light"] .toast-message {
-    color: #666;
-}
-
-body[data-theme="light"] .toast-close {
-    color: #999;
-}
-
-body[data-theme="light"] .toast-close:hover {
-    color: #1a1a1a;
-}
-
-body[data-theme="light"] .form-group label {
-    color: #666;
-}
-
-body[data-theme="light"] .ingredient-expired {
-    background: #fff5f5 !important;
-}
-
-body[data-theme="light"] .ingredient-expiring-soon {
-    background: #fffbeb !important;
-}
-
-body[data-theme="light"] .meal-slot.filled {
-    background: #e8f2ff;
 }

@@ -168,40 +168,11 @@ function updateDateTime() {
     document.getElementById('greeting-message').textContent = `${greeting} • Have a great ${dayName.toLowerCase() === 'saturday' || dayName.toLowerCase() === 'sunday' ? 'weekend' : 'workday'}`;
 }
 
-// ========================================
-// THEME TOGGLE
-// ========================================
-function initTheme() {
-    const savedTheme = localStorage.getItem('theme') || 'dark';
-    document.body.setAttribute('data-theme', savedTheme);
-    updateThemeIcon(savedTheme);
-}
-
-function toggleTheme() {
-    const currentTheme = document.body.getAttribute('data-theme') || 'dark';
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-
-    document.body.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
-    updateThemeIcon(newTheme);
-
-    showToast('Theme Changed', `Switched to ${newTheme} mode`, 'success');
-}
-
-function updateThemeIcon(theme) {
-    const themeBtn = document.getElementById('theme-toggle');
-    if (themeBtn) {
-        themeBtn.textContent = theme === 'dark' ? '🌙' : '☀️';
-        themeBtn.title = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
-    }
-}
-
 document.addEventListener('DOMContentLoaded', () => {
     loadFromLocalStorage();
     updateDateTime(); // Update date/time
     setInterval(updateDateTime, 60000); // Update every minute
     updateDataLists(); // Populate autocomplete lists
-    initTheme(); // Initialize theme
     initAuth();
     initNavigation();
     initDashboard();
@@ -210,12 +181,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initShopping();
     initMealPlan();
     initSettings();
-
-    // Theme toggle button event listener
-    const themeToggle = document.getElementById('theme-toggle');
-    if (themeToggle) {
-        themeToggle.addEventListener('click', toggleTheme);
-    }
 });
 
 // Local Storage Functions
