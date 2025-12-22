@@ -38,11 +38,21 @@ header {
 header h1 {
     font-size: 2.5em;
     margin-bottom: 10px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.app-divider {
+    font-weight: 300;
+    opacity: 0.7;
+    margin: 0 10px;
+    font-size: 0.9em;
 }
 
 .subtitle {
     font-size: 1.1em;
     opacity: 0.9;
+    font-weight: 400;
 }
 
 /* Navigation */
