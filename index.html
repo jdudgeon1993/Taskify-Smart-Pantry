@@ -9,9 +9,17 @@
 <body>
     <div class="container">
         <header>
-            <h1>Taskify <span class="app-divider">||</span> Smart Pantry</h1>
-            <p class="subtitle" id="current-datetime">Loading...</p>
-            <p class="greeting" id="greeting-message">Good Morning • Have a great day</p>
+            <div class="header-top">
+                <div>
+                    <h1>Taskify <span class="app-divider">||</span> Smart Pantry</h1>
+                    <p class="subtitle" id="current-datetime">Loading...</p>
+                    <p class="greeting" id="greeting-message">Good Morning • Have a great day</p>
+                </div>
+                <div class="header-actions-top">
+                    <button class="theme-toggle-btn" id="theme-toggle" title="Toggle theme">🌙</button>
+                    <button class="settings-btn" id="quick-settings" onclick="document.querySelector('[data-section=settings]').click()" title="Settings">⚙️</button>
+                </div>
+            </div>
         </header>
 
         <!-- Dashboard Section -->
