@@ -5,21 +5,21 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: #0a0a0a;
     min-height: 100vh;
-    padding: 20px;
+    padding: 0;
     line-height: 1.6;
+    color: #ffffff;
+    padding-bottom: 80px; /* Space for bottom nav */
 }
 
 .container {
-    max-width: 95%;
+    max-width: 100%;
     width: 100%;
     margin: 0 auto;
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    overflow: hidden;
+    background: #0a0a0a;
+    min-height: 100vh;
 }
 
 @media (min-width: 1920px) {
@@ -29,68 +29,92 @@ body {
 }
 
 header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #0a0a0a;
     color: white;
-    padding: 30px;
-    text-align: center;
+    padding: 30px 20px 20px 20px;
+    text-align: left;
 }
 
 header h1 {
-    font-size: 2.5em;
-    margin-bottom: 10px;
+    font-size: 2.2em;
+    margin-bottom: 8px;
     font-weight: 700;
     letter-spacing: -0.5px;
+    color: #ffffff;
 }
 
 .app-divider {
     font-weight: 300;
     opacity: 0.7;
-    margin: 0 10px;
+    margin: 0 8px;
     font-size: 0.9em;
 }
 
 .subtitle {
-    font-size: 1.1em;
-    opacity: 0.9;
+    font-size: 0.95em;
+    opacity: 0.6;
     font-weight: 400;
+    color: #888;
+    margin-bottom: 8px;
 }
 
-/* Navigation */
+.greeting {
+    font-size: 1.1em;
+    color: #5b9eff;
+    font-weight: 500;
+    margin-top: 8px;
+}
+
+/* Bottom Navigation */
 .main-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
     display: flex;
-    background: #f8f9fa;
-    border-bottom: 2px solid #e9ecef;
+    background: #1a1a1a;
+    border-top: 1px solid #333;
+    padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+    z-index: 1000;
+    justify-content: space-around;
 }
 
 .nav-btn {
     flex: 1;
-    padding: 15px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 12px;
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 1em;
-    font-weight: 600;
-    color: #6c757d;
+    font-size: 0.75em;
+    font-weight: 500;
+    color: #888;
     transition: all 0.3s;
-    border-bottom: 3px solid transparent;
+    gap: 4px;
 }
 
 .nav-btn:hover {
-    background: #e9ecef;
-    color: #495057;
+    color: #aaa;
 }
 
 .nav-btn.active {
-    color: #667eea;
-    border-bottom-color: #667eea;
-    background: white;
+    color: #5b9eff;
+}
+
+.nav-btn::before {
+    content: attr(data-icon);
+    font-size: 1.8em;
+    display: block;
 }
 
 /* Sections */
 .section {
     display: none;
-    padding: 30px;
+    padding: 20px;
     animation: fadeIn 0.3s;
+    background: #0a0a0a;
 }
 
 .section.active {
@@ -103,9 +127,20 @@ header h1 {
 }
 
 .section h2 {
-    color: #2d3748;
+    color: #ffffff;
     margin-bottom: 20px;
-    font-size: 1.8em;
+    font-size: 1.6em;
+    font-weight: 700;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    font-size: 1.4em;
+    font-weight: 700;
+    color: #ffffff;
 }
 
 /* Location Tabs (Pantry/Fridge/Freezer) */
@@ -459,33 +494,33 @@ button:active {
 
 .recipe-card {
     position: relative;
-    background: white;
+    background: #1a1a1a;
     border-radius: 16px;
     padding: 25px;
     transition: all 0.3s;
-    border: 2px solid #e9ecef;
+    border: 1px solid #2a2a2a;
     overflow: visible;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .recipe-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
-    border-color: #667eea;
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+    border-color: #3a3a3a;
 }
 
 .recipe-card.ready {
     border-color: #48bb78;
-    border-width: 3px;
+    border-width: 2px;
 }
 
 .recipe-card.missing {
     border-color: #f6ad55;
-    border-width: 3px;
+    border-width: 2px;
 }
 
 .recipe-card h3 {
-    color: #2d3748;
+    color: #ffffff;
     margin-bottom: 12px;
     font-size: 1.4em;
     font-weight: 700;
@@ -1251,20 +1286,20 @@ button:active {
 }
 
 .dashboard-card {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    background: #1a1a1a;
     padding: 35px 25px;
     border-radius: 16px;
     text-align: center;
     cursor: pointer;
     transition: all 0.3s ease;
-    border: 3px solid transparent;
+    border: 1px solid #2a2a2a;
 }
 
 .dashboard-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
-    border-color: #667eea;
-    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+    border-color: #3a3a3a;
+    background: #222;
 }
 
 .card-icon {
@@ -1273,7 +1308,7 @@ button:active {
 }
 
 .dashboard-card h3 {
-    color: #2d3748;
+    color: #ffffff;
     font-size: 1.4em;
     margin-bottom: 10px;
     font-weight: 600;
