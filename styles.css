@@ -6,7 +6,7 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    background: #0f172a;
+    background: #0a0a0a;
     min-height: 100vh;
     padding: 0;
     line-height: 1.6;
@@ -18,7 +18,7 @@ body {
     max-width: 100%;
     width: 100%;
     margin: 0 auto;
-    background: #0f172a;
+    background: #0a0a0a;
     min-height: 100vh;
 }
 
@@ -29,7 +29,7 @@ body {
 }
 
 header {
-    background: #0f172a;
+    background: #0a0a0a;
     color: white;
     padding: 30px 20px 20px 20px;
     text-align: left;
@@ -48,8 +48,8 @@ header {
 
 .theme-toggle-btn,
 .settings-btn {
-    background: #1e293b;
-    border: 1px solid #334155;
+    background: #1a1a1a;
+    border: 1px solid #333;
     border-radius: 8px;
     width: 40px;
     height: 40px;
@@ -59,19 +59,12 @@ header {
     cursor: pointer;
     font-size: 1.2em;
     transition: all 0.3s;
-    -webkit-tap-highlight-color: transparent;
 }
 
 .theme-toggle-btn:hover,
 .settings-btn:hover {
-    background: #334155;
-    border-color: #475569;
-}
-
-.theme-toggle-btn:active,
-.settings-btn:active {
-    transform: scale(0.95);
-    background: #475569;
+    background: #2a2a2a;
+    border-color: #444;
 }
 
 header h1 {
@@ -111,13 +104,12 @@ header h1 {
     left: 0;
     right: 0;
     display: flex;
-    background: #1e293b;
-    border-top: 1px solid #334155;
+    background: #1a1a1a;
+    border-top: 1px solid #333;
     padding: 6px 0;
     z-index: 1000;
     justify-content: space-around;
     height: 60px;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .nav-btn {
@@ -131,39 +123,21 @@ header h1 {
     border: none;
     cursor: pointer;
     font-size: 0.75em;
-    font-weight: 600;
-    color: #94a3b8;
-    transition: all 0.3s ease;
+    font-weight: 500;
+    color: #888;
+    transition: all 0.2s;
     gap: 3px;
     min-width: 60px;
-    position: relative;
-    -webkit-tap-highlight-color: transparent;
 }
 
-.nav-btn:active {
-    transform: scale(0.95);
-    background: rgba(91, 158, 255, 0.15);
-    border-radius: 12px;
+.nav-btn:hover {
+    color: #aaa;
+    background: rgba(91, 158, 255, 0.1);
+    border-radius: 8px;
 }
 
 .nav-btn.active {
     color: #5b9eff;
-}
-
-.nav-btn.active::before {
-    transform: scale(1.1);
-}
-
-.nav-btn.active::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 30px;
-    height: 3px;
-    background: #5b9eff;
-    border-radius: 3px 3px 0 0;
 }
 
 .nav-btn::before {
@@ -171,7 +145,6 @@ header h1 {
     font-size: 1.6em;
     display: block;
     line-height: 1;
-    transition: transform 0.2s ease;
 }
 
 /* Sections */
@@ -179,7 +152,7 @@ header h1 {
     display: none;
     padding: 20px;
     animation: fadeIn 0.3s;
-    background: #0f172a;
+    background: #0a0a0a;
 }
 
 .section.active {
@@ -214,10 +187,10 @@ header h1 {
     gap: 12px;
     margin-bottom: 30px;
     padding: 8px;
-    background: #1e293b;
+    background: #1a1a1a;
     border-radius: 12px;
     flex-wrap: wrap;
-    border: 1px solid #334155;
+    border: 1px solid #2a2a2a;
 }
 
 .location-btn {
@@ -267,11 +240,11 @@ input[type="password"],
 select,
 textarea {
     padding: 12px;
-    border: 1px solid #334155;
+    border: 1px solid #333;
     border-radius: 8px;
     font-size: 1em;
     transition: border-color 0.3s;
-    background: #1e293b;
+    background: #1a1a1a;
     color: #ffffff;
 }
 
@@ -358,7 +331,7 @@ button:active {
 
 .ingredient-list li,
 #shopping-list-items li {
-    background: #1e293b;
+    background: #1a1a1a;
     padding: 20px;
     margin-bottom: 0;
     border-radius: 12px;
@@ -366,7 +339,7 @@ button:active {
     justify-content: space-between;
     align-items: flex-start;
     transition: all 0.3s;
-    border: 2px solid #334155;
+    border: 2px solid #333;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     gap: 15px;
 }
@@ -427,7 +400,7 @@ button:active {
     display: flex;
     gap: 15px;
     padding: 12px;
-    background: #1e293b;
+    background: #1a1a1a;
     border-radius: 8px;
     flex-wrap: wrap;
 }
@@ -467,8 +440,8 @@ button:active {
     height: 44px;
     padding: 8px;
     border-radius: 10px;
-    border: 2px solid #334155;
-    background: #1e293b;
+    border: 2px solid #333;
+    background: #1a1a1a;
     font-size: 1.3em;
     cursor: pointer;
     transition: all 0.2s;
@@ -544,7 +517,7 @@ button:active {
 
 .filter-btn {
     padding: 8px 16px;
-    background: #1e293b;
+    background: #1a1a1a;
     color: #667eea;
     border: 2px solid #667eea;
     font-size: 0.9em;
@@ -568,11 +541,11 @@ button:active {
 
 .recipe-card {
     position: relative;
-    background: #1e293b;
+    background: #1a1a1a;
     border-radius: 16px;
     padding: 25px;
     transition: all 0.3s;
-    border: 1px solid #334155;
+    border: 1px solid #2a2a2a;
     overflow: visible;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
@@ -580,7 +553,7 @@ button:active {
 .recipe-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
-    border-color: #475569;
+    border-color: #3a3a3a;
 }
 
 .recipe-card.ready {
@@ -624,7 +597,7 @@ button:active {
 .recipe-ingredients {
     margin: 20px 0;
     padding: 15px;
-    background: #1e293b;
+    background: #1a1a1a;
     border-radius: 10px;
 }
 
@@ -665,7 +638,7 @@ button:active {
 .missing-ingredients {
     margin-top: 10px;
     padding: 10px;
-    background: #1e293b;
+    background: #2a1a1a;
     border-radius: 6px;
     border-left: 4px solid #e53e3e;
 }
@@ -715,7 +688,7 @@ button:active {
 }
 
 .edit-recipe-btn {
-    background: #1e293b;
+    background: #1a1a1a;
     color: #667eea;
     border: 2px solid #667eea;
 }
@@ -726,7 +699,7 @@ button:active {
 }
 
 .delete-recipe-btn {
-    background: #1e293b;
+    background: #1a1a1a;
     color: #e53e3e;
     border: 2px solid #e53e3e;
 }
@@ -755,7 +728,7 @@ button:active {
 }
 
 .modal-content {
-    background: #1e293b;
+    background: #1a1a1a;
     padding: 30px;
     border-radius: 16px;
     max-width: 600px;
@@ -763,7 +736,7 @@ button:active {
     max-height: 90vh;
     overflow-y: auto;
     position: relative;
-    border: 1px solid #334155;
+    border: 1px solid #2a2a2a;
 }
 
 .close-modal,
@@ -887,10 +860,10 @@ button:active {
 }
 
 .meal-day {
-    background: #1e293b;
+    background: #1a1a1a;
     padding: 25px;
     border-radius: 16px;
-    border: 2px solid #334155;
+    border: 2px solid #333;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     transition: all 0.3s;
 }
@@ -915,10 +888,10 @@ button:active {
 }
 
 .meal-slot {
-    background: #1e293b;
+    background: #1a1a1a;
     padding: 18px;
     border-radius: 12px;
-    border: 2px solid #334155;
+    border: 2px solid #333;
     transition: all 0.3s;
 }
 
@@ -944,10 +917,10 @@ button:active {
 .meal-slot select {
     width: 100%;
     padding: 12px;
-    border: 2px solid #334155;
+    border: 2px solid #333;
     border-radius: 8px;
     font-size: 0.95em;
-    background: #1e293b;
+    background: #1a1a1a;
     cursor: pointer;
     font-weight: 500;
     transition: all 0.3s;
@@ -971,7 +944,7 @@ button:active {
 }
 
 .remove-meal-btn {
-    background: #1e293b;
+    background: #1a1a1a;
     color: #e53e3e;
     border: 2px solid #e53e3e;
     padding: 8px 16px;
@@ -990,7 +963,7 @@ button:active {
     text-align: center;
     padding: 60px 40px;
     color: #666;
-    background: #1e293b;
+    background: #1a1a1a;
     border-radius: 16px;
     border: 1px dashed #333;
     margin: 20px 0;
@@ -1061,7 +1034,7 @@ button:active {
     width: 100%;
     padding: 15px 20px;
     font-size: 1.1em;
-    border: 2px solid #334155;
+    border: 2px solid #333;
     border-radius: 10px;
     transition: border-color 0.3s;
 }
@@ -1083,9 +1056,9 @@ button:active {
 .category-filter-btn,
 .shop-cat-btn {
     padding: 10px 20px;
-    background: #1e293b;
+    background: #1a1a1a;
     color: #667eea;
-    border: 2px solid #334155;
+    border: 2px solid #333;
     border-radius: 25px;
     font-size: 0.9em;
     cursor: pointer;
@@ -1151,7 +1124,7 @@ button:active {
     gap: 10px;
     margin: 10px 0;
     padding: 10px;
-    background: #1e293b;
+    background: #1a1a1a;
     border-radius: 8px;
 }
 
@@ -1162,12 +1135,12 @@ button:active {
 
 /* Ingredient Expiration Warnings */
 .ingredient-expiring-soon {
-    background: #2d3748 !important;
+    background: #3a3020 !important;
     border-left: 5px solid #ffc107 !important;
 }
 
 .ingredient-expired {
-    background: #1e293b !important;
+    background: #2a1a1a !important;
     border-left: 5px solid #dc3545 !important;
 }
 
@@ -1212,11 +1185,11 @@ button:active {
 
 /* Settings Section */
 .settings-card {
-    background: #1e293b;
+    background: #1a1a1a;
     padding: 25px;
     border-radius: 12px;
     margin-bottom: 20px;
-    border: 1px solid #334155;
+    border: 1px solid #2a2a2a;
 }
 
 .settings-card h3 {
@@ -1229,11 +1202,11 @@ button:active {
 }
 
 .stat-item {
-    background: #1e293b;
+    background: #222;
     padding: 20px;
     border-radius: 8px;
     text-align: center;
-    border: 1px solid #334155;
+    border: 1px solid #2a2a2a;
 }
 
 .stat-value {
@@ -1329,7 +1302,7 @@ button:active {
 }
 
 .meal-suggestions button:hover {
-    background: #1e293b;
+    background: #1a1a1a;
     color: #48bb78;
 }
 
@@ -1369,20 +1342,20 @@ button:active {
 }
 
 .dashboard-card {
-    background: #1e293b;
+    background: #1a1a1a;
     padding: 35px 25px;
     border-radius: 16px;
     text-align: center;
     cursor: pointer;
     transition: all 0.3s ease;
-    border: 1px solid #334155;
+    border: 1px solid #2a2a2a;
 }
 
 .dashboard-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
-    border-color: #475569;
-    background: #1e293b;
+    border-color: #3a3a3a;
+    background: #222;
 }
 
 .card-icon {
@@ -1411,7 +1384,7 @@ button:active {
 
 /* Quick Actions */
 .quick-actions {
-    background: #1e293b;
+    background: #1a1a1a;
     padding: 30px;
     border-radius: 16px;
     margin-top: 30px;
@@ -1432,7 +1405,7 @@ button:active {
 }
 
 .quick-action-btn {
-    background: #1e293b;
+    background: #1a1a1a;
     color: #667eea;
     border: 2px solid #667eea;
     padding: 15px 30px;
@@ -1499,7 +1472,7 @@ button:active {
 .secondary-action-btn {
     background: transparent;
     color: #888;
-    border: 1px solid #334155;
+    border: 1px solid #333;
     padding: 10px 20px;
     border-radius: 10px;
     cursor: pointer;
@@ -1511,18 +1484,18 @@ button:active {
 }
 
 .secondary-action-btn:hover {
-    background: #1e293b;
+    background: #1a1a1a;
     color: #aaa;
     border-color: #444;
 }
 
 /* Form Cards */
 .form-card {
-    background: #1e293b;
+    background: #1a1a1a;
     padding: 30px;
     border-radius: 12px;
     margin-bottom: 30px;
-    border: 1px solid #334155;
+    border: 1px solid #2a2a2a;
 }
 
 .form-card h3 {
@@ -1567,14 +1540,14 @@ button:active {
 }
 
 .secondary-btn {
-    background: #1e293b;
+    background: #1a1a1a;
     color: #6c757d;
-    border: 2px solid #334155;
+    border: 2px solid #333;
     flex: 1;
 }
 
 .secondary-btn:hover {
-    background: #1e293b;
+    background: #222;
     color: #495057;
     transform: none;
     box-shadow: none;
@@ -1588,7 +1561,7 @@ button:active {
 }
 
 .filter-toggle-btn {
-    background: #1e293b;
+    background: #1a1a1a;
     color: #667eea;
     border: 2px solid #667eea;
     padding: 12px 24px;
@@ -1605,11 +1578,11 @@ button:active {
 }
 
 .filters-container {
-    background: #1e293b;
+    background: #1a1a1a;
     padding: 25px;
     border-radius: 12px;
     margin-bottom: 25px;
-    border: 2px solid #334155;
+    border: 2px solid #333;
 }
 
 .filter-group {
@@ -1630,14 +1603,14 @@ button:active {
 
 /* Shopping Actions */
 .shopping-actions {
-    background: #1e293b;
+    background: #1a1a1a;
     padding: 20px;
     border-radius: 12px;
     margin-bottom: 25px;
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
-    border: 2px solid #334155;
+    border: 2px solid #333;
 }
 
 .shopping-actions button {
@@ -1755,7 +1728,7 @@ button:active {
 }
 
 .toast {
-    background: #1e293b;
+    background: #1a1a1a;
     padding: 16px 20px;
     border-radius: 12px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
@@ -1876,7 +1849,7 @@ button:active {
 .ingredient-search-bar input {
     width: 100%;
     padding: 14px 20px 14px 45px;
-    border: 2px solid #334155;
+    border: 2px solid #333;
     border-radius: 12px;
     font-size: 1em;
     transition: all 0.3s;
@@ -1908,8 +1881,8 @@ button:active {
     width: 32px;
     height: 32px;
     border-radius: 8px;
-    border: 2px solid #334155;
-    background: #1e293b;
+    border: 2px solid #333;
+    background: #1a1a1a;
     color: #667eea;
     font-size: 1.2em;
     font-weight: 700;
@@ -2004,7 +1977,7 @@ textarea:focus-visible {
 .person-meal {
     margin: 8px 0;
     padding: 8px;
-    background: #1e293b;
+    background: #1a1a1a;
     border-radius: 6px;
     border-left: 3px solid #333;
 }
@@ -2059,9 +2032,9 @@ textarea:focus-visible {
 .person-meal select {
     width: 100%;
     padding: 8px;
-    border: 2px solid #334155;
+    border: 2px solid #333;
     border-radius: 8px;
-    background: #1e293b;
+    background: #1a1a1a;
     font-size: 0.9em;
 }
 
@@ -2313,67 +2286,4 @@ body[data-theme="light"] .ingredient-expiring-soon {
 
 body[data-theme="light"] .meal-slot.filled {
     background: #e8f2ff;
-}
-
-/* ========================================
-   MOBILE ENHANCEMENTS
-   ======================================== */
-
-/* Better touch feedback for all buttons */
-button {
-    -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
-}
-
-button:active {
-    transform: scale(0.98);
-}
-
-/* Enhanced card interactions */
-.dashboard-card {
-    cursor: pointer;
-    user-select: none;
-}
-
-.dashboard-card:active {
-    transform: translateY(-2px) scale(0.99);
-}
-
-.recipe-card:active,
-.ingredient-list li:active {
-    transform: scale(0.99);
-}
-
-/* Location button active state */
-.location-btn:active {
-    transform: scale(0.95);
-}
-
-/* Smooth scrolling for better mobile experience */
-html {
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-}
-
-/* Optimize text rendering */
-body {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
-}
-
-/* Better input focus on mobile */
-input:focus,
-select:focus,
-textarea:focus {
-    outline: none;
-    border-color: #5b9eff;
-    box-shadow: 0 0 0 3px rgba(91, 158, 255, 0.1);
-}
-
-/* Prevent double-tap zoom on buttons */
-.nav-btn,
-.primary-action-btn,
-.location-btn {
-    touch-action: manipulation;
 }
