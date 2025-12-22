@@ -142,8 +142,36 @@ function updateDataLists() {
 }
 
 // Initialize App
+// Update date/time and greeting
+function updateDateTime() {
+    const now = new Date();
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+    const dayName = days[now.getDay()];
+    const monthName = months[now.getMonth()];
+    const day = now.getDate();
+    const year = now.getFullYear();
+    const hours = now.getHours();
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+
+    const dateTimeStr = `${dayName}, ${monthName} ${day}, ${year} • ${displayHours}:${minutes} ${ampm}`;
+    document.getElementById('current-datetime').textContent = dateTimeStr;
+
+    // Update greeting based on time
+    let greeting = 'Good Morning';
+    if (hours >= 12 && hours < 17) greeting = 'Good Afternoon';
+    else if (hours >= 17) greeting = 'Good Evening';
+
+    document.getElementById('greeting-message').textContent = `${greeting} • Have a great ${dayName.toLowerCase() === 'saturday' || dayName.toLowerCase() === 'sunday' ? 'weekend' : 'workday'}`;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     loadFromLocalStorage();
+    updateDateTime(); // Update date/time
+    setInterval(updateDateTime, 60000); // Update every minute
     updateDataLists(); // Populate autocomplete lists
     initAuth();
     initNavigation();

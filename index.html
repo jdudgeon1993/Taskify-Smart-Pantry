@@ -3,30 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Pantry - Your Kitchen Companion</title>
+    <title>Taskify || Smart Pantry</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🍳 Smart Pantry</h1>
-            <p class="subtitle">Manage your kitchen, plan your meals</p>
+            <h1>Taskify <span class="app-divider">||</span> Smart Pantry</h1>
+            <p class="subtitle" id="current-datetime">Loading...</p>
+            <p class="greeting" id="greeting-message">Good Morning • Have a great day</p>
         </header>
-
-        <nav class="main-nav">
-            <button class="nav-btn active" data-section="dashboard">Dashboard</button>
-            <button class="nav-btn" data-section="ingredients">Pantry</button>
-            <button class="nav-btn" data-section="recipes">Recipes</button>
-            <button class="nav-btn" data-section="shopping">Shopping</button>
-            <button class="nav-btn" data-section="meal-plan">Meal Plan</button>
-            <button class="nav-btn" data-section="settings">Settings</button>
-        </nav>
 
         <!-- Dashboard Section -->
         <section id="dashboard" class="section active">
             <div class="dashboard-welcome">
-                <h2>Welcome to Your Kitchen</h2>
-                <p class="dashboard-subtitle">Your smart cooking companion</p>
+                <h2>Welcome to Taskify</h2>
+                <p class="dashboard-subtitle">Your kitchen organization hub</p>
             </div>
 
             <!-- Expiring Items Alert -->
@@ -419,11 +411,21 @@
             </div>
 
             <div class="settings-card">
-                <h3>About Smart Pantry</h3>
+                <h3>About Taskify || Smart Pantry</h3>
                 <p style="color: #6c757d;">Version 2.5 - Cloud Sync Edition</p>
-                <p style="color: #6c757d; margin-top: 10px;">Your complete kitchen management solution. Track ingredients, plan meals, generate shopping lists, and more!</p>
+                <p style="color: #6c757d; margin-top: 10px;">Your complete kitchen organization system. Track ingredients, plan meals, generate shopping lists, and stay on top of your weekly cooking schedule!</p>
             </div>
         </section>
+
+        <!-- Bottom Navigation -->
+        <nav class="main-nav">
+            <button class="nav-btn active" data-section="dashboard" data-icon="🏠">Home</button>
+            <button class="nav-btn" data-section="ingredients" data-icon="🥫">Pantry</button>
+            <button class="nav-btn" data-section="recipes" data-icon="📖">Recipes</button>
+            <button class="nav-btn" data-section="shopping" data-icon="🛒">Shopping</button>
+            <button class="nav-btn" data-section="meal-plan" data-icon="📅">Plan</button>
+            <button class="nav-btn" data-section="settings" data-icon="⚙️">Settings</button>
+        </nav>
     </div>
 
     <!-- Toast Notification Container -->
