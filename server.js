@@ -1,6 +1,7 @@
 // Smart Pantry API Server
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const { Pool } = require('pg');
 require('dotenv').config();
 
@@ -10,6 +11,9 @@ const PORT = process.env.PORT || 3001;
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
+
+// Serve static files (HTML, CSS, JS)
+app.use(express.static(path.join(__dirname)));
 
 // Database connection
 const pool = new Pool({
@@ -414,6 +418,13 @@ app.post('/api/pantry/mealplan/:token', async (req, res) => {
   } catch (error) {
     console.error('Update meal plan error:', error);
     res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Serve index.html for all non-API routes (SPA support)
+app.get('*', (req, res) => {
+  if (!req.path.startsWith('/api')) {
+    res.sendFile(path.join(__dirname, 'index.html'));
   }
 });
 
