@@ -632,7 +632,7 @@ label {
 
 .recipe-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: var(--spacing-lg);
 }
 
@@ -1187,6 +1187,13 @@ label {
 /* ==========================================
    RESPONSIVE DESIGN
    ========================================== */
+/* Tablet - 2 columns for recipes */
+@media (max-width: 1024px) {
+    .recipe-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 @media (max-width: 768px) {
     body {
         padding: 0;
@@ -1228,6 +1235,36 @@ label {
 
     .recipe-grid {
         grid-template-columns: 1fr;
+        gap: var(--spacing-md);
+    }
+
+    /* Better mobile hierarchy for recipes */
+    .recipe-card {
+        padding: var(--spacing-lg);
+    }
+
+    .recipe-card h3 {
+        font-size: 1.125rem;
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .recipe-status {
+        font-size: 0.6875rem;
+        padding: 0.25rem 0.625rem;
+    }
+
+    .recipe-ingredients h4 {
+        font-size: 0.8125rem;
+    }
+
+    .recipe-ingredients li {
+        font-size: 0.8125rem;
+        padding: 0.25rem 0;
+    }
+
+    .recipe-actions button {
+        font-size: 0.75rem;
+        padding: 0.5rem 0.75rem;
     }
 
     .form-row {
