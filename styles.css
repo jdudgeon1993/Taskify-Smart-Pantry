@@ -149,21 +149,22 @@ header h1 {
     gap: 12px;
     margin-bottom: 30px;
     padding: 8px;
-    background: #f8f9fa;
+    background: #1a1a1a;
     border-radius: 12px;
     flex-wrap: wrap;
+    border: 1px solid #2a2a2a;
 }
 
 .location-btn {
     flex: 1;
     min-width: 140px;
     padding: 14px 24px;
-    border: 2px solid transparent;
-    background: white;
+    border: 1px solid transparent;
+    background: transparent;
     border-radius: 10px;
     cursor: pointer;
     font-weight: 600;
-    color: #6c757d;
+    color: #888;
     transition: all 0.3s;
     font-size: 1em;
     display: flex;
@@ -173,17 +174,15 @@ header h1 {
 }
 
 .location-btn:hover {
-    border-color: #667eea;
-    color: #667eea;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.2);
+    border-color: #5b9eff;
+    color: #5b9eff;
+    background: rgba(91, 158, 255, 0.1);
 }
 
 .location-btn.active {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #5b9eff;
     color: white;
-    border-color: #667eea;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    border-color: #5b9eff;
 }
 
 /* Forms */
@@ -197,19 +196,29 @@ header h1 {
 
 input[type="text"],
 input[type="number"],
+input[type="date"],
+input[type="email"],
+input[type="password"],
+select,
 textarea {
     padding: 12px;
-    border: 2px solid #e9ecef;
+    border: 1px solid #333;
     border-radius: 8px;
     font-size: 1em;
     transition: border-color 0.3s;
+    background: #1a1a1a;
+    color: #ffffff;
 }
 
 input[type="text"]:focus,
 input[type="number"]:focus,
+input[type="date"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+select:focus,
 textarea:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #5b9eff;
 }
 
 .add-ingredient-form input[type="text"],
@@ -232,7 +241,7 @@ textarea:focus {
 
 button {
     padding: 12px 24px;
-    background: #667eea;
+    background: #5b9eff;
     color: white;
     border: none;
     border-radius: 8px;
@@ -243,7 +252,7 @@ button {
 }
 
 button:hover {
-    background: #5568d3;
+    background: #4a8eee;
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
 }
@@ -669,7 +678,7 @@ button:active {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.85);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -681,31 +690,34 @@ button:active {
 }
 
 .modal-content {
-    background: white;
+    background: #1a1a1a;
     padding: 30px;
-    border-radius: 12px;
+    border-radius: 16px;
     max-width: 600px;
     width: 90%;
     max-height: 90vh;
     overflow-y: auto;
     position: relative;
+    border: 1px solid #2a2a2a;
 }
 
-.close-modal {
+.close-modal,
+.close-edit-ingredient {
     position: absolute;
     top: 15px;
     right: 20px;
     font-size: 2em;
     cursor: pointer;
-    color: #6c757d;
+    color: #888;
 }
 
-.close-modal:hover {
-    color: #e53e3e;
+.close-modal:hover,
+.close-edit-ingredient:hover {
+    color: #ff6b6b;
 }
 
 .modal-content h3 {
-    color: #2d3748;
+    color: #ffffff;
     margin-bottom: 20px;
 }
 
@@ -912,17 +924,17 @@ button:active {
 .empty-state {
     text-align: center;
     padding: 60px 40px;
-    color: #6c757d;
-    background: #f8f9fa;
+    color: #666;
+    background: #1a1a1a;
     border-radius: 16px;
-    border: 2px dashed #e9ecef;
+    border: 1px dashed #333;
     margin: 20px 0;
 }
 
 .empty-state p {
     font-size: 1.2em;
     margin-bottom: 15px;
-    color: #4a5568;
+    color: #888;
     font-weight: 500;
 }
 
@@ -1135,22 +1147,28 @@ button:active {
 
 /* Settings Section */
 .settings-card {
-    background: #f8f9fa;
+    background: #1a1a1a;
     padding: 25px;
     border-radius: 12px;
     margin-bottom: 20px;
+    border: 1px solid #2a2a2a;
 }
 
 .settings-card h3 {
-    color: #2d3748;
+    color: #ffffff;
     margin-bottom: 15px;
 }
 
+.settings-card p {
+    color: #888 !important;
+}
+
 .stat-item {
-    background: white;
+    background: #222;
     padding: 20px;
     border-radius: 8px;
     text-align: center;
+    border: 1px solid #2a2a2a;
 }
 
 .stat-value {
@@ -1393,7 +1411,7 @@ button:active {
 
 /* Primary Action Button */
 .primary-action-btn {
-    background: #667eea;
+    background: #5b9eff;
     color: white;
     padding: 12px 24px;
     border-radius: 10px;
@@ -1408,15 +1426,15 @@ button:active {
 }
 
 .primary-action-btn:hover {
-    background: #5568d3;
+    background: #4a8eee;
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 8px 20px rgba(91, 158, 255, 0.4);
 }
 
 .secondary-action-btn {
-    background: white;
-    color: #667eea;
-    border: 2px solid #667eea;
+    background: transparent;
+    color: #888;
+    border: 1px solid #333;
     padding: 10px 20px;
     border-radius: 10px;
     cursor: pointer;
@@ -1428,21 +1446,22 @@ button:active {
 }
 
 .secondary-action-btn:hover {
-    background: #667eea;
-    color: white;
+    background: #1a1a1a;
+    color: #aaa;
+    border-color: #444;
 }
 
 /* Form Cards */
 .form-card {
-    background: #f8f9fa;
+    background: #1a1a1a;
     padding: 30px;
     border-radius: 12px;
     margin-bottom: 30px;
-    border: 2px solid #e9ecef;
+    border: 1px solid #2a2a2a;
 }
 
 .form-card h3 {
-    color: #2d3748;
+    color: #ffffff;
     margin-bottom: 25px;
     font-size: 1.3em;
 }
