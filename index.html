@@ -3,14 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Pantry - Your Kitchen Companion</title>
+    <title>Smart Pantry - Kitchen Management Made Simple</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🍳 Smart Pantry</h1>
-            <p class="subtitle">Manage your kitchen, plan your meals</p>
+            <div class="header-content">
+                <h1>Smart Pantry</h1>
+                <p class="subtitle">Kitchen management made simple</p>
+            </div>
         </header>
 
         <nav class="main-nav">
@@ -25,49 +27,44 @@
         <!-- Dashboard Section -->
         <section id="dashboard" class="section active">
             <div class="dashboard-welcome">
-                <h2>Welcome to Your Kitchen</h2>
-                <p class="dashboard-subtitle">Your smart cooking companion</p>
+                <h2>Dashboard</h2>
+                <p class="dashboard-subtitle">Overview of your kitchen</p>
             </div>
 
             <!-- Expiring Items Alert -->
             <div id="expiring-alert" class="dashboard-alert" style="display: none;">
-                <div class="dashboard-alert-icon">⚠️</div>
-                <div class="dashboard-alert-content">
-                    <h3>Items Expiring Soon!</h3>
+                <div class="alert-content">
+                    <h3>Items Expiring Soon</h3>
                     <p id="expiring-alert-text"></p>
                 </div>
             </div>
 
             <!-- Today's Meal Plan -->
             <div id="today-meal-plan" class="today-meals-section" style="display: none;">
-                <h3 style="margin-bottom: 15px; color: #2d3748; font-size: 1.3em;">🍽️ Today's Meals</h3>
+                <h3>Today's Meals</h3>
                 <div id="today-meals-content"></div>
             </div>
 
             <div class="dashboard-grid">
                 <div class="dashboard-card" data-navigate="ingredients">
-                    <div class="card-icon">🥫</div>
                     <h3>Pantry</h3>
                     <p class="card-stat" id="dashboard-ingredients-count">0 items</p>
-                    <p class="card-description">Manage your ingredients</p>
+                    <p class="card-description">Manage ingredients</p>
                 </div>
 
                 <div class="dashboard-card" data-navigate="recipes">
-                    <div class="card-icon">📖</div>
                     <h3>Recipes</h3>
                     <p class="card-stat" id="dashboard-recipes-count">0 recipes</p>
-                    <p class="card-description">Browse and cook</p>
+                    <p class="card-description">Browse collection</p>
                 </div>
 
                 <div class="dashboard-card" data-navigate="shopping">
-                    <div class="card-icon">🛒</div>
-                    <h3>Shopping List</h3>
+                    <h3>Shopping</h3>
                     <p class="card-stat" id="dashboard-shopping-count">0 items</p>
-                    <p class="card-description">What you need to buy</p>
+                    <p class="card-description">Shopping list</p>
                 </div>
 
                 <div class="dashboard-card" data-navigate="meal-plan">
-                    <div class="card-icon">📅</div>
                     <h3>Meal Plan</h3>
                     <p class="card-stat" id="dashboard-meals-count">Plan your week</p>
                     <p class="card-description">Weekly planning</p>
@@ -77,18 +74,9 @@
             <div class="quick-actions">
                 <h3>Quick Actions</h3>
                 <div class="quick-action-buttons">
-                    <button class="quick-action-btn" onclick="navigateToSection('ingredients')">
-                        <span class="action-icon">➕</span>
-                        Add Ingredient
-                    </button>
-                    <button class="quick-action-btn" onclick="navigateToSection('recipes')">
-                        <span class="action-icon">🍳</span>
-                        Browse Recipes
-                    </button>
-                    <button class="quick-action-btn" onclick="navigateToSection('shopping')">
-                        <span class="action-icon">📝</span>
-                        View Shopping List
-                    </button>
+                    <button class="btn-secondary" onclick="navigateToSection('ingredients')">Add Ingredient</button>
+                    <button class="btn-secondary" onclick="navigateToSection('recipes')">Browse Recipes</button>
+                    <button class="btn-secondary" onclick="navigateToSection('shopping')">View Shopping</button>
                 </div>
             </div>
         </section>
@@ -97,10 +85,7 @@
         <section id="ingredients" class="section">
             <div class="section-header">
                 <h2>My Pantry</h2>
-                <button class="primary-action-btn" id="toggle-add-ingredient">
-                    <span class="action-icon">➕</span>
-                    Add Ingredient
-                </button>
+                <button class="btn-primary" id="toggle-add-ingredient">Add Ingredient</button>
             </div>
 
             <div class="add-ingredient-form hidden" id="add-ingredient-form-container">
@@ -138,9 +123,9 @@
             </div>
 
             <div class="location-tabs">
-                <button class="location-btn active" data-location="pantry">🥫 Pantry</button>
-                <button class="location-btn" data-location="fridge">🧊 Fridge</button>
-                <button class="location-btn" data-location="freezer">❄️ Freezer</button>
+                <button class="location-btn active" data-location="pantry">Pantry</button>
+                <button class="location-btn" data-location="fridge">Fridge</button>
+                <button class="location-btn" data-location="freezer">Freezer</button>
             </div>
 
             <div class="ingredient-lists">
@@ -163,17 +148,12 @@
         <section id="recipes" class="section">
             <div class="section-header">
                 <h2>My Recipes</h2>
-                <button class="primary-action-btn" id="add-recipe-btn">
-                    <span class="action-icon">➕</span>
-                    Add Recipe
-                </button>
+                <button class="btn-primary" id="add-recipe-btn">Add Recipe</button>
             </div>
 
             <div class="recipe-search-container">
-                <input type="text" id="recipe-search" placeholder="🔍 Search recipes..." />
-                <button class="filter-toggle-btn" id="toggle-filters">
-                    <span>⚙️ Filters</span>
-                </button>
+                <input type="text" id="recipe-search" placeholder="Search recipes..." />
+                <button class="btn-secondary" id="toggle-filters">Filters</button>
             </div>
 
             <div class="filters-container hidden" id="filters-container">
@@ -183,7 +163,7 @@
                         <button class="filter-btn active" data-filter="all">All</button>
                         <button class="filter-btn" data-filter="ready">Ready to Cook</button>
                         <button class="filter-btn" data-filter="missing">Missing Items</button>
-                        <button class="filter-btn" data-filter="favorites">⭐ Favorites</button>
+                        <button class="filter-btn" data-filter="favorites">Favorites</button>
                     </div>
                 </div>
                 <div class="filter-group">
@@ -255,22 +235,16 @@
             <div class="section-header">
                 <h2>Shopping List</h2>
                 <div class="header-actions">
-                    <button class="primary-action-btn" id="toggle-add-shopping">
-                        <span class="action-icon">➕</span>
-                        Add Item
-                    </button>
-                    <button class="secondary-action-btn" id="toggle-shopping-actions">
-                        <span>⚡</span>
-                        Quick Actions
-                    </button>
+                    <button class="btn-primary" id="toggle-add-shopping">Add Item</button>
+                    <button class="btn-secondary" id="toggle-shopping-actions">Actions</button>
                 </div>
             </div>
 
             <div class="shopping-actions hidden" id="shopping-actions-container">
-                <button id="auto-generate-list-btn">📋 Auto-Generate from Recipes</button>
-                <button id="generate-from-meal-plan-btn">📅 Generate from Meal Plan</button>
-                <button id="print-shopping-list-btn">🖨️ Print List</button>
-                <button id="clear-shopping-list-btn">🗑️ Clear List</button>
+                <button id="auto-generate-list-btn" class="btn-secondary">Auto-Generate from Recipes</button>
+                <button id="generate-from-meal-plan-btn" class="btn-secondary">Generate from Meal Plan</button>
+                <button id="print-shopping-list-btn" class="btn-secondary">Print List</button>
+                <button id="clear-shopping-list-btn" class="btn-danger">Clear List</button>
             </div>
 
             <div class="add-shopping-item hidden" id="add-shopping-form-container">
@@ -311,12 +285,12 @@
 
             <div class="shopping-category-filter">
                 <button class="shop-cat-btn active" data-shop-category="all">All</button>
-                <button class="shop-cat-btn" data-shop-category="produce">🥬 Produce</button>
-                <button class="shop-cat-btn" data-shop-category="dairy">🥛 Dairy</button>
-                <button class="shop-cat-btn" data-shop-category="meat">🥩 Meat</button>
-                <button class="shop-cat-btn" data-shop-category="pantry">🥫 Pantry</button>
-                <button class="shop-cat-btn" data-shop-category="frozen">❄️ Frozen</button>
-                <button class="shop-cat-btn" data-shop-category="bakery">🍞 Bakery</button>
+                <button class="shop-cat-btn" data-shop-category="produce">Produce</button>
+                <button class="shop-cat-btn" data-shop-category="dairy">Dairy</button>
+                <button class="shop-cat-btn" data-shop-category="meat">Meat</button>
+                <button class="shop-cat-btn" data-shop-category="pantry">Pantry</button>
+                <button class="shop-cat-btn" data-shop-category="frozen">Frozen</button>
+                <button class="shop-cat-btn" data-shop-category="bakery">Bakery</button>
             </div>
 
             <div id="shopping-list-by-category"></div>
@@ -326,15 +300,9 @@
         <section id="meal-plan" class="section">
             <div class="section-header">
                 <h2>Weekly Meal Plan</h2>
-                <div style="display: flex; gap: 10px;">
-                    <button class="primary-action-btn" id="duplicate-week-btn" style="font-size: 0.9em;">
-                        <span>📋</span>
-                        Duplicate Week
-                    </button>
-                    <button class="secondary-action-btn" id="clear-meal-plan">
-                        <span>🗑️</span>
-                        Clear Plan
-                    </button>
+                <div class="header-actions">
+                    <button class="btn-secondary" id="duplicate-week-btn">Duplicate Week</button>
+                    <button class="btn-danger" id="clear-meal-plan">Clear Plan</button>
                 </div>
             </div>
 
@@ -348,66 +316,53 @@
             <h2>Settings & Data Management</h2>
 
             <div class="settings-card">
-                <h3>☁️ Cloud Sync</h3>
-                <p style="color: #6c757d; margin-bottom: 15px;">
+                <h3>Cloud Sync</h3>
+                <p class="card-description">
                     Sync your data across all devices with a secure token. Your token works like a password - keep it safe!
                 </p>
 
                 <div id="logged-out-state" style="display: none;">
-                    <button id="register-btn" style="background: #48bb78;">
-                        🎫 Generate New Token
-                    </button>
+                    <button id="register-btn" class="btn-success">Generate New Token</button>
                     <div style="margin-top: 20px;">
-                        <p style="color: #6c757d; margin-bottom: 10px;">Already have a token?</p>
+                        <p class="card-description">Already have a token?</p>
                         <input type="text" id="login-token-input"
                                placeholder="Enter your token (e.g., KITCH-ABC123)"
                                style="width: 100%; margin-bottom: 10px; text-transform: uppercase;" />
-                        <button id="login-btn" style="background: #667eea;">
-                            🔐 Login with Token
-                        </button>
+                        <button id="login-btn" class="btn-primary">Login with Token</button>
                     </div>
                 </div>
 
                 <div id="logged-in-state" style="display: none;">
-                    <div style="background: #f0fff4; padding: 15px; border-radius: 8px;
-                                border-left: 4px solid #48bb78; margin-bottom: 15px;">
+                    <div class="token-display">
                         <strong style="display: block; margin-bottom: 8px;">Your Sync Token:</strong>
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <span id="display-token" style="color: #667eea; font-family: 'Courier New', monospace;
-                                                           font-size: 1.2em; font-weight: 700;"></span>
-                            <button onclick="copyToken()" style="padding: 6px 12px; font-size: 0.85em; background: #667eea;">
-                                📋 Copy
-                            </button>
+                            <span id="display-token" class="token-code"></span>
+                            <button onclick="copyToken()" class="btn-secondary btn-sm">Copy</button>
                         </div>
                     </div>
-                    <p style="color: #6c757d; font-size: 0.9em; margin-bottom: 15px;">
-                        💡 Save this token to access your data from any device. Data syncs automatically when online.
+                    <p class="card-description">
+                        Save this token to access your data from any device. Data syncs automatically when online.
                     </p>
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <button id="sync-now-btn" style="background: #667eea;">
-                            🔄 Sync Now
-                        </button>
-                        <button id="logout-btn" style="background: #e53e3e;">
-                            🚪 Logout
-                        </button>
+                        <button id="sync-now-btn" class="btn-primary">Sync Now</button>
+                        <button id="logout-btn" class="btn-danger">Logout</button>
                     </div>
-                    <div id="sync-status" style="margin-top: 10px; padding: 10px; background: #f8f9fa;
-                                                  border-radius: 6px; font-size: 0.9em; color: #6c757d;">
+                    <div id="sync-status" class="sync-status">
                         Last synced: Never
                     </div>
                 </div>
             </div>
 
             <div class="settings-card">
-                <h3>💾 Data Backup & Restore</h3>
-                <p style="color: #6c757d; margin-bottom: 15px;">Export your data for backup or import from a previous backup.</p>
+                <h3>Data Backup & Restore</h3>
+                <p class="card-description">Export your data for backup or import from a previous backup.</p>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <button id="export-data-btn" style="background: #48bb78;">Export All Data</button>
+                    <button id="export-data-btn" class="btn-success">Export All Data</button>
                     <label for="import-data-file" style="cursor: pointer; display: inline-block;">
-                        <button type="button" id="import-trigger-btn" style="background: #667eea;">Import Data</button>
+                        <button type="button" id="import-trigger-btn" class="btn-primary">Import Data</button>
                         <input type="file" id="import-data-file" accept=".json" style="display: none;" />
                     </label>
-                    <button id="clear-all-data-btn" style="background: #e53e3e;">Clear All Data</button>
+                    <button id="clear-all-data-btn" class="btn-danger">Clear All Data</button>
                 </div>
             </div>
 
