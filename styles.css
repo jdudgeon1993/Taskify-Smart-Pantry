@@ -826,12 +826,70 @@ label {
     gap: var(--spacing-lg);
 }
 
+/* Week Tabs */
+.week-tabs {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-xl);
+    border-bottom: 2px solid var(--gray-200);
+    padding-bottom: var(--spacing-sm);
+}
+
+.week-tab {
+    padding: 0.75rem 1.5rem;
+    background: white;
+    color: var(--gray-600);
+    border: 1px solid var(--gray-300);
+    border-bottom: none;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    bottom: -2px;
+}
+
+.week-tab:hover {
+    background: var(--gray-50);
+    color: var(--gray-900);
+}
+
+.week-tab.active {
+    background: white;
+    color: var(--primary-600);
+    border-color: var(--primary-600);
+    border-bottom: 2px solid white;
+}
+
+/* Meal Day Cards */
 .meal-day {
     background: white;
     border: 1px solid var(--gray-200);
     padding: var(--spacing-xl);
     border-radius: var(--radius-lg);
     border-left: 4px solid var(--primary-600);
+    transition: all 0.2s ease;
+}
+
+/* Today's Day - Highlighted */
+.meal-day.today-day {
+    border-left-color: var(--success-600);
+    border-left-width: 5px;
+    background: linear-gradient(to right, var(--success-50) 0%, white 5%);
+    box-shadow: 0 0 0 2px var(--success-600);
+}
+
+/* Past Days - Grayed Out */
+.meal-day.past-day {
+    opacity: 0.6;
+    background: var(--gray-50);
+    border-left-color: var(--gray-400);
+}
+
+.meal-day.past-day .meal-recipe-name {
+    text-decoration: line-through;
+    color: var(--gray-500);
 }
 
 .meal-day-header {
@@ -843,11 +901,38 @@ label {
     border-bottom: 1px solid var(--gray-200);
 }
 
+.meal-day-title {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
 .meal-day-header h3 {
     color: var(--gray-900);
     font-size: 1.125rem;
     font-weight: 600;
     margin: 0;
+}
+
+/* Today Badge */
+.today-badge {
+    background: var(--success-600);
+    color: white;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    padding: 0.25rem 0.625rem;
+    border-radius: var(--radius-md);
+    letter-spacing: 0.5px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.8;
+    }
 }
 
 .meal-count {
