@@ -253,17 +253,121 @@ function loadFromLocalStorage() {
 
     if (savedMealPlan) {
         try {
-            mealPlan = JSON.parse(savedMealPlan);
+            const parsed = JSON.parse(savedMealPlan);
+
+            // Check if this is the old format (direct day properties) or new format (week1/week2)
+            if (parsed.week1 && parsed.week2) {
+                // New format - use as is
+                mealPlan = parsed;
+            } else if (parsed.monday !== undefined) {
+                // Old format - migrate to new 2-week structure
+                console.log('Migrating meal plan to 2-week format...');
+
+                // Helper to extract meals from old formats
+                const extractMeals = (dayData) => {
+                    if (Array.isArray(dayData)) {
+                        // Simple array format
+                        return dayData;
+                    } else if (dayData && typeof dayData === 'object') {
+                        // Complex format with personA/personB/joint or breakfast/lunch/dinner
+                        const meals = [];
+
+                        // Check for personA/personB/joint structure
+                        if (dayData.personA || dayData.personB || dayData.joint) {
+                            if (Array.isArray(dayData.personA)) meals.push(...dayData.personA);
+                            if (Array.isArray(dayData.personB)) meals.push(...dayData.personB);
+                            if (Array.isArray(dayData.joint)) meals.push(...dayData.joint);
+                        }
+
+                        // Check for breakfast/lunch/dinner structure
+                        if (dayData.breakfast || dayData.lunch || dayData.dinner) {
+                            ['breakfast', 'lunch', 'dinner'].forEach(meal => {
+                                if (dayData[meal]) {
+                                    if (Array.isArray(dayData[meal])) {
+                                        meals.push(...dayData[meal]);
+                                    } else if (typeof dayData[meal] === 'object') {
+                                        // Nested personA/personB/joint in each meal
+                                        if (dayData[meal].personA) meals.push(...dayData[meal].personA);
+                                        if (dayData[meal].personB) meals.push(...dayData[meal].personB);
+                                        if (dayData[meal].joint) meals.push(...dayData[meal].joint);
+                                    }
+                                }
+                            });
+                        }
+
+                        // Remove duplicates
+                        return [...new Set(meals)].filter(id => id != null);
+                    }
+                    return [];
+                };
+
+                mealPlan = {
+                    week1: {
+                        monday: extractMeals(parsed.monday),
+                        tuesday: extractMeals(parsed.tuesday),
+                        wednesday: extractMeals(parsed.wednesday),
+                        thursday: extractMeals(parsed.thursday),
+                        friday: extractMeals(parsed.friday),
+                        saturday: extractMeals(parsed.saturday),
+                        sunday: extractMeals(parsed.sunday)
+                    },
+                    week2: {
+                        monday: [],
+                        tuesday: [],
+                        wednesday: [],
+                        thursday: [],
+                        friday: [],
+                        saturday: [],
+                        sunday: []
+                    }
+                };
+                // Save the migrated format
+                saveToLocalStorage();
+                showToast('Meal Plan Updated', 'Your meal plan has been upgraded to the new 2-week system!', 'info');
+            } else {
+                // Unknown format - reset to default
+                mealPlan = {
+                    week1: {
+                        monday: [],
+                        tuesday: [],
+                        wednesday: [],
+                        thursday: [],
+                        friday: [],
+                        saturday: [],
+                        sunday: []
+                    },
+                    week2: {
+                        monday: [],
+                        tuesday: [],
+                        wednesday: [],
+                        thursday: [],
+                        friday: [],
+                        saturday: [],
+                        sunday: []
+                    }
+                };
+            }
         } catch (e) {
             console.error('Failed to parse meal plan:', e);
             mealPlan = {
-                monday: { breakfast: null, lunch: null, dinner: null },
-                tuesday: { breakfast: null, lunch: null, dinner: null },
-                wednesday: { breakfast: null, lunch: null, dinner: null },
-                thursday: { breakfast: null, lunch: null, dinner: null },
-                friday: { breakfast: null, lunch: null, dinner: null },
-                saturday: { breakfast: null, lunch: null, dinner: null },
-                sunday: { breakfast: null, lunch: null, dinner: null }
+                week1: {
+                    monday: [],
+                    tuesday: [],
+                    wednesday: [],
+                    thursday: [],
+                    friday: [],
+                    saturday: [],
+                    sunday: []
+                },
+                week2: {
+                    monday: [],
+                    tuesday: [],
+                    wednesday: [],
+                    thursday: [],
+                    friday: [],
+                    saturday: [],
+                    sunday: []
+                }
             };
         }
     }
@@ -2316,6 +2420,32 @@ function renderMealPlan() {
     const mealPlanGrid = document.getElementById('meal-plan-grid');
     const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
     const today = getTodayDayName();
+
+    // Ensure meal plan structure exists
+    if (!mealPlan.week1 || !mealPlan.week2) {
+        console.error('Meal plan structure missing, reinitializing...');
+        mealPlan = {
+            week1: {
+                monday: [],
+                tuesday: [],
+                wednesday: [],
+                thursday: [],
+                friday: [],
+                saturday: [],
+                sunday: []
+            },
+            week2: {
+                monday: [],
+                tuesday: [],
+                wednesday: [],
+                thursday: [],
+                friday: [],
+                saturday: [],
+                sunday: []
+            }
+        };
+        saveToLocalStorage();
+    }
 
     if (recipes.length === 0) {
         mealPlanGrid.innerHTML = '<div class="empty-state"><p>No recipes available. Add some recipes first to create your meal plan!</p></div>';
