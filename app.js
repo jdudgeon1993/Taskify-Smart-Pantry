@@ -45,13 +45,13 @@ let ingredients = {
 let recipes = [];
 let shoppingList = [];
 let mealPlan = {
-    monday: { breakfast: { personA: [], personB: [], joint: [] }, lunch: { personA: [], personB: [], joint: [] }, dinner: { personA: [], personB: [], joint: [] } },
-    tuesday: { breakfast: { personA: [], personB: [], joint: [] }, lunch: { personA: [], personB: [], joint: [] }, dinner: { personA: [], personB: [], joint: [] } },
-    wednesday: { breakfast: { personA: [], personB: [], joint: [] }, lunch: { personA: [], personB: [], joint: [] }, dinner: { personA: [], personB: [], joint: [] } },
-    thursday: { breakfast: { personA: [], personB: [], joint: [] }, lunch: { personA: [], personB: [], joint: [] }, dinner: { personA: [], personB: [], joint: [] } },
-    friday: { breakfast: { personA: [], personB: [], joint: [] }, lunch: { personA: [], personB: [], joint: [] }, dinner: { personA: [], personB: [], joint: [] } },
-    saturday: { breakfast: { personA: [], personB: [], joint: [] }, lunch: { personA: [], personB: [], joint: [] }, dinner: { personA: [], personB: [], joint: [] } },
-    sunday: { breakfast: { personA: [], personB: [], joint: [] }, lunch: { personA: [], personB: [], joint: [] }, dinner: { personA: [], personB: [], joint: [] } }
+    monday: [],
+    tuesday: [],
+    wednesday: [],
+    thursday: [],
+    friday: [],
+    saturday: [],
+    sunday: []
 };
 
 let currentLocation = 'pantry';
@@ -2184,11 +2184,7 @@ function clearMealPlan() {
     if (confirm('Are you sure you want to clear the entire meal plan?')) {
         const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
         days.forEach(day => {
-            mealPlan[day] = {
-                breakfast: { personA: [], personB: [], joint: [] },
-                lunch: { personA: [], personB: [], joint: [] },
-                dinner: { personA: [], personB: [], joint: [] }
-            };
+            mealPlan[day] = [];
         });
         saveToLocalStorage();
         renderMealPlan();
@@ -2252,7 +2248,6 @@ function pasteWeek() {
 function renderMealPlan() {
     const mealPlanGrid = document.getElementById('meal-plan-grid');
     const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-    const meals = ['breakfast', 'lunch', 'dinner'];
 
     if (recipes.length === 0) {
         mealPlanGrid.innerHTML = '<div class="empty-state"><p>No recipes available. Add some recipes first to create your meal plan!</p></div>';
@@ -2264,99 +2259,43 @@ function renderMealPlan() {
         .map(recipe => `<option value="${recipe.id}">${recipe.name}</option>`)
         .join('');
 
-    // Add quick day filter buttons at top
-    let html = `
-        <div class="meal-plan-quick-filters" style="display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center;">
-            ${days.map(day => `
-                <button onclick="toggleMealDay('${day}')" class="day-filter-btn" style="padding: 8px 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
-                    ${day.charAt(0).toUpperCase() + day.slice(1)}
-                </button>
-            `).join('')}
-            <button onclick="expandAllMealDays()" style="padding: 8px 16px; background: #48bb78; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
-                Expand All
-            </button>
-            <button onclick="collapseAllMealDays()" style="padding: 8px 16px; background: #718096; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
-                Collapse All
-            </button>
-        </div>
-    `;
-
-    html += days.map(day => {
-        const isExpanded = expandedMealDays.has(day);
-        const displayStyle = isExpanded ? 'block' : 'none';
-        const iconText = isExpanded ? '▲' : '▼';
-        const iconRotation = isExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
+    const html = days.map(day => {
+        const dayRecipes = (mealPlan[day] || []).map(id => recipes.find(r => r.id === id)).filter(Boolean);
+        const dayName = day.charAt(0).toUpperCase() + day.slice(1);
 
         return `
         <div class="meal-day" id="meal-day-${day}">
-            <h3 onclick="toggleMealDay('${day}')" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none;">
-                <span>${day.charAt(0).toUpperCase() + day.slice(1)}</span>
-                <span class="collapse-icon" id="collapse-icon-${day}" style="font-size: 20px; transition: transform 0.3s; transform: ${iconRotation};">${iconText}</span>
-            </h3>
-            <div class="meal-slots" id="meal-slots-${day}" style="display: ${displayStyle};">
-                ${meals.map(meal => {
-                    const mealSlot = mealPlan[day][meal];
+            <div class="meal-day-header">
+                <h3>${dayName}</h3>
+                <span class="meal-count">${dayRecipes.length} meal${dayRecipes.length !== 1 ? 's' : ''}</span>
+            </div>
 
-                    // Ensure structure exists
-                    if (!mealSlot || typeof mealSlot !== 'object' || !Array.isArray(mealSlot.personA)) {
-                        mealPlan[day][meal] = { personA: [], personB: [], joint: [] };
-                    }
-
-                    const personARecipes = (mealPlan[day][meal].personA || []).map(id => recipes.find(r => r.id === id)).filter(Boolean);
-                    const personBRecipes = (mealPlan[day][meal].personB || []).map(id => recipes.find(r => r.id === id)).filter(Boolean);
-                    const jointRecipes = (mealPlan[day][meal].joint || []).map(id => recipes.find(r => r.id === id)).filter(Boolean);
-
-                    return `
-                        <div class="meal-slot">
-                            <h4>${meal.charAt(0).toUpperCase() + meal.slice(1)}</h4>
-
-                            <!-- Person A -->
-                            <div class="person-meal">
-                                <label style="font-weight: 600; color: #667eea;">Person A:</label>
-                                ${personARecipes.map(recipe => `
-                                    <div class="recipe-tag">
-                                        ${recipe.name}
-                                        <button class="remove-tag-btn" onclick="removeRecipeFromMeal('${day}', '${meal}', 'personA', ${recipe.id})">×</button>
-                                    </div>
-                                `).join('')}
-                                <select onchange="addRecipeToMeal('${day}', '${meal}', 'personA', this.value); this.value='';" style="margin-top: 5px;">
-                                    <option value="">+ Add recipe</option>
-                                    ${recipeOptions}
-                                </select>
-                            </div>
-
-                            <!-- Person B -->
-                            <div class="person-meal">
-                                <label style="font-weight: 600; color: #764ba2;">Person B:</label>
-                                ${personBRecipes.map(recipe => `
-                                    <div class="recipe-tag">
-                                        ${recipe.name}
-                                        <button class="remove-tag-btn" onclick="removeRecipeFromMeal('${day}', '${meal}', 'personB', ${recipe.id})">×</button>
-                                    </div>
-                                `).join('')}
-                                <select onchange="addRecipeToMeal('${day}', '${meal}', 'personB', this.value); this.value='';" style="margin-top: 5px;">
-                                    <option value="">+ Add recipe</option>
-                                    ${recipeOptions}
-                                </select>
-                            </div>
-
-                            <!-- Joint -->
-                            <div class="person-meal">
-                                <label style="font-weight: 600; color: #48bb78;">Joint:</label>
-                                ${jointRecipes.map(recipe => `
-                                    <div class="recipe-tag joint-tag">
-                                        ${recipe.name}
-                                        <button class="remove-tag-btn" onclick="removeRecipeFromMeal('${day}', '${meal}', 'joint', ${recipe.id})">×</button>
-                                    </div>
-                                `).join('')}
-                                <select onchange="addRecipeToMeal('${day}', '${meal}', 'joint', this.value); this.value='';" style="margin-top: 5px;">
-                                    <option value="">+ Add recipe</option>
-                                    ${recipeOptions}
-                                </select>
-                            </div>
+            <div class="meal-list">
+                ${dayRecipes.map(recipe => `
+                    <div class="meal-item">
+                        <div class="meal-item-content">
+                            <span class="meal-recipe-name">${recipe.name}</span>
+                            ${recipe.servings ? `<span class="meal-servings">${recipe.servings} servings</span>` : ''}
                         </div>
-                    `;
-                }).join('')}
+                        <div class="meal-item-actions">
+                            <button class="btn-sm btn-primary" onclick="cookNow(${recipe.id})" title="Cook this recipe now">
+                                Cook Now
+                            </button>
+                            <button class="btn-sm btn-danger" onclick="removeRecipeFromMeal('${day}', ${recipe.id})" title="Remove from plan">
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+                `).join('')}
+
+                ${dayRecipes.length === 0 ? '<p class="empty-day-message">No meals planned for this day</p>' : ''}
+
+                <div class="add-meal-section">
+                    <select class="add-meal-select" onchange="addRecipeToMeal('${day}', this.value); this.value='';">
+                        <option value="">+ Add a meal</option>
+                        ${recipeOptions}
+                    </select>
+                </div>
             </div>
         </div>
         `;
@@ -2366,63 +2305,92 @@ function renderMealPlan() {
 }
 
 function toggleMealDay(day) {
-    if (expandedMealDays.has(day)) {
-        expandedMealDays.delete(day);
-    } else {
-        expandedMealDays.add(day);
-    }
-
-    // Update UI immediately
-    const slotsElement = document.getElementById(`meal-slots-${day}`);
-    const iconElement = document.getElementById(`collapse-icon-${day}`);
-
-    if (expandedMealDays.has(day)) {
-        slotsElement.style.display = 'block';
-        iconElement.style.transform = 'rotate(180deg)';
-        iconElement.textContent = '▲';
-    } else {
-        slotsElement.style.display = 'none';
-        iconElement.style.transform = 'rotate(0deg)';
-        iconElement.textContent = '▼';
-    }
+    // No longer needed with simplified design
 }
 
 function expandAllMealDays() {
-    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-    days.forEach(day => expandedMealDays.add(day));
-    renderMealPlan();
+    // No longer needed with simplified design
 }
 
 function collapseAllMealDays() {
-    expandedMealDays.clear();
-    renderMealPlan();
+    // No longer needed with simplified design
 }
 
-function addRecipeToMeal(day, meal, person, recipeId) {
+function addRecipeToMeal(day, recipeId) {
     if (!recipeId) return;
 
     recipeId = parseInt(recipeId);
 
-    // Ensure structure exists
-    if (!mealPlan[day][meal] || typeof mealPlan[day][meal] !== 'object') {
-        mealPlan[day][meal] = { personA: [], personB: [], joint: [] };
+    // Ensure mealPlan[day] is an array
+    if (!Array.isArray(mealPlan[day])) {
+        mealPlan[day] = [];
     }
 
     // Add recipe if not already there
-    if (!mealPlan[day][meal][person].includes(recipeId)) {
-        mealPlan[day][meal][person].push(recipeId);
+    if (!mealPlan[day].includes(recipeId)) {
+        mealPlan[day].push(recipeId);
         saveToLocalStorage();
         renderMealPlan();
         renderIngredients(); // Update ingredient availability
+        showToast('Meal Added', 'Recipe added to meal plan', 'success');
     }
 }
 
-function removeRecipeFromMeal(day, meal, person, recipeId) {
-    if (mealPlan[day][meal] && Array.isArray(mealPlan[day][meal][person])) {
-        mealPlan[day][meal][person] = mealPlan[day][meal][person].filter(id => id !== recipeId);
+function removeRecipeFromMeal(day, recipeId) {
+    if (Array.isArray(mealPlan[day])) {
+        mealPlan[day] = mealPlan[day].filter(id => id !== parseInt(recipeId));
         saveToLocalStorage();
         renderMealPlan();
         renderIngredients(); // Update ingredient availability
+        showToast('Meal Removed', 'Recipe removed from plan', 'success');
+    }
+}
+
+function cookNow(recipeId) {
+    const recipe = recipes.find(r => r.id === recipeId);
+    if (!recipe) return;
+
+    // Check ingredient availability
+    const { missingIngredients } = checkRecipeAvailability(recipe);
+
+    if (missingIngredients.length > 0) {
+        const missingList = missingIngredients.map(ing =>
+            `${ing.name}: ${ing.quantity} ${ing.unit}`
+        ).join(', ');
+
+        if (confirm(`You're missing some ingredients:\n${missingList}\n\nAdd them to shopping list?`)) {
+            // Add missing ingredients to shopping list
+            missingIngredients.forEach(ing => {
+                const existingItem = shoppingList.find(
+                    item => item.name.toLowerCase() === ing.name.toLowerCase()
+                );
+
+                if (!existingItem) {
+                    shoppingList.push({
+                        id: Date.now() + Math.random(),
+                        name: ing.name,
+                        quantity: ing.quantity,
+                        unit: ing.unit,
+                        category: 'pantry',
+                        checked: false
+                    });
+                }
+            });
+            saveToLocalStorage();
+            renderShoppingList();
+            showToast('Added to Shopping List', `Missing ingredients for ${recipe.name} added`, 'success');
+        }
+    } else {
+        // All ingredients available - show recipe details
+        const instructions = recipe.instructions || 'No instructions provided.';
+        const ingredientsList = recipe.ingredients.map(ing =>
+            `• ${ing.quantity} ${ing.unit} ${ing.name}`
+        ).join('\n');
+
+        const message = `Recipe: ${recipe.name}\n\nIngredients:\n${ingredientsList}\n\nInstructions:\n${instructions}`;
+
+        alert(message);
+        showToast('Ready to Cook!', `All ingredients available for ${recipe.name}`, 'success');
     }
 }
 
