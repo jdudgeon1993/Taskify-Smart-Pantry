@@ -262,15 +262,54 @@ function loadFromLocalStorage() {
             } else if (parsed.monday !== undefined) {
                 // Old format - migrate to new 2-week structure
                 console.log('Migrating meal plan to 2-week format...');
+
+                // Helper to extract meals from old formats
+                const extractMeals = (dayData) => {
+                    if (Array.isArray(dayData)) {
+                        // Simple array format
+                        return dayData;
+                    } else if (dayData && typeof dayData === 'object') {
+                        // Complex format with personA/personB/joint or breakfast/lunch/dinner
+                        const meals = [];
+
+                        // Check for personA/personB/joint structure
+                        if (dayData.personA || dayData.personB || dayData.joint) {
+                            if (Array.isArray(dayData.personA)) meals.push(...dayData.personA);
+                            if (Array.isArray(dayData.personB)) meals.push(...dayData.personB);
+                            if (Array.isArray(dayData.joint)) meals.push(...dayData.joint);
+                        }
+
+                        // Check for breakfast/lunch/dinner structure
+                        if (dayData.breakfast || dayData.lunch || dayData.dinner) {
+                            ['breakfast', 'lunch', 'dinner'].forEach(meal => {
+                                if (dayData[meal]) {
+                                    if (Array.isArray(dayData[meal])) {
+                                        meals.push(...dayData[meal]);
+                                    } else if (typeof dayData[meal] === 'object') {
+                                        // Nested personA/personB/joint in each meal
+                                        if (dayData[meal].personA) meals.push(...dayData[meal].personA);
+                                        if (dayData[meal].personB) meals.push(...dayData[meal].personB);
+                                        if (dayData[meal].joint) meals.push(...dayData[meal].joint);
+                                    }
+                                }
+                            });
+                        }
+
+                        // Remove duplicates
+                        return [...new Set(meals)].filter(id => id != null);
+                    }
+                    return [];
+                };
+
                 mealPlan = {
                     week1: {
-                        monday: Array.isArray(parsed.monday) ? parsed.monday : [],
-                        tuesday: Array.isArray(parsed.tuesday) ? parsed.tuesday : [],
-                        wednesday: Array.isArray(parsed.wednesday) ? parsed.wednesday : [],
-                        thursday: Array.isArray(parsed.thursday) ? parsed.thursday : [],
-                        friday: Array.isArray(parsed.friday) ? parsed.friday : [],
-                        saturday: Array.isArray(parsed.saturday) ? parsed.saturday : [],
-                        sunday: Array.isArray(parsed.sunday) ? parsed.sunday : []
+                        monday: extractMeals(parsed.monday),
+                        tuesday: extractMeals(parsed.tuesday),
+                        wednesday: extractMeals(parsed.wednesday),
+                        thursday: extractMeals(parsed.thursday),
+                        friday: extractMeals(parsed.friday),
+                        saturday: extractMeals(parsed.saturday),
+                        sunday: extractMeals(parsed.sunday)
                     },
                     week2: {
                         monday: [],
