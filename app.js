@@ -45,13 +45,24 @@ let ingredients = {
 let recipes = [];
 let shoppingList = [];
 let mealPlan = {
-    monday: [],
-    tuesday: [],
-    wednesday: [],
-    thursday: [],
-    friday: [],
-    saturday: [],
-    sunday: []
+    week1: {
+        monday: [],
+        tuesday: [],
+        wednesday: [],
+        thursday: [],
+        friday: [],
+        saturday: [],
+        sunday: []
+    },
+    week2: {
+        monday: [],
+        tuesday: [],
+        wednesday: [],
+        thursday: [],
+        friday: [],
+        saturday: [],
+        sunday: []
+    }
 };
 
 let currentLocation = 'pantry';
@@ -68,7 +79,39 @@ let userToken = null;
 let isSyncing = false;
 
 // Meal Plan UI State
-let expandedMealDays = new Set(); // Track which days are expanded
+let currentWeekView = 'week1'; // Which week is being displayed
+
+// Helper function to get today's day of week
+function getTodayDayName() {
+    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    return days[new Date().getDay()];
+}
+
+// Helper function to check if it's Monday and roll over weeks if needed
+function checkAndRolloverWeeks() {
+    const today = getTodayDayName();
+    const lastRollover = localStorage.getItem('smartPantry_lastRollover');
+    const currentDate = new Date().toDateString();
+
+    // If it's Monday and we haven't rolled over today
+    if (today === 'monday' && lastRollover !== currentDate) {
+        // Move week2 to week1, clear week2
+        mealPlan.week1 = { ...mealPlan.week2 };
+        mealPlan.week2 = {
+            monday: [],
+            tuesday: [],
+            wednesday: [],
+            thursday: [],
+            friday: [],
+            saturday: [],
+            sunday: []
+        };
+
+        localStorage.setItem('smartPantry_lastRollover', currentDate);
+        saveToLocalStorage();
+        showToast('Week Rolled Over', 'Next week is now your current week!', 'info');
+    }
+}
 
 // Helper function to get all unique units from ingredients and recipes
 function getAllUnits() {
@@ -144,6 +187,7 @@ function updateDataLists() {
 // Initialize App
 document.addEventListener('DOMContentLoaded', () => {
     loadFromLocalStorage();
+    checkAndRolloverWeeks(); // Check if we need to roll over weeks (Monday)
     updateDataLists(); // Populate autocomplete lists
     initAuth();
     initNavigation();
@@ -2181,15 +2225,38 @@ function initMealPlan() {
 }
 
 function clearMealPlan() {
-    if (confirm('Are you sure you want to clear the entire meal plan?')) {
-        const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    const options = ['Clear Current Week (Week 1)', 'Clear Next Week (Week 2)', 'Clear Both Weeks', 'Cancel'];
+    const choice = prompt(`Choose an option:\n1. ${options[0]}\n2. ${options[1]}\n3. ${options[2]}\n4. ${options[3]}\n\nEnter 1, 2, 3, or 4:`);
+
+    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+
+    if (choice === '1') {
         days.forEach(day => {
-            mealPlan[day] = [];
+            mealPlan.week1[day] = [];
         });
         saveToLocalStorage();
         renderMealPlan();
-        renderIngredients(); // Update ingredient availability
-        showToast('Meal Plan Cleared', 'All meals removed from plan', 'success');
+        renderIngredients();
+        showToast('Week 1 Cleared', 'Current week meals removed', 'success');
+    } else if (choice === '2') {
+        days.forEach(day => {
+            mealPlan.week2[day] = [];
+        });
+        saveToLocalStorage();
+        renderMealPlan();
+        renderIngredients();
+        showToast('Week 2 Cleared', 'Next week meals removed', 'success');
+    } else if (choice === '3') {
+        if (confirm('Are you sure you want to clear BOTH weeks?')) {
+            days.forEach(day => {
+                mealPlan.week1[day] = [];
+                mealPlan.week2[day] = [];
+            });
+            saveToLocalStorage();
+            renderMealPlan();
+            renderIngredients();
+            showToast('Both Weeks Cleared', 'All meals removed from plan', 'success');
+        }
     }
 }
 
@@ -2248,6 +2315,7 @@ function pasteWeek() {
 function renderMealPlan() {
     const mealPlanGrid = document.getElementById('meal-plan-grid');
     const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    const today = getTodayDayName();
 
     if (recipes.length === 0) {
         mealPlanGrid.innerHTML = '<div class="empty-state"><p>No recipes available. Add some recipes first to create your meal plan!</p></div>';
@@ -2259,14 +2327,48 @@ function renderMealPlan() {
         .map(recipe => `<option value="${recipe.id}">${recipe.name}</option>`)
         .join('');
 
-    const html = days.map(day => {
-        const dayRecipes = (mealPlan[day] || []).map(id => recipes.find(r => r.id === id)).filter(Boolean);
+    // Week tabs
+    const weekTabs = `
+        <div class="week-tabs">
+            <button class="week-tab ${currentWeekView === 'week1' ? 'active' : ''}" onclick="switchWeek('week1')">
+                Week 1 (Current)
+            </button>
+            <button class="week-tab ${currentWeekView === 'week2' ? 'active' : ''}" onclick="switchWeek('week2')">
+                Week 2 (Next)
+            </button>
+        </div>
+    `;
+
+    // Get the appropriate week's data
+    const weekData = mealPlan[currentWeekView];
+
+    // Helper to check if day is in the past (only for week1)
+    const dayOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    const todayIndex = dayOrder.indexOf(today);
+
+    const isPastDay = (day) => {
+        if (currentWeekView === 'week2') return false; // Week 2 is always future
+        const dayIndex = dayOrder.indexOf(day);
+        return dayIndex < todayIndex;
+    };
+
+    const isToday = (day) => {
+        return currentWeekView === 'week1' && day === today;
+    };
+
+    const daysHTML = days.map(day => {
+        const dayRecipes = (weekData[day] || []).map(id => recipes.find(r => r.id === id)).filter(Boolean);
         const dayName = day.charAt(0).toUpperCase() + day.slice(1);
+        const past = isPastDay(day);
+        const todayDay = isToday(day);
 
         return `
-        <div class="meal-day" id="meal-day-${day}">
+        <div class="meal-day ${past ? 'past-day' : ''} ${todayDay ? 'today-day' : ''}" id="meal-day-${currentWeekView}-${day}">
             <div class="meal-day-header">
-                <h3>${dayName}</h3>
+                <div class="meal-day-title">
+                    <h3>${dayName}</h3>
+                    ${todayDay ? '<span class="today-badge">TODAY</span>' : ''}
+                </div>
                 <span class="meal-count">${dayRecipes.length} meal${dayRecipes.length !== 1 ? 's' : ''}</span>
             </div>
 
@@ -2278,10 +2380,10 @@ function renderMealPlan() {
                             ${recipe.servings ? `<span class="meal-servings">${recipe.servings} servings</span>` : ''}
                         </div>
                         <div class="meal-item-actions">
-                            <button class="btn-sm btn-primary" onclick="cookNow(${recipe.id})" title="Cook this recipe now">
+                            <button class="btn-sm btn-primary" onclick="cookNowAndDeduct(${recipe.id}, '${currentWeekView}', '${day}')" title="Cook this recipe now">
                                 Cook Now
                             </button>
-                            <button class="btn-sm btn-danger" onclick="removeRecipeFromMeal('${day}', ${recipe.id})" title="Remove from plan">
+                            <button class="btn-sm btn-danger" onclick="removeRecipeFromMeal('${currentWeekView}', '${day}', ${recipe.id})" title="Remove from plan">
                                 Remove
                             </button>
                         </div>
@@ -2291,7 +2393,7 @@ function renderMealPlan() {
                 ${dayRecipes.length === 0 ? '<p class="empty-day-message">No meals planned for this day</p>' : ''}
 
                 <div class="add-meal-section">
-                    <select class="add-meal-select" onchange="addRecipeToMeal('${day}', this.value); this.value='';">
+                    <select class="add-meal-select" onchange="addRecipeToMeal('${currentWeekView}', '${day}', this.value); this.value='';">
                         <option value="">+ Add a meal</option>
                         ${recipeOptions}
                     </select>
@@ -2301,7 +2403,12 @@ function renderMealPlan() {
         `;
     }).join('');
 
-    mealPlanGrid.innerHTML = html;
+    mealPlanGrid.innerHTML = weekTabs + daysHTML;
+}
+
+function switchWeek(week) {
+    currentWeekView = week;
+    renderMealPlan();
 }
 
 function toggleMealDay(day) {
@@ -2316,19 +2423,19 @@ function collapseAllMealDays() {
     // No longer needed with simplified design
 }
 
-function addRecipeToMeal(day, recipeId) {
+function addRecipeToMeal(week, day, recipeId) {
     if (!recipeId) return;
 
     recipeId = parseInt(recipeId);
 
-    // Ensure mealPlan[day] is an array
-    if (!Array.isArray(mealPlan[day])) {
-        mealPlan[day] = [];
+    // Ensure mealPlan[week][day] is an array
+    if (!Array.isArray(mealPlan[week][day])) {
+        mealPlan[week][day] = [];
     }
 
     // Add recipe if not already there
-    if (!mealPlan[day].includes(recipeId)) {
-        mealPlan[day].push(recipeId);
+    if (!mealPlan[week][day].includes(recipeId)) {
+        mealPlan[week][day].push(recipeId);
         saveToLocalStorage();
         renderMealPlan();
         renderIngredients(); // Update ingredient availability
@@ -2336,9 +2443,9 @@ function addRecipeToMeal(day, recipeId) {
     }
 }
 
-function removeRecipeFromMeal(day, recipeId) {
-    if (Array.isArray(mealPlan[day])) {
-        mealPlan[day] = mealPlan[day].filter(id => id !== parseInt(recipeId));
+function removeRecipeFromMeal(week, day, recipeId) {
+    if (Array.isArray(mealPlan[week][day])) {
+        mealPlan[week][day] = mealPlan[week][day].filter(id => id !== parseInt(recipeId));
         saveToLocalStorage();
         renderMealPlan();
         renderIngredients(); // Update ingredient availability
@@ -2346,20 +2453,20 @@ function removeRecipeFromMeal(day, recipeId) {
     }
 }
 
-function cookNow(recipeId) {
+function cookNowAndDeduct(recipeId, week, day) {
     const recipe = recipes.find(r => r.id === recipeId);
     if (!recipe) return;
 
-    // Check ingredient availability using existing function
+    // Check ingredient availability
     const status = checkRecipeStatus(recipe);
 
     if (status.missing.length > 0) {
+        // Missing ingredients - offer to add to shopping list
         const missingList = status.missing.map(ing =>
             `${ing.name}: ${ing.quantity} ${ing.unit}`
         ).join('\n');
 
         if (confirm(`You're missing some ingredients:\n\n${missingList}\n\nAdd them to shopping list?`)) {
-            // Add missing ingredients to shopping list
             let addedCount = 0;
             status.missing.forEach(ing => {
                 const existingItem = shoppingList.find(
@@ -2384,16 +2491,59 @@ function cookNow(recipeId) {
             showToast('Added to Shopping List', `${addedCount} missing ingredient${addedCount > 1 ? 's' : ''} for ${recipe.name}`, 'success');
         }
     } else {
-        // All ingredients available - show recipe details
+        // All ingredients available - show recipe and confirm cooking
         const instructions = recipe.instructions || 'No instructions provided.';
         const ingredientsList = recipe.ingredients.map(ing =>
             `• ${ing.quantity} ${ing.unit} ${ing.name}`
         ).join('\n');
 
-        const message = `Recipe: ${recipe.name}\n${recipe.servings ? `Servings: ${recipe.servings}\n` : ''}\n\nIngredients:\n${ingredientsList}\n\nInstructions:\n${instructions}`;
+        const message = `Recipe: ${recipe.name}\n${recipe.servings ? `Servings: ${recipe.servings}\n` : ''}\n\nIngredients:\n${ingredientsList}\n\nInstructions:\n${instructions}\n\nThis will deduct ingredients from your pantry and remove this meal from your plan. Continue?`;
 
-        alert(message);
-        showToast('Ready to Cook!', `All ingredients available for ${recipe.name}`, 'success');
+        if (confirm(message)) {
+            // Deduct ingredients from pantry
+            let deductedCount = 0;
+
+            recipe.ingredients.forEach(reqIng => {
+                let remaining = reqIng.quantity;
+
+                ['pantry', 'fridge', 'freezer'].forEach(location => {
+                    if (remaining <= 0) return;
+
+                    const ingIndex = ingredients[location].findIndex(ing =>
+                        ing.name.toLowerCase() === reqIng.name.toLowerCase() &&
+                        ing.unit.toLowerCase() === reqIng.unit.toLowerCase()
+                    );
+
+                    if (ingIndex !== -1) {
+                        const available = ingredients[location][ingIndex].quantity;
+
+                        if (available >= remaining) {
+                            ingredients[location][ingIndex].quantity -= remaining;
+                            deductedCount++;
+
+                            if (ingredients[location][ingIndex].quantity <= 0) {
+                                ingredients[location].splice(ingIndex, 1);
+                            }
+
+                            remaining = 0;
+                        } else {
+                            remaining -= available;
+                            ingredients[location].splice(ingIndex, 1);
+                            deductedCount++;
+                        }
+                    }
+                });
+            });
+
+            // Remove meal from plan
+            removeRecipeFromMeal(week, day, recipeId);
+
+            saveToLocalStorage();
+            renderIngredients();
+            renderRecipes();
+
+            showToast('Meal Cooked!', `Cooked ${recipe.name}! ${deductedCount} ingredients deducted`, 'success');
+        }
     }
 }
 
