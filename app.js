@@ -821,26 +821,25 @@ function renderIngredients() {
             const available = item.quantity - reserved;
 
             // Build availability display
-            let availabilityHTML = '';
-            if (reserved > 0) {
-                const availColor = available <= 0 ? '#e53e3e' : (available < item.quantity * 0.3 ? '#ed8936' : '#48bb78');
-                availabilityHTML = `
-                    <div class="ingredient-availability">
-                        <div class="availability-item">
-                            <span class="availability-label">On Hand:</span>
-                            <span class="availability-value">${item.quantity} ${item.unit}</span>
-                        </div>
-                        <div class="availability-item">
-                            <span class="availability-label">Available:</span>
-                            <span class="availability-value" style="color: ${availColor}; font-weight: 700;">${available} ${item.unit}</span>
-                        </div>
-                        <div class="availability-item reserved-info">
-                            <span class="availability-label">Reserved:</span>
-                            <span class="availability-value">${reserved} ${item.unit}</span>
-                        </div>
+            const availColor = available <= 0 ? '#e53e3e' : (available < item.quantity * 0.3 ? '#ed8936' : '#48bb78');
+            let availabilityHTML = `
+                <div class="ingredient-availability">
+                    <div class="availability-item">
+                        <span class="availability-label">On Hand:</span>
+                        <span class="availability-value">${item.quantity} ${item.unit}</span>
                     </div>
-                `;
-            }
+                    <div class="availability-item">
+                        <span class="availability-label">Available:</span>
+                        <span class="availability-value" style="color: ${availColor}; font-weight: 700;">${available} ${item.unit}</span>
+                    </div>
+                    ${reserved > 0 ? `
+                    <div class="availability-item reserved-info">
+                        <span class="availability-label">Reserved:</span>
+                        <span class="availability-value">${reserved} ${item.unit}</span>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
 
             return `
             <li class="${classList}">
