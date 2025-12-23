@@ -2350,35 +2350,38 @@ function cookNow(recipeId) {
     const recipe = recipes.find(r => r.id === recipeId);
     if (!recipe) return;
 
-    // Check ingredient availability
-    const { missingIngredients } = checkRecipeAvailability(recipe);
+    // Check ingredient availability using existing function
+    const status = checkRecipeStatus(recipe);
 
-    if (missingIngredients.length > 0) {
-        const missingList = missingIngredients.map(ing =>
+    if (status.missing.length > 0) {
+        const missingList = status.missing.map(ing =>
             `${ing.name}: ${ing.quantity} ${ing.unit}`
-        ).join(', ');
+        ).join('\n');
 
-        if (confirm(`You're missing some ingredients:\n${missingList}\n\nAdd them to shopping list?`)) {
+        if (confirm(`You're missing some ingredients:\n\n${missingList}\n\nAdd them to shopping list?`)) {
             // Add missing ingredients to shopping list
-            missingIngredients.forEach(ing => {
+            let addedCount = 0;
+            status.missing.forEach(ing => {
                 const existingItem = shoppingList.find(
                     item => item.name.toLowerCase() === ing.name.toLowerCase()
                 );
 
                 if (!existingItem) {
+                    const category = autoCategorizeShopping(ing.name);
                     shoppingList.push({
                         id: Date.now() + Math.random(),
                         name: ing.name,
                         quantity: ing.quantity,
                         unit: ing.unit,
-                        category: 'pantry',
+                        category: category,
                         checked: false
                     });
+                    addedCount++;
                 }
             });
             saveToLocalStorage();
             renderShoppingList();
-            showToast('Added to Shopping List', `Missing ingredients for ${recipe.name} added`, 'success');
+            showToast('Added to Shopping List', `${addedCount} missing ingredient${addedCount > 1 ? 's' : ''} for ${recipe.name}`, 'success');
         }
     } else {
         // All ingredients available - show recipe details
@@ -2387,7 +2390,7 @@ function cookNow(recipeId) {
             `• ${ing.quantity} ${ing.unit} ${ing.name}`
         ).join('\n');
 
-        const message = `Recipe: ${recipe.name}\n\nIngredients:\n${ingredientsList}\n\nInstructions:\n${instructions}`;
+        const message = `Recipe: ${recipe.name}\n${recipe.servings ? `Servings: ${recipe.servings}\n` : ''}\n\nIngredients:\n${ingredientsList}\n\nInstructions:\n${instructions}`;
 
         alert(message);
         showToast('Ready to Cook!', `All ingredients available for ${recipe.name}`, 'success');
