@@ -942,7 +942,8 @@ function initRecipes() {
         }
     });
 
-    renderRecipes();
+    // Don't render recipes on page load - only when navigating to recipes section
+    // renderRecipes() is called in initNavigation() when user clicks Recipes tab
 }
 
 function addRecipeIngredientRow() {
