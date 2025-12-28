@@ -198,77 +198,15 @@ header {
     display: block;
 }
 
-/* Recipes section with natural wood table top texture */
+/* Recipes section with simple warm wood background */
 #recipes {
-    background:
-        /* Fine wood grain lines */
-        repeating-linear-gradient(
-            90deg,
-            transparent,
-            transparent 3px,
-            rgba(101, 67, 33, 0.08) 3px,
-            rgba(101, 67, 33, 0.08) 4px,
-            transparent 4px,
-            transparent 12px
-        ),
-        /* Wood plank variations - warm honey tones */
-        linear-gradient(
-            90deg,
-            #c9955a 0%,
-            #d4a574 8%,
-            #c08550 15%,
-            #d4a574 23%,
-            #c9955a 30%,
-            #d9b285 38%,
-            #c08550 45%,
-            #d4a574 53%,
-            #c9955a 60%,
-            #d4a574 68%,
-            #c08550 75%,
-            #d9b285 83%,
-            #c9955a 90%,
-            #d4a574 100%
-        ),
-        /* Subtle knot and grain texture */
-        repeating-linear-gradient(
-            0deg,
-            transparent,
-            transparent 1px,
-            rgba(139, 111, 79, 0.04) 1px,
-            rgba(139, 111, 79, 0.04) 2px
-        );
-    background-color: #c9955a;
+    padding: 3rem;
+    background-color: #d4a574;
     border-radius: var(--radius-lg);
-    box-shadow:
-        inset 0 2px 4px rgba(80, 50, 20, 0.12),
-        inset 0 -1px 2px rgba(255, 255, 255, 0.1),
-        0 6px 16px rgba(74, 58, 44, 0.15);
-    position: relative;
-}
-
-/* Add realistic varnish and shine effect */
-#recipes::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background:
-        linear-gradient(
-            135deg,
-            rgba(255, 255, 255, 0.15) 0%,
-            transparent 25%,
-            transparent 75%,
-            rgba(255, 255, 255, 0.08) 100%
-        ),
-        radial-gradient(
-            ellipse at 20% 30%,
-            rgba(255, 255, 255, 0.12) 0%,
-            transparent 50%
-        );
-    border-radius: var(--radius-lg);
-    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(74, 58, 44, 0.12);
+    min-height: calc(100vh - 230px);
+    display: flex;
+    flex-direction: column;
 }
 
 @keyframes fadeIn {
@@ -751,14 +689,17 @@ label {
 .recipe-sections-container {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: var(--spacing-xl);
+    gap: 3rem;
     width: 100%;
+    flex: 1;
+    align-items: start;
 }
 
 .recipe-section {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-md);
+    gap: var(--spacing-lg);
+    height: 100%;
 }
 
 .section-header-card {

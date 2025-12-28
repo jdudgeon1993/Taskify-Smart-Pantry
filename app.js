@@ -614,6 +614,10 @@ function clearIngredientForm() {
     document.getElementById('ingredient-quantity').value = '1';
     document.getElementById('ingredient-unit').value = '';
     document.getElementById('ingredient-expiration').value = '';
+    const categoryInput = document.getElementById('ingredient-category');
+    if (categoryInput) {
+        categoryInput.value = 'pantry';
+    }
 }
 
 function addIngredient() {
@@ -621,19 +625,21 @@ function addIngredient() {
     const quantityInput = document.getElementById('ingredient-quantity');
     const unitInput = document.getElementById('ingredient-unit');
     const expirationInput = document.getElementById('ingredient-expiration');
+    const categoryInput = document.getElementById('ingredient-category');
 
     const name = nameInput.value.trim();
     const quantity = parseFloat(quantityInput.value) || 1;
     const unit = unitInput.value.trim();
     const expiration = expirationInput.value || null;
+    const category = categoryInput ? categoryInput.value : currentLocation;
 
     if (!name) {
         alert('Please enter an ingredient name');
         return;
     }
 
-    // Check if ingredient already exists
-    const existingIngredient = ingredients[currentLocation].find(
+    // Check if ingredient already exists in the selected category
+    const existingIngredient = ingredients[category].find(
         ing => ing.name.toLowerCase() === name.toLowerCase() && ing.unit.toLowerCase() === unit.toLowerCase()
     );
 
@@ -650,7 +656,7 @@ function addIngredient() {
             unit,
             expiration
         };
-        ingredients[currentLocation].push(ingredient);
+        ingredients[category].push(ingredient);
     }
 
     saveToLocalStorage();
