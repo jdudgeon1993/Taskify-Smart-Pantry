@@ -198,12 +198,9 @@ header {
     display: block;
 }
 
-/* Recipes section with simple warm wood background */
+/* Recipes section */
 #recipes {
     padding: 3rem;
-    background-color: #d4a574;
-    border-radius: var(--radius-lg);
-    box-shadow: 0 4px 12px rgba(74, 58, 44, 0.12);
     min-height: calc(100vh - 230px);
     display: flex;
     flex-direction: column;
@@ -687,9 +684,9 @@ label {
 
 /* Recipe sections - 3 column layout on desktop */
 .recipe-sections-container {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 3rem;
+    display: flex;
+    justify-content: space-between;
+    gap: 2rem;
     width: 100%;
     flex: 1;
     align-items: start;
@@ -699,7 +696,8 @@ label {
     display: flex;
     flex-direction: column;
     gap: var(--spacing-lg);
-    height: 100%;
+    flex: 1;
+    max-width: calc(33.333% - 1.5rem);
 }
 
 .section-header-card {
@@ -786,15 +784,18 @@ label {
     margin: 0;
     font-family: var(--font-display);
     color: var(--primary-700);
+    font-weight: 400;
 }
 
 .recipe-card.collapsed .recipe-card-header h3 {
     font-size: 1.2rem;
+    font-weight: 400;
 }
 
 .recipe-card.expanded .recipe-card-header h3 {
     font-size: 1.6rem;
     margin-bottom: var(--spacing-sm);
+    font-weight: 400;
 }
 
 .recipe-card.ready {

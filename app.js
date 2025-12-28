@@ -689,6 +689,7 @@ function editIngredient(location, id) {
     document.getElementById('edit-ing-name').value = ingredient.name;
     document.getElementById('edit-ing-quantity').value = ingredient.quantity;
     document.getElementById('edit-ing-unit').value = ingredient.unit;
+    document.getElementById('edit-ing-category').value = location;
     document.getElementById('edit-ing-expiration').value = ingredient.expiration || '';
 
     document.getElementById('edit-ingredient-modal').classList.remove('hidden');
@@ -699,12 +700,19 @@ function saveIngredientEdit() {
 
     const { location, id } = editingIngredientData;
     const ingredient = ingredients[location].find(ing => ing.id === id);
+    const newCategory = document.getElementById('edit-ing-category').value;
 
     if (ingredient) {
         ingredient.name = document.getElementById('edit-ing-name').value.trim();
         ingredient.quantity = parseFloat(document.getElementById('edit-ing-quantity').value) || 1;
         ingredient.unit = document.getElementById('edit-ing-unit').value.trim();
         ingredient.expiration = document.getElementById('edit-ing-expiration').value || null;
+
+        // Move ingredient to new category if changed
+        if (newCategory !== location) {
+            ingredients[location] = ingredients[location].filter(ing => ing.id !== id);
+            ingredients[newCategory].push(ingredient);
+        }
 
         saveToLocalStorage();
         renderIngredients();
