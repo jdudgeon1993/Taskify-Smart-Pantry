@@ -141,16 +141,16 @@ header {
    ========================================== */
 .main-nav {
     position: fixed;
-    top: 120px;
+    top: 135px;
     left: 0;
     right: 0;
-    z-index: 99;
+    z-index: 100;
     display: flex;
     background: linear-gradient(to bottom, #f9f6f2, #ffffff);
     border-bottom: 2px solid var(--gray-300);
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow-md);
     max-width: 1400px;
     margin: 0 auto;
 }
@@ -198,16 +198,58 @@ header {
     display: block;
 }
 
-/* Recipes section with wood texture */
+/* Recipes section with wood table top texture */
 #recipes {
-    background-image:
-        linear-gradient(90deg, rgba(218, 192, 163, 0.3) 1px, transparent 1px),
-        linear-gradient(rgba(218, 192, 163, 0.3) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(157, 124, 90, 0.1) 0%, transparent 50%, rgba(157, 124, 90, 0.1) 100%);
-    background-size: 100px 100px, 100px 100px, 100%;
-    background-color: #e8d7c3;
+    background:
+        /* Wood grain streaks */
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 2px,
+            rgba(139, 111, 79, 0.03) 2px,
+            rgba(139, 111, 79, 0.03) 4px
+        ),
+        repeating-linear-gradient(
+            90deg,
+            #d4b896 0px,
+            #c9ad86 40px,
+            #d4b896 80px,
+            #c2a477 120px,
+            #d4b896 160px
+        ),
+        /* Subtle wood texture overlay */
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 8px,
+            rgba(101, 67, 33, 0.02) 8px,
+            rgba(101, 67, 33, 0.02) 9px
+        );
+    background-color: #d4b896;
     border-radius: var(--radius-lg);
-    box-shadow: inset 0 2px 8px rgba(74, 58, 44, 0.1);
+    box-shadow:
+        inset 0 1px 3px rgba(101, 67, 33, 0.15),
+        0 4px 12px rgba(74, 58, 44, 0.1);
+    position: relative;
+}
+
+/* Add a subtle varnish shine effect */
+#recipes::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.1) 0%,
+        transparent 40%,
+        transparent 60%,
+        rgba(255, 255, 255, 0.05) 100%
+    );
+    border-radius: var(--radius-lg);
+    pointer-events: none;
 }
 
 @keyframes fadeIn {
@@ -686,6 +728,32 @@ label {
     border-color: var(--primary-600);
 }
 
+/* Recipe sections - 3 column layout on desktop */
+.recipe-sections-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-xl);
+    width: 100%;
+}
+
+.recipe-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.section-header-card {
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.recipe-cards-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
 .recipe-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -751,18 +819,21 @@ label {
 .recipe-card-header {
     position: relative;
     padding-top: 8px;
+    text-align: center;
 }
 
 .recipe-card-header h3 {
     margin: 0;
+    font-family: var(--font-display);
+    color: var(--primary-700);
 }
 
 .recipe-card.collapsed .recipe-card-header h3 {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
 }
 
 .recipe-card.expanded .recipe-card-header h3 {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     margin-bottom: var(--spacing-sm);
 }
 
@@ -949,8 +1020,8 @@ label {
 }
 
 .recipe-ingredients li:before {
-    content: "• ";
-    font-weight: 700;
+    content: "🍄 ";
+    font-size: 0.9em;
 }
 
 .missing-ingredients {
@@ -972,6 +1043,11 @@ label {
     list-style: none;
     font-size: 0.8125rem;
     color: var(--gray-700);
+}
+
+.missing-ingredients li:before {
+    content: "🍄 ";
+    font-size: 0.9em;
 }
 
 .recipe-actions {
