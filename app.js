@@ -1117,6 +1117,47 @@ function toggleFavorite(id) {
     showToast(recipe.favorite ? 'Added to Favorites' : 'Removed from Favorites', message, 'success');
 }
 
+function toggleColorPicker(id) {
+    const recipe = recipes.find(r => r.id === id);
+    if (!recipe) return;
+
+    recipe.showColorPicker = !recipe.showColorPicker;
+    // Close all other color pickers
+    recipes.forEach(r => {
+        if (r.id !== id) r.showColorPicker = false;
+    });
+    renderRecipes();
+}
+
+function setRecipeColor(id, color) {
+    const recipe = recipes.find(r => r.id === id);
+    if (!recipe) return;
+
+    recipe.color = color;
+    recipe.showColorPicker = false;
+    saveToLocalStorage();
+    renderRecipes();
+
+    showToast('Color Updated', `Recipe card color changed to ${color}!`, 'success');
+}
+
+function openRecipeBox(event, id) {
+    // Don't trigger if clicking on buttons or color picker
+    if (event.target.tagName === 'BUTTON' ||
+        event.target.closest('.recipe-color-picker') ||
+        event.target.closest('button')) {
+        return;
+    }
+
+    const card = event.currentTarget;
+    card.classList.add('opening');
+
+    // Remove the animation class after it completes
+    setTimeout(() => {
+        card.classList.remove('opening');
+    }, 600);
+}
+
 function scaleRecipe(recipeId, multiplier) {
     const scale = parseFloat(multiplier);
     const ingredientsList = document.getElementById(`ingredients-list-${recipeId}`);
@@ -1420,12 +1461,24 @@ function renderRecipes() {
         const status = checkRecipeStatus(recipe);
         const statusClass = status.isReady ? 'ready' : 'missing';
         const statusText = status.isReady ? 'Ready to Cook' : 'Need Ingredients';
+        const recipeColor = recipe.color || 'default';
+        const colorPickerVisible = recipe.showColorPicker ? '' : 'display: none;';
 
         return `
-            <div class="recipe-card ${statusClass}">
-                <button onclick="toggleFavorite(${recipe.id})" style="position: absolute; top: 10px; right: 10px; background: ${recipe.favorite ? '#fbbf24' : 'rgba(255,255,255,0.9)'}; border: 2px solid #fbbf24; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; z-index: 10; transition: all 0.2s;" title="${recipe.favorite ? 'Remove from favorites' : 'Add to favorites'}">
+            <div class="recipe-card ${statusClass}" data-color="${recipeColor}" onclick="openRecipeBox(event, ${recipe.id})">
+                <button onclick="toggleFavorite(${recipe.id}); event.stopPropagation();" style="position: absolute; top: 10px; right: 10px; background: ${recipe.favorite ? '#fbbf24' : 'rgba(255,255,255,0.9)'}; border: 2px solid #fbbf24; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; z-index: 10; transition: all 0.2s;" title="${recipe.favorite ? 'Remove from favorites' : 'Add to favorites'}">
                     ${recipe.favorite ? '⭐' : '☆'}
                 </button>
+                <button onclick="toggleColorPicker(${recipe.id}); event.stopPropagation();" style="position: absolute; top: 10px; left: 10px; background: rgba(255,255,255,0.9); border: 2px solid var(--gray-400); border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; z-index: 10; transition: all 0.2s;" title="Choose card color">
+                    🎨
+                </button>
+                <div class="recipe-color-picker" style="${colorPickerVisible}">
+                    <div class="color-swatch ${recipeColor === 'sage' ? 'selected' : ''}" style="background: var(--sage-green);" onclick="setRecipeColor(${recipe.id}, 'sage'); event.stopPropagation();" title="Sage Green"></div>
+                    <div class="color-swatch ${recipeColor === 'rose' ? 'selected' : ''}" style="background: var(--dusty-rose);" onclick="setRecipeColor(${recipe.id}, 'rose'); event.stopPropagation();" title="Dusty Rose"></div>
+                    <div class="color-swatch ${recipeColor === 'lavender' ? 'selected' : ''}" style="background: var(--lavender);" onclick="setRecipeColor(${recipe.id}, 'lavender'); event.stopPropagation();" title="Lavender"></div>
+                    <div class="color-swatch ${recipeColor === 'yellow' ? 'selected' : ''}" style="background: var(--butter-yellow);" onclick="setRecipeColor(${recipe.id}, 'yellow'); event.stopPropagation();" title="Butter Yellow"></div>
+                    <div class="color-swatch ${recipeColor === 'pink' ? 'selected' : ''}" style="background: var(--soft-pink);" onclick="setRecipeColor(${recipe.id}, 'pink'); event.stopPropagation();" title="Soft Pink"></div>
+                </div>
                 ${recipe.image ? `<img src="${recipe.image}" alt="${recipe.name}" class="recipe-image" onerror="this.style.display='none'">` : ''}
                 ${recipe.category ? `<span class="recipe-category-badge">${recipe.category}</span>` : ''}
                 ${showExpiringBadge ? `<span class="recipe-status expiring" style="background: #f59e0b;">🔥 Cook These Soon!</span>` : `<span class="recipe-status ${statusClass}">${statusText}</span>`}
