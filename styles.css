@@ -200,7 +200,7 @@ header {
 
 /* Recipes section */
 #recipes.active {
-    padding: 3rem;
+    padding: var(--spacing-2xl);
     padding-top: 200px;
     min-height: calc(100vh - 200px);
     display: flex;
@@ -773,6 +773,30 @@ label {
 .recipe-card.expanded .recipe-card-content {
     display: block;
     margin-top: 1.5rem;
+}
+
+/* Override inline button styles for better responsive design */
+.recipe-card button[onclick*="toggleFavorite"],
+.recipe-card button[onclick*="toggleColorPicker"] {
+    width: 40px !important;
+    height: 40px !important;
+    font-size: 20px !important;
+}
+
+.recipe-card .recipe-actions button {
+    font-size: 0.9rem;
+    padding: 0.75rem 1rem;
+}
+
+.recipe-card select {
+    font-size: 0.875rem;
+    padding: 0.5rem;
+}
+
+.recipe-card img {
+    max-width: 100% !important;
+    height: auto !important;
+    border-radius: var(--radius-md) !important;
 }
 
 .recipe-card-header {
@@ -1585,6 +1609,19 @@ label {
     .recipe-grid {
         grid-template-columns: repeat(2, 1fr);
     }
+
+    /* Reduce recipe section gaps on tablet */
+    .recipe-sections-container {
+        gap: 2rem; /* Reduced from 6rem */
+    }
+
+    .recipe-section {
+        gap: 1.5rem; /* Reduced from 3rem */
+    }
+
+    .recipe-cards-wrapper {
+        gap: 1.5rem; /* Reduced from 3rem */
+    }
 }
 
 @media (max-width: 768px) {
@@ -1599,6 +1636,14 @@ label {
 
     header {
         padding: var(--spacing-lg);
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+    }
+
+    .main-nav {
+        top: 80px; /* Adjusted for smaller mobile header */
     }
 
     .header-content h1 {
@@ -1607,6 +1652,28 @@ label {
 
     .section {
         padding: var(--spacing-lg);
+        padding-top: 140px; /* Adjusted for fixed header + nav on mobile */
+    }
+
+    /* CRITICAL: Make recipe sections single column on mobile */
+    .recipe-sections-container {
+        flex-direction: column; /* Stack vertically instead of horizontal */
+        gap: 2rem; /* Reduced gap for mobile */
+    }
+
+    .recipe-section {
+        gap: 1rem; /* Smaller gap between cards */
+        width: 100%; /* Full width for each section */
+    }
+
+    .recipe-cards-wrapper {
+        gap: 1rem; /* Smaller gap between individual cards */
+    }
+
+    /* Fix recipes section padding */
+    #recipes.active {
+        padding: var(--spacing-lg);
+        padding-top: 140px; /* Match other sections */
     }
 
     .section h2 {
@@ -1694,6 +1761,57 @@ label {
         left: var(--spacing-md);
         right: var(--spacing-md);
         max-width: none;
+        top: 90px; /* Position below fixed header on mobile */
+    }
+
+    /* Make recipe card buttons more mobile-friendly */
+    .recipe-card button[onclick*="toggleFavorite"],
+    .recipe-card button[onclick*="toggleColorPicker"] {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 18px !important;
+        top: 8px !important;
+    }
+
+    .recipe-card button[onclick*="toggleFavorite"] {
+        right: 8px !important;
+    }
+
+    .recipe-card button[onclick*="toggleColorPicker"] {
+        left: 8px !important;
+    }
+
+    .recipe-card .recipe-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .recipe-card .recipe-actions button {
+        width: 100% !important;
+        font-size: 0.875rem !important;
+        padding: 0.625rem !important;
+    }
+
+    .recipe-card select {
+        width: 100% !important;
+        font-size: 0.875rem !important;
+        padding: 0.625rem !important;
+    }
+
+    /* Ensure color picker is visible on mobile */
+    .recipe-color-picker {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .color-swatch {
+        width: 32px !important;
+        height: 32px !important;
+    }
+
+    /* Fix ingredient search bar on mobile */
+    .ingredient-search-bar input {
+        max-width: 100% !important;
     }
 }
 
