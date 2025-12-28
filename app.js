@@ -1141,21 +1141,28 @@ function setRecipeColor(id, color) {
     showToast('Color Updated', `Recipe card color changed to ${color}!`, 'success');
 }
 
-function openRecipeBox(event, id) {
-    // Don't trigger if clicking on buttons or color picker
+function toggleRecipeCard(event, id) {
+    // Don't trigger if clicking on buttons, color picker, selects, or action buttons
     if (event.target.tagName === 'BUTTON' ||
+        event.target.tagName === 'SELECT' ||
         event.target.closest('.recipe-color-picker') ||
+        event.target.closest('.recipe-actions') ||
         event.target.closest('button')) {
         return;
     }
 
-    const card = event.currentTarget;
-    card.classList.add('opening');
+    const recipe = recipes.find(r => r.id === id);
+    if (!recipe) return;
 
-    // Remove the animation class after it completes
-    setTimeout(() => {
-        card.classList.remove('opening');
-    }, 600);
+    // Toggle the expanded state
+    recipe.isExpanded = !recipe.isExpanded;
+
+    // Close all other recipe cards
+    recipes.forEach(r => {
+        if (r.id !== id) r.isExpanded = false;
+    });
+
+    renderRecipes();
 }
 
 function scaleRecipe(recipeId, multiplier) {
@@ -1463,9 +1470,11 @@ function renderRecipes() {
         const statusText = status.isReady ? 'Ready to Cook' : 'Need Ingredients';
         const recipeColor = recipe.color || 'default';
         const colorPickerVisible = recipe.showColorPicker ? '' : 'display: none;';
+        const isExpanded = recipe.isExpanded || false;
+        const cardState = isExpanded ? 'expanded' : 'collapsed';
 
         return `
-            <div class="recipe-card ${statusClass}" data-color="${recipeColor}" onclick="openRecipeBox(event, ${recipe.id})">
+            <div class="recipe-card ${statusClass} ${cardState}" data-color="${recipeColor}" data-recipe-id="${recipe.id}" onclick="toggleRecipeCard(event, ${recipe.id})">
                 <button onclick="toggleFavorite(${recipe.id}); event.stopPropagation();" style="position: absolute; top: 10px; right: 10px; background: ${recipe.favorite ? '#fbbf24' : 'rgba(255,255,255,0.9)'}; border: 2px solid #fbbf24; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; z-index: 10; transition: all 0.2s;" title="${recipe.favorite ? 'Remove from favorites' : 'Add to favorites'}">
                     ${recipe.favorite ? '⭐' : '☆'}
                 </button>
@@ -1479,59 +1488,66 @@ function renderRecipes() {
                     <div class="color-swatch ${recipeColor === 'yellow' ? 'selected' : ''}" style="background: var(--butter-yellow);" onclick="setRecipeColor(${recipe.id}, 'yellow'); event.stopPropagation();" title="Butter Yellow"></div>
                     <div class="color-swatch ${recipeColor === 'pink' ? 'selected' : ''}" style="background: var(--soft-pink);" onclick="setRecipeColor(${recipe.id}, 'pink'); event.stopPropagation();" title="Soft Pink"></div>
                 </div>
-                ${recipe.image ? `<img src="${recipe.image}" alt="${recipe.name}" class="recipe-image" onerror="this.style.display='none'">` : ''}
-                ${recipe.category ? `<span class="recipe-category-badge">${recipe.category}</span>` : ''}
-                ${showExpiringBadge ? `<span class="recipe-status expiring" style="background: #f59e0b;">🔥 Cook These Soon!</span>` : `<span class="recipe-status ${statusClass}">${statusText}</span>`}
-                <h3>${recipe.name}</h3>
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <p class="recipe-servings" style="margin: 0;">Serves: ${recipe.servings || 4}</p>
-                    <select onchange="scaleRecipe(${recipe.id}, this.value)" style="padding: 4px 8px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 13px;">
-                        <option value="0.5">×0.5</option>
-                        <option value="1" selected>×1</option>
-                        <option value="1.5">×1.5</option>
-                        <option value="2">×2</option>
-                        <option value="3">×3</option>
-                    </select>
+
+                <div class="recipe-card-header">
+                    <h3>${recipe.name}</h3>
                 </div>
 
-                <div class="recipe-ingredients">
-                    <h4>Ingredients:</h4>
-                    <ul id="ingredients-list-${recipe.id}">
-                        ${recipe.ingredients.map(ing => {
-                            const hasIt = status.have.some(h => h.name === ing.name);
-                            return `<li class="${hasIt ? 'have' : 'need'}" data-base-qty="${ing.quantity}"><span class="qty-display">${ing.quantity}</span> ${ing.unit} ${ing.name}</li>`;
-                        }).join('')}
-                    </ul>
-                </div>
+                <div class="recipe-card-content">
+                    ${recipe.image ? `<img src="${recipe.image}" alt="${recipe.name}" class="recipe-image" onerror="this.style.display='none'" style="max-width: 100%; border-radius: 8px; margin-bottom: 12px;">` : ''}
+                    ${recipe.category ? `<span class="recipe-category-badge">${recipe.category}</span>` : ''}
+                    ${showExpiringBadge ? `<span class="recipe-status expiring" style="background: #f59e0b;">🔥 Cook These Soon!</span>` : `<span class="recipe-status ${statusClass}">${statusText}</span>`}
 
-                ${!status.isReady ? `
-                    <div class="missing-ingredients">
-                        <h5>Missing ${status.missing.length} ingredient${status.missing.length > 1 ? 's' : ''}:</h5>
-                        <ul>
-                            ${status.missing.map(ing => `<li>${ing.quantity} ${ing.unit} ${ing.name}</li>`).join('')}
-                        </ul>
-                        <div style="display: flex; gap: 10px; align-items: center; margin-top: 10px;">
-                            <select id="servings-multiplier-${recipe.id}" style="padding: 8px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 14px;">
-                                <option value="0.5">×0.5 (Half)</option>
-                                <option value="1" selected>×1 (Original)</option>
-                                <option value="1.5">×1.5</option>
-                                <option value="2">×2 (Double)</option>
-                                <option value="3">×3 (Triple)</option>
-                                <option value="4">×4</option>
-                            </select>
-                            <button style="background: #f59e0b; flex: 1; padding: 10px;" onclick="addMissingToShopping(${recipe.id}, parseFloat(document.getElementById('servings-multiplier-${recipe.id}').value))">
-                                📝 Add to Shopping
-                            </button>
-                        </div>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                        <p class="recipe-servings" style="margin: 0;">Serves: ${recipe.servings || 4}</p>
+                        <select onchange="scaleRecipe(${recipe.id}, this.value); event.stopPropagation();" style="padding: 4px 8px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 13px;">
+                            <option value="0.5">×0.5</option>
+                            <option value="1" selected>×1</option>
+                            <option value="1.5">×1.5</option>
+                            <option value="2">×2</option>
+                            <option value="3">×3</option>
+                        </select>
                     </div>
-                ` : ''}
 
-                ${recipe.instructions ? `<p style="margin-top: 10px; font-size: 0.9em; color: #4a5568;"><strong>Instructions:</strong> ${recipe.instructions}</p>` : ''}
+                    <div class="recipe-ingredients">
+                        <h4>Ingredients:</h4>
+                        <ul id="ingredients-list-${recipe.id}">
+                            ${recipe.ingredients.map(ing => {
+                                const hasIt = status.have.some(h => h.name === ing.name);
+                                return `<li class="${hasIt ? 'have' : 'need'}" data-base-qty="${ing.quantity}"><span class="qty-display">${ing.quantity}</span> ${ing.unit} ${ing.name}</li>`;
+                            }).join('')}
+                        </ul>
+                    </div>
 
-                <div class="recipe-actions">
-                    ${status.isReady ? `<button style="background: #667eea; font-weight: bold;" onclick="cookRecipe(${recipe.id})">🍳 Cook This</button>` : ''}
-                    <button style="background: #48bb78;" onclick="editRecipe(${recipe.id})">Edit</button>
-                    <button class="delete-btn" onclick="deleteRecipe(${recipe.id})">Delete</button>
+                    ${!status.isReady ? `
+                        <div class="missing-ingredients">
+                            <h5>Missing ${status.missing.length} ingredient${status.missing.length > 1 ? 's' : ''}:</h5>
+                            <ul>
+                                ${status.missing.map(ing => `<li>${ing.quantity} ${ing.unit} ${ing.name}</li>`).join('')}
+                            </ul>
+                            <div style="display: flex; gap: 10px; align-items: center; margin-top: 10px;">
+                                <select id="servings-multiplier-${recipe.id}" style="padding: 8px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 14px;" onclick="event.stopPropagation();">
+                                    <option value="0.5">×0.5 (Half)</option>
+                                    <option value="1" selected>×1 (Original)</option>
+                                    <option value="1.5">×1.5</option>
+                                    <option value="2">×2 (Double)</option>
+                                    <option value="3">×3 (Triple)</option>
+                                    <option value="4">×4</option>
+                                </select>
+                                <button style="background: #f59e0b; flex: 1; padding: 10px;" onclick="addMissingToShopping(${recipe.id}, parseFloat(document.getElementById('servings-multiplier-${recipe.id}').value)); event.stopPropagation();">
+                                    📝 Add to Shopping
+                                </button>
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    ${recipe.instructions ? `<p style="margin-top: 10px; font-size: 0.9em; color: #4a5568;"><strong>Instructions:</strong> ${recipe.instructions}</p>` : ''}
+
+                    <div class="recipe-actions">
+                        ${status.isReady ? `<button style="background: #667eea; font-weight: bold;" onclick="cookRecipe(${recipe.id}); event.stopPropagation();">🍳 Cook This</button>` : ''}
+                        <button style="background: #48bb78;" onclick="editRecipe(${recipe.id}); event.stopPropagation();">Edit</button>
+                        <button class="delete-btn" onclick="deleteRecipe(${recipe.id}); event.stopPropagation();">Delete</button>
+                    </div>
                 </div>
             </div>
         `;
