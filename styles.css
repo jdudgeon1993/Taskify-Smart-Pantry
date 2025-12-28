@@ -201,7 +201,8 @@ header {
 /* Recipes section */
 #recipes.active {
     padding: 3rem;
-    min-height: calc(100vh - 230px);
+    padding-top: 200px;
+    min-height: calc(100vh - 200px);
     display: flex;
     flex-direction: column;
 }
@@ -686,7 +687,7 @@ label {
 .recipe-sections-container {
     display: flex;
     justify-content: space-between;
-    gap: 4rem;
+    gap: 6rem;
     width: 100%;
     flex: 1;
     align-items: start;
@@ -695,9 +696,8 @@ label {
 .recipe-section {
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 3rem;
     flex: 1;
-    max-width: calc(33.333% - 3rem);
 }
 
 .section-header-card {
