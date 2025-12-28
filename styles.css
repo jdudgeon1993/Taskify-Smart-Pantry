@@ -199,7 +199,7 @@ header {
 }
 
 /* Recipes section */
-#recipes {
+#recipes.active {
     padding: 3rem;
     min-height: calc(100vh - 230px);
     display: flex;
@@ -686,7 +686,7 @@ label {
 .recipe-sections-container {
     display: flex;
     justify-content: space-between;
-    gap: 2rem;
+    gap: 4rem;
     width: 100%;
     flex: 1;
     align-items: start;
@@ -695,9 +695,9 @@ label {
 .recipe-section {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-lg);
+    gap: 2rem;
     flex: 1;
-    max-width: calc(33.333% - 1.5rem);
+    max-width: calc(33.333% - 3rem);
 }
 
 .section-header-card {
@@ -709,7 +709,7 @@ label {
 .recipe-cards-wrapper {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-2xl);
+    gap: 3rem;
 }
 
 .recipe-grid {
@@ -723,7 +723,7 @@ label {
     background: linear-gradient(135deg, #ffffff 0%, #faf9f7 100%);
     border: 3px solid var(--gray-300);
     border-radius: var(--radius-xl);
-    padding: var(--spacing-lg);
+    padding: 1.5rem;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     min-width: 0;
     overflow-wrap: break-word;
@@ -731,6 +731,7 @@ label {
     cursor: pointer;
     transform-style: preserve-3d;
     overflow: hidden;
+    line-height: 1.8;
 }
 
 .recipe-card::before {
@@ -751,7 +752,7 @@ label {
 
 /* Collapsed state - show only title */
 .recipe-card.collapsed {
-    padding: var(--spacing-md) var(--spacing-lg);
+    padding: 1.25rem 1.5rem;
 }
 
 .recipe-card.collapsed .recipe-card-content {
@@ -766,12 +767,12 @@ label {
 
 /* Expanded state - recipe card style */
 .recipe-card.expanded {
-    padding: var(--spacing-xl);
+    padding: 2rem;
 }
 
 .recipe-card.expanded .recipe-card-content {
     display: block;
-    margin-top: var(--spacing-md);
+    margin-top: 1.5rem;
 }
 
 .recipe-card-header {
