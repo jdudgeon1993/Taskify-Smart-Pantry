@@ -224,16 +224,36 @@ async function initializeApp() {
             appContent.setAttribute('data-household', currentHousehold.name);
         }
         await loadAllDataFromSupabase();
+        console.log('✅ Data loading complete');
+
+        console.log('🔧 Updating data lists...');
         updateDataLists();
+
+        console.log('🔧 Initializing navigation...');
         initNavigation();
+
+        console.log('🔧 Initializing dashboard...');
         initDashboard();
+
+        console.log('🔧 Initializing ingredients...');
         initIngredients();
+
+        console.log('🔧 Initializing recipes...');
         initRecipes();
+
+        console.log('🔧 Initializing shopping...');
         initShopping();
+
+        console.log('🔧 Initializing meal plan...');
         initMealPlan();
+
+        console.log('🔧 Initializing settings...');
         initSettings();
+
+        console.log('🔧 Setting up realtime subscriptions...');
         setupRealtimeSubscriptions();
-        console.log('App initialized successfully!');
+
+        console.log('✅✅✅ App initialized successfully!');
     } catch (error) {
         console.error('Error initializing app:', error);
         showToast('Error', 'Failed to initialize app: ' + error.message, 'error');
@@ -270,13 +290,25 @@ if (window.supabaseClient) {
 
 async function loadAllDataFromSupabase() {
     try {
+        console.log('⏳ Loading pantry items...');
         ingredients = await loadPantryItems();
+        console.log('✅ Pantry items loaded:', ingredients.length);
+
+        console.log('⏳ Loading recipes...');
         recipes = await loadRecipes();
+        console.log('✅ Recipes loaded:', recipes.length);
+
+        console.log('⏳ Loading shopping list...');
         shoppingList = await loadShoppingList();
+        console.log('✅ Shopping list loaded:', shoppingList.length);
+
+        console.log('⏳ Loading meal plan...');
         mealPlan = await loadMealPlan();
-        console.log('All data loaded from Supabase');
+        console.log('✅ Meal plan loaded');
+
+        console.log('✅ All data loaded from Supabase');
     } catch (error) {
-        console.error('Error loading data:', error);
+        console.error('❌ Error loading data:', error);
         throw error;
     }
 }
