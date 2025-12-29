@@ -54,30 +54,8 @@ async function signOut() {
   }
 }
 
-// Get current user
-async function getCurrentUser() {
-  const { data: { user } } = await supabase.auth.getUser();
-  return user;
-}
-
-// Get user's household (moved to db.js, keeping stub for compatibility)
-async function getUserHousehold() {
-  const user = await getCurrentUser();
-  if (!user) return null;
-
-  const { data, error } = await supabase
-    .from('household_members')
-    .select('household_id, households(*)')
-    .eq('user_id', user.id)
-    .single();
-
-  if (error) {
-    console.error('Error fetching household:', error);
-    return null;
-  }
-
-  return data?.households || null;
-}
+// NOTE: getCurrentUser() and getUserHousehold() are defined in db.js
+// They are imported via script tag order (db.js loads before auth.js completes)
 
 // ==============================================
 // UI HANDLERS (called from HTML)
@@ -127,6 +105,8 @@ async function handleSignout() {
     // Clear local state
     currentUser = null;
     currentHousehold = null;
+    isInitialized = false; // Reset initialization flag
+    isLoading = false; // Reset loading flag
     ingredients = { pantry: [], fridge: [], freezer: [] };
     recipes = [];
     shoppingList = [];
