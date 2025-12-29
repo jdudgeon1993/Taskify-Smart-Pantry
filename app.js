@@ -1129,14 +1129,14 @@ function closeRecipeDetailModal() {
 function populateRecipeModal(recipe) {
     const status = checkRecipeStatus(recipe);
 
-    // Set color stripe based on category
+    // Set color stripe based on category - refined palette
     const categoryColors = {
-        'breakfast': 'var(--butter-yellow)',
-        'lunch': 'var(--sage-green)',
-        'dinner': 'var(--wood-medium)',
-        'dessert': 'var(--dusty-rose)',
-        'snack': '#E8D5C4',
-        'default': 'var(--cream)'
+        'breakfast': '#D4A574',      // Gentle amber
+        'lunch': '#8B9D83',          // Muted sage
+        'dinner': '#7C6A5C',         // Warm taupe
+        'dessert': '#C4998B',        // Soft terracotta
+        'snack': '#C4A892',          // Warm sand
+        'default': '#A8B89F'         // Soft sage
     };
     const stripeColor = categoryColors[recipe.category?.toLowerCase()] || categoryColors['default'];
     document.getElementById('modal-color-stripe').style.background = stripeColor;
@@ -1573,14 +1573,14 @@ function renderRecipes() {
         const statusClass = status.isReady ? 'ready' : 'missing';
         const statusText = status.isReady ? '✓ Ready' : 'Need Ingredients';
 
-        // Assign color based on category for traditional recipe card aesthetic
+        // Assign color based on category - refined, sophisticated palette
         const categoryColors = {
-            'breakfast': 'var(--butter-yellow)',
-            'lunch': 'var(--sage-green)',
-            'dinner': 'var(--wood-medium)',
-            'dessert': 'var(--dusty-rose)',
-            'snack': '#E8D5C4',
-            'default': 'var(--cream)'
+            'breakfast': '#D4A574',      // Gentle amber
+            'lunch': '#8B9D83',          // Muted sage
+            'dinner': '#7C6A5C',         // Warm taupe
+            'dessert': '#C4998B',        // Soft terracotta
+            'snack': '#C4A892',          // Warm sand
+            'default': '#A8B89F'         // Soft sage
         };
         const cardColor = categoryColors[recipe.category?.toLowerCase()] || categoryColors['default'];
 
