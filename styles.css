@@ -484,3 +484,288 @@ input:focus, select:focus, textarea:focus {
         grid-template-columns: repeat(2, 1fr);
     }
 }
+
+/* ==========================================
+   TRADITIONAL RECIPE CARD MODAL
+   ========================================== */
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 3000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(74, 63, 53, 0.7);
+    backdrop-filter: blur(4px);
+}
+
+.traditional-recipe-card {
+    position: relative;
+    background: linear-gradient(135deg, #FFFEF9 0%, #FAF7F2 100%);
+    border-radius: var(--radius-xl);
+    max-width: 700px;
+    width: calc(100% - 2rem);
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(74, 63, 53, 0.3);
+    border: 3px solid var(--wood-medium);
+    z-index: 3001;
+}
+
+.close-traditional-modal {
+    position: absolute;
+    top: var(--spacing-md);
+    right: var(--spacing-md);
+    background: var(--wood-medium);
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: var(--shadow-md);
+}
+
+.close-traditional-modal:hover {
+    background: var(--wood-dark);
+    transform: scale(1.1);
+}
+
+/* Color Stripe */
+.recipe-color-stripe {
+    height: 12px;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    background: var(--wood-medium);
+}
+
+/* Card Header */
+.traditional-card-header {
+    padding: var(--spacing-xl) var(--spacing-xl) var(--spacing-lg);
+}
+
+.traditional-recipe-title {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    color: var(--wood-dark);
+    margin: 0 0 var(--spacing-md) 0;
+    line-height: 1.2;
+}
+
+.traditional-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+    align-items: center;
+}
+
+.traditional-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--cream);
+    padding: 0.5rem 0.875rem;
+    border-radius: var(--radius-md);
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.meta-icon {
+    font-size: 1.125rem;
+}
+
+.servings-multiplier-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--butter-yellow);
+    padding: 0.5rem 0.875rem;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.servings-multiplier-control label {
+    color: var(--text-primary);
+}
+
+.servings-multiplier-control select {
+    padding: 0.25rem 0.5rem;
+    border: 2px solid var(--wood-medium);
+    border-radius: 6px;
+    background: white;
+    font-family: var(--font-body);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Recipe Image */
+.traditional-recipe-image {
+    margin: 0 var(--spacing-xl);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+}
+
+.traditional-recipe-image img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Wooden Dividers */
+.wooden-divider {
+    height: 4px;
+    background: linear-gradient(90deg, transparent 0%, var(--wood-medium) 20%, var(--wood-medium) 80%, transparent 100%);
+    margin: var(--spacing-lg) var(--spacing-xl);
+    border-radius: 2px;
+    opacity: 0.3;
+}
+
+/* Card Body */
+.traditional-card-body {
+    padding: 0 var(--spacing-xl);
+}
+
+.traditional-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.traditional-section-title {
+    font-family: var(--font-display);
+    font-size: 1.375rem;
+    color: var(--wood-dark);
+    margin: 0 0 var(--spacing-md) 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Ingredients List with Mushroom Bullets */
+.traditional-ingredients-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+}
+
+.traditional-ingredients-list li {
+    font-size: 1rem;
+    color: var(--text-primary);
+    line-height: 1.6;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+
+.traditional-ingredients-list li.has-ingredient {
+    background: rgba(168, 184, 159, 0.15);
+    color: var(--text-primary);
+}
+
+.traditional-ingredients-list li.need-ingredient {
+    background: rgba(212, 165, 165, 0.15);
+    color: var(--text-secondary);
+    text-decoration: line-through;
+    opacity: 0.7;
+}
+
+/* Instructions */
+.traditional-instructions-text {
+    font-size: 1rem;
+    line-height: 1.8;
+    color: var(--text-primary);
+    white-space: pre-wrap;
+    margin: 0;
+}
+
+/* Missing Ingredients Section */
+.missing-ingredients-section {
+    background: rgba(212, 165, 165, 0.1);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-lg);
+    border-left: 4px solid var(--dusty-rose);
+}
+
+.traditional-missing-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 var(--spacing-md) 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.traditional-missing-list li {
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+    line-height: 1.6;
+}
+
+/* Card Actions */
+.traditional-card-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg) var(--spacing-xl) var(--spacing-xl);
+    flex-wrap: wrap;
+}
+
+.traditional-card-actions button {
+    flex: 1;
+    min-width: 140px;
+}
+
+.btn-favorite {
+    background: var(--butter-yellow);
+    color: var(--wood-dark);
+}
+
+.btn-favorite:hover {
+    background: #F0D9A8;
+}
+
+/* Mobile Modal Adjustments */
+@media (max-width: 768px) {
+    .traditional-recipe-card {
+        width: calc(100% - 1rem);
+        max-height: 95vh;
+        border-radius: var(--radius-lg);
+    }
+
+    .traditional-recipe-title {
+        font-size: 1.5rem;
+    }
+
+    .traditional-section-title {
+        font-size: 1.125rem;
+    }
+
+    .traditional-card-actions {
+        flex-direction: column;
+    }
+
+    .traditional-card-actions button {
+        width: 100%;
+        min-width: unset;
+    }
+}

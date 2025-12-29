@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Pacifico&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=8">
+    <link rel="stylesheet" href="styles.css?v=9">
 </head>
 <body>
     <!-- ============================================ -->
@@ -491,26 +491,24 @@
     <!-- Recipe Detail Modal (Traditional Recipe Card) -->
     <div id="recipe-detail-modal" class="modal hidden">
         <div class="modal-overlay" onclick="closeRecipeDetailModal()"></div>
-        <div class="recipe-card-modal">
-            <button class="close-recipe-modal" onclick="closeRecipeDetailModal()">&times;</button>
+        <div class="traditional-recipe-card">
+            <button class="close-traditional-modal" onclick="closeRecipeDetailModal()">&times;</button>
 
-            <div class="recipe-card-modal-header">
-                <h2 id="modal-recipe-name">Recipe Name</h2>
-                <div class="recipe-card-modal-meta">
-                    <span id="modal-recipe-category" class="recipe-category-badge"></span>
-                    <span id="modal-recipe-servings" class="recipe-servings-badge"></span>
-                </div>
-            </div>
+            <div id="modal-color-stripe" class="recipe-color-stripe"></div>
 
-            <div id="modal-recipe-image-container" class="recipe-card-modal-image"></div>
-
-            <div class="recipe-card-divider"></div>
-
-            <div class="recipe-card-modal-body">
-                <div class="recipe-card-section">
-                    <h3 class="recipe-card-section-title">Ingredients</h3>
-                    <div class="servings-adjuster">
-                        <label>Adjust servings:</label>
+            <div class="traditional-card-header">
+                <h2 id="modal-recipe-name" class="traditional-recipe-title">Recipe Name</h2>
+                <div class="traditional-meta-row">
+                    <span class="traditional-meta-item">
+                        <span class="meta-icon">📂</span>
+                        <span id="modal-recipe-category">Category</span>
+                    </span>
+                    <span class="traditional-meta-item">
+                        <span class="meta-icon">🍽️</span>
+                        <span id="modal-recipe-servings">Serves 4</span>
+                    </span>
+                    <div class="servings-multiplier-control">
+                        <label for="modal-servings-multiplier">Scale:</label>
                         <select id="modal-servings-multiplier">
                             <option value="0.5">½x</option>
                             <option value="1" selected>1x</option>
@@ -519,26 +517,36 @@
                             <option value="3">3x</option>
                         </select>
                     </div>
-                    <ul id="modal-ingredients-list" class="recipe-modal-ingredients-list"></ul>
+                </div>
+            </div>
+
+            <div id="modal-recipe-image-container" class="traditional-recipe-image"></div>
+
+            <div class="wooden-divider"></div>
+
+            <div class="traditional-card-body">
+                <div class="traditional-section">
+                    <h3 class="traditional-section-title">🍄 Ingredients</h3>
+                    <ul id="modal-ingredients-list" class="traditional-ingredients-list"></ul>
                 </div>
 
-                <div id="modal-instructions-section" class="recipe-card-section">
-                    <h3 class="recipe-card-section-title">Instructions</h3>
-                    <p id="modal-recipe-instructions" class="recipe-instructions-text"></p>
+                <div id="modal-instructions-section" class="traditional-section">
+                    <h3 class="traditional-section-title">📝 Instructions</h3>
+                    <p id="modal-recipe-instructions" class="traditional-instructions-text"></p>
                 </div>
 
-                <div id="modal-missing-section" class="recipe-card-section missing-section">
-                    <h3 class="recipe-card-section-title">Missing Ingredients</h3>
-                    <ul id="modal-missing-list" class="recipe-modal-missing-list"></ul>
+                <div id="modal-missing-section" class="traditional-section missing-ingredients-section">
+                    <h3 class="traditional-section-title">⚠️ Missing Ingredients</h3>
+                    <ul id="modal-missing-list" class="traditional-missing-list"></ul>
                     <button id="modal-add-missing-btn" class="btn-secondary" onclick="addMissingFromModal()">
-                        Add Missing to Shopping List
+                        Add to Shopping List
                     </button>
                 </div>
             </div>
 
-            <div class="recipe-card-divider"></div>
+            <div class="wooden-divider"></div>
 
-            <div class="recipe-card-modal-actions">
+            <div class="traditional-card-actions">
                 <button id="modal-cook-btn" class="btn-primary" onclick="cookFromModal()">
                     🍳 Cook This Recipe
                 </button>
@@ -625,6 +633,6 @@
     <script src="db.js?v=6"></script>
 
     <!-- Main Application -->
-    <script src="app.js?v=8"></script>
+    <script src="app.js?v=9"></script>
 </body>
 </html>

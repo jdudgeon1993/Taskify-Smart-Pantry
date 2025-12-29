@@ -1129,19 +1129,30 @@ function closeRecipeDetailModal() {
 function populateRecipeModal(recipe) {
     const status = checkRecipeStatus(recipe);
 
+    // Set color stripe based on category
+    const categoryColors = {
+        'breakfast': 'var(--butter-yellow)',
+        'lunch': 'var(--sage-green)',
+        'dinner': 'var(--wood-medium)',
+        'dessert': 'var(--dusty-rose)',
+        'snack': '#E8D5C4',
+        'default': 'var(--cream)'
+    };
+    const stripeColor = categoryColors[recipe.category?.toLowerCase()] || categoryColors['default'];
+    document.getElementById('modal-color-stripe').style.background = stripeColor;
+
     // Set recipe name
     document.getElementById('modal-recipe-name').textContent = recipe.name;
 
-    // Set category badge
-    const categoryBadge = document.getElementById('modal-recipe-category');
+    // Set category
+    const categoryElement = document.getElementById('modal-recipe-category');
     if (recipe.category) {
-        categoryBadge.textContent = recipe.category.charAt(0).toUpperCase() + recipe.category.slice(1);
-        categoryBadge.style.display = 'inline-block';
+        categoryElement.textContent = recipe.category.charAt(0).toUpperCase() + recipe.category.slice(1);
     } else {
-        categoryBadge.style.display = 'none';
+        categoryElement.textContent = 'Uncategorized';
     }
 
-    // Set servings badge
+    // Set servings
     document.getElementById('modal-recipe-servings').textContent = `Serves ${recipe.servings || 4}`;
 
     // Set image
@@ -1156,13 +1167,13 @@ function populateRecipeModal(recipe) {
     // Reset servings multiplier
     document.getElementById('modal-servings-multiplier').value = '1';
 
-    // Populate ingredients list
+    // Populate ingredients list with mushroom bullets
     const ingredientsList = document.getElementById('modal-ingredients-list');
     ingredientsList.innerHTML = recipe.ingredients.map(ing => {
         const hasIt = status.have.some(h => h.name === ing.name);
-        const className = hasIt ? '' : 'need';
+        const className = hasIt ? 'has-ingredient' : 'need-ingredient';
         return `<li class="${className}" data-base-qty="${ing.quantity}">
-            <span class="qty-display">${ing.quantity}</span> ${ing.unit} ${ing.name}
+            🍄 <span class="qty-display">${ing.quantity}</span> ${ing.unit} ${ing.name}
         </li>`;
     }).join('');
 
@@ -1196,7 +1207,7 @@ function populateRecipeModal(recipe) {
     const missingList = document.getElementById('modal-missing-list');
     if (!status.isReady && status.missing.length > 0) {
         missingList.innerHTML = status.missing.map(ing =>
-            `<li>${ing.quantity} ${ing.unit} ${ing.name}</li>`
+            `<li>🍄 ${ing.quantity} ${ing.unit} ${ing.name}</li>`
         ).join('');
         missingSection.style.display = 'block';
     } else {
