@@ -343,6 +343,7 @@ function initNavigation() {
 
 // Global navigation function for dashboard cards
 function navigateToSection(sectionId) {
+    closeNav(); // Close navigation menu when navigating
     const targetBtn = document.querySelector(`.nav-btn[data-section="${sectionId}"]`);
     if (targetBtn) {
         targetBtn.click();
@@ -3419,11 +3420,3 @@ function closeNav() {
     hamburger.classList.remove('active');
 }
 
-// Update navigateToSection to close nav after selection
-const originalNavigateToSection = navigateToSection;
-function navigateToSection(sectionId) {
-    closeNav();
-    if (typeof originalNavigateToSection === 'function') {
-        originalNavigateToSection(sectionId);
-    }
-}
