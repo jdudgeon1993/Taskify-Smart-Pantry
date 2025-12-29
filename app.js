@@ -238,6 +238,9 @@ async function initializeApp() {
     }
 }
 
+// Expose initializeApp to global scope for auth.js
+window.initializeApp = initializeApp;
+
 async function loadAllDataFromSupabase() {
     try {
         ingredients = await loadPantryItems();
