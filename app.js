@@ -3325,3 +3325,34 @@ function saveToLocalStorageAndSync() {
         }, 2000);
     }
 }
+// ==========================================
+// HAMBURGER NAVIGATION
+// ==========================================
+function toggleNav() {
+    const nav = document.getElementById('main-nav');
+    const overlay = document.getElementById('nav-overlay');
+    const hamburger = document.getElementById('hamburger-btn');
+    
+    nav.classList.toggle('active');
+    overlay.classList.toggle('active');
+    hamburger.classList.toggle('active');
+}
+
+function closeNav() {
+    const nav = document.getElementById('main-nav');
+    const overlay = document.getElementById('nav-overlay');
+    const hamburger = document.getElementById('hamburger-btn');
+    
+    nav.classList.remove('active');
+    overlay.classList.remove('active');
+    hamburger.classList.remove('active');
+}
+
+// Update navigateToSection to close nav after selection
+const originalNavigateToSection = navigateToSection;
+function navigateToSection(sectionId) {
+    closeNav();
+    if (typeof originalNavigateToSection === 'function') {
+        originalNavigateToSection(sectionId);
+    }
+}

@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Pacifico&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=6">
+    <link rel="stylesheet" href="styles.css?v=7">
 </head>
 <body>
     <!-- ============================================ -->
@@ -92,24 +92,51 @@
     <!-- MAIN APP CONTENT (Wrapped) -->
     <!-- ============================================ -->
     <div id="app-content" style="display: none;">
+        <!-- Navigation Overlay -->
+        <div class="nav-overlay" id="nav-overlay" onclick="closeNav()"></div>
+
         <div class="container">
             <header>
                 <div class="header-content">
+                    <span class="header-logo">🥕</span>
                     <h1>Taskify Smart Pantry</h1>
-                    <p class="subtitle">Kitchen management made simple</p>
                 </div>
-                <div class="header-user-actions">
-                    <span id="household-name-display" class="household-badge"></span>
-                </div>
+                <button class="hamburger-menu" id="hamburger-btn" onclick="toggleNav()">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
             </header>
 
-            <nav class="main-nav">
-                <button class="nav-btn active" data-section="dashboard">Dashboard</button>
-                <button class="nav-btn" data-section="ingredients">Pantry</button>
-                <button class="nav-btn" data-section="recipes">Recipes</button>
-                <button class="nav-btn" data-section="shopping">Shopping</button>
-                <button class="nav-btn" data-section="meal-plan">Meal Plan</button>
-                <button class="nav-btn" data-section="settings">Settings</button>
+            <!-- Slide-out Navigation -->
+            <nav class="main-nav" id="main-nav">
+                <div class="nav-header">
+                    <h2>Menu</h2>
+                </div>
+                <button class="nav-btn active" data-section="dashboard" onclick="navigateToSection('dashboard')">
+                    <span class="nav-item-icon">🏠</span>
+                    <span>Dashboard</span>
+                </button>
+                <button class="nav-btn" data-section="ingredients" onclick="navigateToSection('ingredients')">
+                    <span class="nav-item-icon">🥕</span>
+                    <span>Pantry</span>
+                </button>
+                <button class="nav-btn" data-section="recipes" onclick="navigateToSection('recipes')">
+                    <span class="nav-item-icon">📖</span>
+                    <span>Recipes</span>
+                </button>
+                <button class="nav-btn" data-section="shopping" onclick="navigateToSection('shopping')">
+                    <span class="nav-item-icon">🛒</span>
+                    <span>Shopping</span>
+                </button>
+                <button class="nav-btn" data-section="meal-plan" onclick="navigateToSection('meal-plan')">
+                    <span class="nav-item-icon">📅</span>
+                    <span>Meal Plan</span>
+                </button>
+                <button class="nav-btn" data-section="settings" onclick="navigateToSection('settings')">
+                    <span class="nav-item-icon">⚙️</span>
+                    <span>Settings</span>
+                </button>
             </nav>
 
             <!-- Dashboard Section -->
@@ -598,6 +625,6 @@
     <script src="db.js?v=6"></script>
 
     <!-- Main Application -->
-    <script src="app.js?v=6"></script>
+    <script src="app.js?v=7"></script>
 </body>
 </html>
