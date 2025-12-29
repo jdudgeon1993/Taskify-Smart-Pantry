@@ -226,6 +226,10 @@ async function initializeApp() {
     } catch (error) {
         console.error('Error initializing app:', error);
         showToast('Error', 'Failed to initialize app: ' + error.message, 'error');
+        // On error, show login screen and sign out to allow recovery
+        alert('Critical error during initialization:\n\n' + error.message + '\n\nPlease contact support or try again. You will be logged out.');
+        await handleSignout();
+        showLoginScreen();
     }
 }
 
