@@ -1549,24 +1549,24 @@ function renderRecipes() {
                     <h3>${recipe.name}</h3>
                 </div>
 
-                <div style="display: flex; flex-direction: column; gap: 0.75rem; align-items: center; width: 100%;">
+                <div style="display: flex; flex-direction: column; gap: 0.875rem; align-items: center; width: 100%; margin-top: 1rem;">
                     ${recipe.category ? `
-                        <span class="recipe-category-badge" style="background: var(--primary-50); color: var(--primary-700); padding: 0.375rem 0.875rem; border-radius: 12px; font-size: 0.8125rem; font-weight: 600; border: 1px solid var(--primary-600);">
+                        <span class="recipe-category-badge" style="background: var(--primary-50); color: var(--primary-700); padding: 0.5rem 1.125rem; border-radius: 14px; font-size: 0.9375rem; font-weight: 600; border: 1px solid var(--primary-600);">
                             ${recipe.category.charAt(0).toUpperCase() + recipe.category.slice(1)}
                         </span>
                     ` : ''}
 
-                    <span style="background: var(--sage-green); color: white; padding: 0.375rem 0.875rem; border-radius: 12px; font-size: 0.8125rem; font-weight: 600;">
+                    <span style="background: var(--sage-green); color: white; padding: 0.5rem 1.125rem; border-radius: 14px; font-size: 0.9375rem; font-weight: 600;">
                         Serves ${recipe.servings || 4}
                     </span>
 
                     ${showExpiringBadge ?
-                        `<span class="recipe-status" style="background: #f59e0b; color: white; padding: 0.375rem 0.875rem; border-radius: 12px; font-size: 0.8125rem; font-weight: 600;">🔥 Cook Soon!</span>` :
-                        `<span class="recipe-status" style="background: ${statusColor}; color: white; padding: 0.375rem 0.875rem; border-radius: 12px; font-size: 0.8125rem; font-weight: 600;">${statusText}</span>`
+                        `<span class="recipe-status" style="background: #f59e0b; color: white; padding: 0.5rem 1.125rem; border-radius: 14px; font-size: 0.9375rem; font-weight: 600;">🔥 Cook Soon!</span>` :
+                        `<span class="recipe-status" style="background: ${statusColor}; color: white; padding: 0.5rem 1.125rem; border-radius: 14px; font-size: 0.9375rem; font-weight: 600;">${statusText}</span>`
                     }
                 </div>
 
-                <div style="margin-top: auto; padding-top: 1rem; text-align: center; color: var(--gray-500); font-size: 0.8125rem; font-weight: 500;">
+                <div style="margin-top: auto; padding-top: 1.5rem; text-align: center; color: var(--gray-500); font-size: 0.9375rem; font-weight: 500;">
                     Click to view recipe
                 </div>
             </div>
