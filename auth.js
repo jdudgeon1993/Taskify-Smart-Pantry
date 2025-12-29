@@ -95,8 +95,8 @@ async function handleLogin() {
 
   const success = await signIn(email, password);
   if (success) {
-    // initializeApp() will be called automatically by auth state change listener
-    await initializeApp();
+    // initializeApp() is called automatically by auth state change listener in supabase-config.js
+    // No need to call it here
   }
 }
 
