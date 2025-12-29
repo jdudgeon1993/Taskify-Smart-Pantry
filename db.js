@@ -17,18 +17,21 @@ async function getUserHousehold() {
   const user = await getCurrentUser();
   if (!user) return null;
 
+  // Get households, ordered by when user joined (most recent first)
   const { data, error } = await supabase
     .from('household_members')
-    .select('household_id, households(*)')
+    .select('household_id, households(*), created_at')
     .eq('user_id', user.id)
-    .single();
+    .order('created_at', { ascending: false })
+    .limit(1);
 
   if (error) {
     console.error('Error fetching household:', error);
     return null;
   }
 
-  return data?.households || null;
+  // Return the most recently joined household
+  return data && data.length > 0 ? data[0].households : null;
 }
 
 // Create household for new user
