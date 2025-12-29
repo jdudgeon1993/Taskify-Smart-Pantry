@@ -1036,16 +1036,23 @@ async function deleteRecipe(id) {
     }
 }
 
-function toggleFavorite(id) {
+async function toggleFavorite(id) {
     const recipe = recipes.find(r => r.id === id);
     if (!recipe) return;
 
-    recipe.favorite = !recipe.favorite;
-    saveToLocalStorage();
-    renderRecipes();
+    const newFavoriteState = !recipe.favorite;
 
-    const message = recipe.favorite ? `${recipe.name} added to favorites!` : `${recipe.name} removed from favorites`;
-    showToast(recipe.favorite ? 'Added to Favorites' : 'Removed from Favorites', message, 'success');
+    try {
+        await updateRecipe(id, { favorite: newFavoriteState });
+        recipes = await loadRecipes();
+        renderRecipes();
+
+        const message = newFavoriteState ? `${recipe.name} added to favorites!` : `${recipe.name} removed from favorites`;
+        showToast(newFavoriteState ? 'Added to Favorites' : 'Removed from Favorites', message, 'success');
+    } catch (error) {
+        console.error('Error toggling favorite:', error);
+        alert('Failed to update favorite: ' + error.message);
+    }
 }
 
 function toggleColorPicker(id) {
@@ -1060,16 +1067,19 @@ function toggleColorPicker(id) {
     renderRecipes();
 }
 
-function setRecipeColor(id, color) {
+async function setRecipeColor(id, color) {
     const recipe = recipes.find(r => r.id === id);
     if (!recipe) return;
 
-    recipe.color = color;
-    recipe.showColorPicker = false;
-    saveToLocalStorage();
-    renderRecipes();
-
-    showToast('Color Updated', `Recipe card color changed to ${color}!`, 'success');
+    try {
+        await updateRecipe(id, { color: color });
+        recipes = await loadRecipes();
+        renderRecipes();
+        showToast('Color Updated', `Recipe card color changed to ${color}!`, 'success');
+    } catch (error) {
+        console.error('Error updating recipe color:', error);
+        alert('Failed to update color: ' + error.message);
+    }
 }
 
 function toggleRecipeCard(event, id) {
@@ -1114,7 +1124,7 @@ function scaleRecipe(recipeId, multiplier) {
     });
 }
 
-function cookRecipe(id) {
+async function cookRecipe(id) {
     const recipe = recipes.find(r => r.id === id);
     if (!recipe) return;
 
@@ -1128,50 +1138,54 @@ function cookRecipe(id) {
         return;
     }
 
-    let deductedCount = 0;
+    try {
+        let deductedCount = 0;
+        const allIngredients = [...ingredients.pantry, ...ingredients.fridge, ...ingredients.freezer];
 
-    // Deduct each ingredient
-    recipe.ingredients.forEach(reqIng => {
-        let remaining = reqIng.quantity;
+        // Deduct each required ingredient
+        for (const reqIng of recipe.ingredients) {
+            let remaining = reqIng.quantity;
 
-        // Check all locations for this ingredient
-        ['pantry', 'fridge', 'freezer'].forEach(location => {
-            if (remaining <= 0) return;
-
-            const ingIndex = ingredients[location].findIndex(ing =>
+            // Find matching ingredients across all locations
+            const matches = allIngredients.filter(ing =>
                 ing.name.toLowerCase() === reqIng.name.toLowerCase() &&
                 ing.unit.toLowerCase() === reqIng.unit.toLowerCase()
             );
 
-            if (ingIndex !== -1) {
-                const available = ingredients[location][ingIndex].quantity;
+            for (const match of matches) {
+                if (remaining <= 0) break;
 
-                if (available >= remaining) {
-                    // We have enough in this location
-                    ingredients[location][ingIndex].quantity -= remaining;
-                    deductedCount++;
-
-                    // Remove ingredient if quantity hits zero
-                    if (ingredients[location][ingIndex].quantity <= 0) {
-                        ingredients[location].splice(ingIndex, 1);
+                if (match.quantity >= remaining) {
+                    // Deduct from this ingredient
+                    const newQty = match.quantity - remaining;
+                    if (newQty <= 0) {
+                        // Delete ingredient
+                        await deletePantryItem(match.id);
+                    } else {
+                        // Update quantity
+                        await updatePantryItem(match.id, { quantity: newQty });
                     }
-
+                    deductedCount++;
                     remaining = 0;
                 } else {
-                    // Use all from this location and continue
-                    remaining -= available;
-                    ingredients[location].splice(ingIndex, 1);
+                    // Use all from this ingredient
+                    await deletePantryItem(match.id);
+                    remaining -= match.quantity;
                     deductedCount++;
                 }
             }
-        });
-    });
+        }
 
-    saveToLocalStorage();
-    renderIngredients();
-    renderRecipes();
+        // Reload ingredients from Supabase
+        ingredients = await loadPantryItems();
+        renderIngredients();
+        renderRecipes();
 
-    alert(`✅ Cooked "${recipe.name}"!\n\n${deductedCount} ingredient types deducted from your pantry.\n\nEnjoy your meal! 🍽️`);
+        alert(`✅ Cooked "${recipe.name}"!\n\n${deductedCount} ingredient types deducted from your pantry.\n\nEnjoy your meal! 🍽️`);
+    } catch (error) {
+        console.error('Error cooking recipe:', error);
+        alert('Failed to cook recipe: ' + error.message);
+    }
 }
 
 function checkRecipeStatus(recipe) {
@@ -2591,7 +2605,7 @@ function collapseAllMealDays() {
     // No longer needed with simplified design
 }
 
-function addRecipeToMeal(week, day, recipeId) {
+async function addRecipeToMeal(week, day, recipeId) {
     if (!recipeId) return;
 
     recipeId = parseInt(recipeId);
@@ -2604,20 +2618,49 @@ function addRecipeToMeal(week, day, recipeId) {
     // Add recipe if not already there
     if (!mealPlan[week][day].includes(recipeId)) {
         mealPlan[week][day].push(recipeId);
-        saveToLocalStorage();
-        renderMealPlan();
-        renderIngredients(); // Update ingredient availability
-        showToast('Meal Added', 'Recipe added to meal plan', 'success');
+
+        try {
+            // Save to Supabase
+            await addMealPlanItem({
+                week,
+                day,
+                recipe_id: recipeId
+            });
+
+            // Reload from Supabase
+            mealPlan = await loadMealPlan();
+            renderMealPlan();
+            renderIngredients();
+            showToast('Meal Added', 'Recipe added to meal plan', 'success');
+        } catch (error) {
+            console.error('Error adding meal:', error);
+            alert('Failed to add meal: ' + error.message);
+        }
     }
 }
 
-function removeRecipeFromMeal(week, day, recipeId) {
+async function removeRecipeFromMeal(week, day, recipeId) {
     if (Array.isArray(mealPlan[week][day])) {
-        mealPlan[week][day] = mealPlan[week][day].filter(id => id !== parseInt(recipeId));
-        saveToLocalStorage();
-        renderMealPlan();
-        renderIngredients(); // Update ingredient availability
-        showToast('Meal Removed', 'Recipe removed from plan', 'success');
+        try {
+            // Delete from Supabase
+            const { error } = await supabase
+                .from('meal_plans')
+                .delete()
+                .eq('week', week)
+                .eq('day', day)
+                .eq('recipe_id', parseInt(recipeId));
+
+            if (error) throw error;
+
+            // Reload from Supabase
+            mealPlan = await loadMealPlan();
+            renderMealPlan();
+            renderIngredients();
+            showToast('Meal Removed', 'Recipe removed from plan', 'success');
+        } catch (error) {
+            console.error('Error removing meal:', error);
+            alert('Failed to remove meal: ' + error.message);
+        }
     }
 }
 
