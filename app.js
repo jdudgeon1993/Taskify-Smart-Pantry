@@ -609,46 +609,55 @@ function editIngredient(location, id) {
     document.getElementById('edit-ingredient-modal').classList.remove('hidden');
 }
 
-function saveIngredientEdit() {
+async function saveIngredientEdit() {
     if (!editingIngredientData) return;
 
     const { location, id } = editingIngredientData;
-    const ingredient = ingredients[location].find(ing => ing.id === id);
     const newCategory = document.getElementById('edit-ing-category').value;
+    const updates = {
+        name: document.getElementById('edit-ing-name').value.trim(),
+        quantity: parseFloat(document.getElementById('edit-ing-quantity').value) || 1,
+        unit: document.getElementById('edit-ing-unit').value.trim(),
+        expiration: document.getElementById('edit-ing-expiration').value || null,
+        category: newCategory
+    };
 
-    if (ingredient) {
-        ingredient.name = document.getElementById('edit-ing-name').value.trim();
-        ingredient.quantity = parseFloat(document.getElementById('edit-ing-quantity').value) || 1;
-        ingredient.unit = document.getElementById('edit-ing-unit').value.trim();
-        ingredient.expiration = document.getElementById('edit-ing-expiration').value || null;
+    try {
+        await updatePantryItem(id, updates);
 
-        // Move ingredient to new category if changed
-        if (newCategory !== location) {
-            ingredients[location] = ingredients[location].filter(ing => ing.id !== id);
-            ingredients[newCategory].push(ingredient);
-        }
-
-        saveToLocalStorage();
+        // Reload ingredients from Supabase
+        ingredients = await loadPantryItems();
         renderIngredients();
         updateRecipeStatus();
-    }
+        updateDashboardStats();
 
-    document.getElementById('edit-ingredient-modal').classList.add('hidden');
-    editingIngredientData = null;
+        document.getElementById('edit-ingredient-modal').classList.add('hidden');
+        editingIngredientData = null;
+        showToast('Ingredient Updated', 'Changes saved successfully', 'success');
+    } catch (error) {
+        console.error('Error updating ingredient:', error);
+        alert('Failed to update ingredient: ' + error.message);
+    }
 }
 
-function deleteIngredient(location, id) {
+async function deleteIngredient(location, id) {
     const ingredient = ingredients[location].find(ing => ing.id === id);
     const ingredientName = ingredient ? ingredient.name : 'Item';
 
-    ingredients[location] = ingredients[location].filter(ing => ing.id !== id);
-    saveToLocalStorage();
-    renderIngredients();
-    updateRecipeStatus();
-    updateDashboardStats();
+    try {
+        await deletePantryItem(id);
 
-    // Show success toast
-    showToast('Ingredient Deleted', `${ingredientName} has been removed`, 'success');
+        // Reload ingredients from Supabase
+        ingredients = await loadPantryItems();
+        renderIngredients();
+        updateRecipeStatus();
+        updateDashboardStats();
+
+        showToast('Ingredient Deleted', `${ingredientName} has been removed`, 'success');
+    } catch (error) {
+        console.error('Error deleting ingredient:', error);
+        alert('Failed to delete ingredient: ' + error.message);
+    }
 }
 
 function getExpirationStatus(expiration) {
@@ -999,41 +1008,31 @@ function editRecipe(id) {
     document.getElementById('add-recipe-form').classList.remove('hidden');
 }
 
-function deleteRecipe(id) {
+async function deleteRecipe(id) {
     const recipe = recipes.find(r => r.id === id);
     if (confirm('Are you sure you want to delete this recipe?')) {
         const recipeName = recipe ? recipe.name : 'Recipe';
 
-        recipes = recipes.filter(recipe => recipe.id !== id);
+        try {
+            // Delete from Supabase
+            const { error } = await supabase
+                .from('recipes')
+                .delete()
+                .eq('id', id);
 
-        Object.keys(mealPlan).forEach(day => {
-            Object.keys(mealPlan[day]).forEach(meal => {
-                const mealSlot = mealPlan[day][meal];
-                if (typeof mealSlot === 'number' && mealSlot === id) {
-                    // Old format
-                    mealPlan[day][meal] = { personA: [], personB: [], joint: [] };
-                } else if (mealSlot && typeof mealSlot === 'object') {
-                    // New format - remove from all arrays
-                    if (Array.isArray(mealSlot.personA)) {
-                        mealSlot.personA = mealSlot.personA.filter(recipeId => recipeId !== id);
-                    }
-                    if (Array.isArray(mealSlot.personB)) {
-                        mealSlot.personB = mealSlot.personB.filter(recipeId => recipeId !== id);
-                    }
-                    if (Array.isArray(mealSlot.joint)) {
-                        mealSlot.joint = mealSlot.joint.filter(recipeId => recipeId !== id);
-                    }
-                }
-            });
-        });
+            if (error) throw error;
 
-        saveToLocalStorage();
-        renderRecipes();
-        renderMealPlan();
-        updateDashboardStats();
+            // Reload recipes from Supabase
+            recipes = await loadRecipes();
+            renderRecipes();
+            renderMealPlan();
+            updateDashboardStats();
 
-        // Show success toast
-        showToast('Recipe Deleted', `${recipeName} has been removed`, 'success');
+            showToast('Recipe Deleted', `${recipeName} has been removed`, 'success');
+        } catch (error) {
+            console.error('Error deleting recipe:', error);
+            alert('Failed to delete recipe: ' + error.message);
+        }
     }
 }
 
@@ -1616,7 +1615,7 @@ function clearShoppingForm() {
     document.getElementById('shopping-item-category').value = 'produce';
 }
 
-function addShoppingItem() {
+async function addShoppingItem() {
     const nameInput = document.getElementById('shopping-item-name');
     const quantityInput = document.getElementById('shopping-item-qty');
     const unitInput = document.getElementById('shopping-item-unit');
@@ -1632,48 +1631,87 @@ function addShoppingItem() {
         return;
     }
 
-    const item = {
-        id: Date.now(),
-        name,
-        quantity,
-        unit,
-        category,
-        checked: false,
-        purchasedQuantity: null,
-        targetLocation: getSuggestedLocation(category)
-    };
+    try {
+        const household = await getUserHousehold();
+        const user = await getCurrentUser();
 
-    shoppingList.push(item);
-    saveToLocalStorage();
-    renderShoppingList();
-    updateDashboardStats();
+        // Add to Supabase
+        const { error } = await supabase
+            .from('shopping_list')
+            .insert({
+                household_id: household.id,
+                created_by: user.id,
+                name,
+                quantity,
+                unit,
+                category,
+                checked: false
+            });
 
-    // Hide form and clear inputs
-    const formContainer = document.getElementById('add-shopping-form-container');
-    if (formContainer) {
-        formContainer.classList.add('hidden');
+        if (error) throw error;
+
+        // Reload shopping list from Supabase
+        shoppingList = await loadShoppingList();
+        renderShoppingList();
+        updateDashboardStats();
+
+        // Hide form and clear inputs
+        const formContainer = document.getElementById('add-shopping-form-container');
+        if (formContainer) {
+            formContainer.classList.add('hidden');
+        }
+
+        nameInput.value = '';
+        quantityInput.value = '1';
+        unitInput.value = '';
+        nameInput.focus();
+        showToast('Item Added', `${name} added to shopping list`, 'success');
+    } catch (error) {
+        console.error('Error adding shopping item:', error);
+        alert('Failed to add item: ' + error.message);
     }
-
-    nameInput.value = '';
-    quantityInput.value = '1';
-    unitInput.value = '';
-    nameInput.focus();
 }
 
-function toggleShoppingItem(id) {
+async function toggleShoppingItem(id) {
     const item = shoppingList.find(item => item.id === id);
     if (item) {
-        item.checked = !item.checked;
-        saveToLocalStorage();
-        renderShoppingList();
+        try {
+            const newCheckedState = !item.checked;
+            const { error } = await supabase
+                .from('shopping_list')
+                .update({ checked: newCheckedState })
+                .eq('id', id);
+
+            if (error) throw error;
+
+            // Reload shopping list from Supabase
+            shoppingList = await loadShoppingList();
+            renderShoppingList();
+        } catch (error) {
+            console.error('Error toggling shopping item:', error);
+            alert('Failed to update item: ' + error.message);
+        }
     }
 }
 
-function deleteShoppingItem(id) {
-    shoppingList = shoppingList.filter(item => item.id !== id);
-    saveToLocalStorage();
-    renderShoppingList();
-    updateDashboardStats();
+async function deleteShoppingItem(id) {
+    try {
+        const { error } = await supabase
+            .from('shopping_list')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+
+        // Reload shopping list from Supabase
+        shoppingList = await loadShoppingList();
+        renderShoppingList();
+        updateDashboardStats();
+        showToast('Item Removed', 'Item removed from shopping list', 'success');
+    } catch (error) {
+        console.error('Error deleting shopping item:', error);
+        alert('Failed to delete item: ' + error.message);
+    }
 }
 
 function addMissingToShopping(recipeId, servingsMultiplier = 1) {
