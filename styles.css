@@ -1635,24 +1635,35 @@ label {
     }
 
     header {
-        padding: var(--spacing-lg);
+        padding: var(--spacing-md) var(--spacing-lg);
         position: fixed;
         top: 0;
         left: 0;
         right: 0;
     }
 
+    /* Hide household badge from header on mobile */
+    .household-badge {
+        display: none;
+    }
+
     .main-nav {
-        top: 80px; /* Adjusted for smaller mobile header */
+        top: 70px; /* Adjusted for smaller mobile header */
     }
 
     .header-content h1 {
         font-size: 1.5rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .subtitle {
+        font-size: 0.875rem;
     }
 
     .section {
         padding: var(--spacing-lg);
-        padding-top: 140px; /* Adjusted for fixed header + nav on mobile */
+        padding-top: 130px; /* Adjusted for fixed header + nav on mobile */
+        padding-bottom: 60px; /* Space for bottom household indicator */
     }
 
     /* CRITICAL: Make recipe sections single column on mobile */
@@ -1673,7 +1684,8 @@ label {
     /* Fix recipes section padding */
     #recipes.active {
         padding: var(--spacing-lg);
-        padding-top: 140px; /* Match other sections */
+        padding-top: 130px; /* Match other sections */
+        padding-bottom: 60px;
     }
 
     .section h2 {
@@ -2186,22 +2198,33 @@ label {
     }
     
     header .header-content {
-        margin-bottom: 15px;
+        margin-bottom: 10px;
     }
-    
+
     .header-user-actions {
-        width: 100%;
-        justify-content: center;
+        display: none; /* Hide on mobile since Sign Out is in Settings */
     }
-    
-    .household-badge {
-        width: 100%;
-        text-align: center;
-    }
-    
+
     .btn-outline-small {
         flex: 1;
         min-width: 100px;
+    }
+
+    /* Add household indicator at bottom on mobile */
+    #app-content::after {
+        content: attr(data-household);
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(102, 126, 234, 0.95);
+        color: white;
+        padding: 8px;
+        text-align: center;
+        font-size: 12px;
+        font-weight: 600;
+        z-index: 50;
+        backdrop-filter: blur(10px);
     }
     
     .modal .modal-content {
