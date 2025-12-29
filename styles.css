@@ -697,19 +697,18 @@ label {
     width: 100%;
 }
 
-/* Recipe sections container - removed for new simpler grid layout */
+/* Recipe sections container */
 .recipe-sections-container {
-    display: block;
+    display: flex;
+    flex-direction: column;
     width: 100%;
-    flex: 1;
+    max-width: 1600px;
+    margin: 0 auto;
+    gap: 3rem;
 }
 
 .recipe-section {
-    margin-bottom: 3rem;
-}
-
-.recipe-section:last-child {
-    margin-bottom: 0;
+    width: 100%;
 }
 
 .section-header-card {
@@ -719,19 +718,27 @@ label {
     box-shadow: var(--shadow-sm);
     margin-bottom: var(--spacing-xl);
     border-left: 4px solid var(--primary-600);
+    text-align: center;
 }
 
 .section-header-card h3 {
     margin: 0 !important;
-    font-size: 1.25rem !important;
+    font-size: 1.5rem !important;
 }
 
+/* Desktop: 3 equal columns */
 .recipe-cards-wrapper {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 2rem;
-    padding: 0;
     width: 100%;
+}
+
+/* Force exactly 3 columns on wide screens */
+@media (min-width: 1024px) {
+    .recipe-cards-wrapper {
+        grid-template-columns: repeat(3, 1fr);
+    }
 }
 
 .recipe-card {
@@ -739,7 +746,7 @@ label {
     background: white;
     border: 2px solid var(--gray-200);
     border-radius: var(--radius-xl);
-    padding: 2rem;
+    padding: 2.5rem 2rem;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     width: 100%;
     box-shadow: 0 4px 12px rgba(74, 58, 44, 0.08);
@@ -749,7 +756,7 @@ label {
     flex-direction: column;
     align-items: center;
     text-align: center;
-    min-height: 280px;
+    min-height: 350px;
     justify-content: space-between;
 }
 
@@ -1882,18 +1889,15 @@ label {
    RESPONSIVE DESIGN
    ========================================== */
 /* Tablet - 2 columns for recipes */
-/* Desktop - Center content */
-@media (min-width: 1025px) {
-    #recipes.active {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding-left: var(--spacing-2xl);
-        padding-right: var(--spacing-2xl);
+/* Tablet - 2 columns */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .recipe-cards-wrapper {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 1.5rem;
     }
 
-    .recipe-sections-container {
-        max-width: 100%;
-        margin: 0 auto;
+    .recipe-card {
+        min-height: 300px;
     }
 }
 
@@ -1962,24 +1966,30 @@ label {
         padding-bottom: 60px; /* Space for bottom household indicator */
     }
 
-    /* Fix recipes section padding */
+    /* Mobile - single column, full width */
     #recipes.active {
         padding: var(--spacing-md);
         padding-top: 130px;
         padding-bottom: 60px;
-        max-width: 100%;
         width: 100%;
     }
 
+    .recipe-sections-container {
+        gap: 2rem;
+        max-width: 100%;
+    }
+
     .recipe-section {
-        margin-bottom: 2rem;
         width: 100%;
     }
 
     .section-header-card {
         padding: var(--spacing-md);
-        margin-bottom: var(--spacing-lg);
-        width: 100%;
+        margin-bottom: var(--spacing-md);
+    }
+
+    .section-header-card h3 {
+        font-size: 1.25rem !important;
     }
 
     .section h2 {
@@ -1999,15 +2009,14 @@ label {
         grid-template-columns: 1fr;
     }
 
-    .recipe-grid,
+    /* Mobile: single column stacked vertically */
     .recipe-cards-wrapper {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr !important;
         gap: 1.5rem;
-        width: 100%;
     }
 
     .recipe-card {
-        min-height: 260px;
+        min-height: 280px;
         padding: 2rem 1.5rem;
         width: 100%;
     }
