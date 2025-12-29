@@ -1560,74 +1560,104 @@ function renderRecipes() {
     function renderRecipeCard(recipe, showExpiringBadge = false) {
         const status = checkRecipeStatus(recipe);
         const statusClass = status.isReady ? 'ready' : 'missing';
-        const statusText = status.isReady ? '✓ Ready to Cook' : '○ Need Ingredients';
-        const statusColor = status.isReady ? '#48bb78' : '#ed8936';
+        const statusText = status.isReady ? '✓ Ready' : 'Need Ingredients';
+
+        // Assign color based on category for traditional recipe card aesthetic
+        const categoryColors = {
+            'breakfast': 'var(--butter-yellow)',
+            'lunch': 'var(--sage-green)',
+            'dinner': 'var(--wood-medium)',
+            'dessert': 'var(--dusty-rose)',
+            'snack': '#E8D5C4',
+            'default': 'var(--cream)'
+        };
+        const cardColor = categoryColors[recipe.category?.toLowerCase()] || categoryColors['default'];
 
         return `
-            <div class="recipe-card ${statusClass}" data-recipe-id="${recipe.id}" onclick="console.log('Card clicked!', ${recipe.id}); openRecipeDetailModal(${recipe.id}); return false;">
-                ${recipe.favorite ? '<div class="favorite-badge">⭐</div>' : ''}
+            <div class="cottage-recipe-card"
+                 data-recipe-id="${recipe.id}"
+                 onclick="openRecipeDetailModal('${recipe.id}')"
+                 style="border-left: 6px solid ${cardColor};">
 
-                <div class="recipe-card-header">
+                ${recipe.favorite ? '<div class="recipe-favorite-star">⭐</div>' : ''}
+
+                <div class="recipe-card-title">
                     <h3>${recipe.name}</h3>
                 </div>
 
-                <div style="display: flex; flex-direction: column; gap: 0.875rem; align-items: center; width: 100%; margin-top: 1rem;">
+                <div class="recipe-card-meta">
                     ${recipe.category ? `
-                        <span class="recipe-category-badge" style="background: var(--primary-50); color: var(--primary-700); padding: 0.5rem 1.125rem; border-radius: 14px; font-size: 0.9375rem; font-weight: 600; border: 1px solid var(--primary-600);">
-                            ${recipe.category.charAt(0).toUpperCase() + recipe.category.slice(1)}
+                        <span class="recipe-meta-item">
+                            <span class="meta-label">Category:</span>
+                            <span class="meta-value">${recipe.category.charAt(0).toUpperCase() + recipe.category.slice(1)}</span>
                         </span>
                     ` : ''}
 
-                    <span style="background: var(--sage-green); color: white; padding: 0.5rem 1.125rem; border-radius: 14px; font-size: 0.9375rem; font-weight: 600;">
-                        Serves ${recipe.servings || 4}
+                    <span class="recipe-meta-item">
+                        <span class="meta-label">Serves:</span>
+                        <span class="meta-value">${recipe.servings || 4}</span>
                     </span>
+                </div>
 
+                <div class="recipe-card-status ${statusClass}">
                     ${showExpiringBadge ?
-                        `<span class="recipe-status" style="background: #f59e0b; color: white; padding: 0.5rem 1.125rem; border-radius: 14px; font-size: 0.9375rem; font-weight: 600;">🔥 Cook Soon!</span>` :
-                        `<span class="recipe-status" style="background: ${statusColor}; color: white; padding: 0.5rem 1.125rem; border-radius: 14px; font-size: 0.9375rem; font-weight: 600;">${statusText}</span>`
+                        '<span class="status-badge expiring">🔥 Cook Soon!</span>' :
+                        `<span class="status-badge">${statusText}</span>`
                     }
                 </div>
 
-                <div style="margin-top: auto; padding-top: 1.5rem; text-align: center; color: var(--gray-500); font-size: 0.9375rem; font-weight: 500;">
-                    Click to view recipe
+                <div class="recipe-card-hint">
+                    Tap to view full recipe →
                 </div>
             </div>
         `;
     }
 
-    // Build 3-column responsive layout
+    // Build responsive deck-style layout
     let html = `
-        <div class="recipe-sections-container">
-            <div class="recipe-section ready-section">
-                <div class="section-header-card" style="background: #f0fff4; border-left: 4px solid #48bb78;">
-                    <h3 style="margin: 0; color: #48bb78; font-size: 16px; font-weight: 700;">✅ Ready to Cook (${readyRecipes.length})</h3>
+        <div class="recipe-deck-container">
+            ${readyRecipes.length > 0 ? `
+                <div class="recipe-deck-section">
+                    <div class="deck-section-header ready">
+                        <h3>✅ Ready to Cook</h3>
+                        <span class="recipe-count">${readyRecipes.length} recipe${readyRecipes.length !== 1 ? 's' : ''}</span>
+                    </div>
+                    <div class="recipe-cards-grid">
+                        ${readyRecipes.map(recipe => renderRecipeCard(recipe)).join('')}
+                    </div>
                 </div>
-                <div class="recipe-cards-wrapper">
-                    ${readyRecipes.map(recipe => renderRecipeCard(recipe)).join('')}
-                    ${readyRecipes.length === 0 ? '<p style="text-align: center; color: #718096; padding: 20px;">No ready recipes</p>' : ''}
-                </div>
-            </div>
+            ` : ''}
 
-            <div class="recipe-section cook-soon-section">
-                <div class="section-header-card" style="background: #fffaf0; border-left: 4px solid #f59e0b;">
-                    <h3 style="margin: 0; color: #f59e0b; font-size: 16px; font-weight: 700;">🔥 Cook These Soon! (${cookSoonRecipes.length})</h3>
-                    <p style="margin: 5px 0 0 0; font-size: 12px; color: #c05621;">Ingredients expiring soon</p>
+            ${cookSoonRecipes.length > 0 ? `
+                <div class="recipe-deck-section">
+                    <div class="deck-section-header cook-soon">
+                        <h3>🔥 Cook These Soon!</h3>
+                        <span class="recipe-count">${cookSoonRecipes.length} recipe${cookSoonRecipes.length !== 1 ? 's' : ''}</span>
+                        <p class="section-note">Ingredients expiring soon</p>
+                    </div>
+                    <div class="recipe-cards-grid">
+                        ${cookSoonRecipes.map(recipe => renderRecipeCard(recipe, true)).join('')}
+                    </div>
                 </div>
-                <div class="recipe-cards-wrapper">
-                    ${cookSoonRecipes.map(recipe => renderRecipeCard(recipe, true)).join('')}
-                    ${cookSoonRecipes.length === 0 ? '<p style="text-align: center; color: #718096; padding: 20px;">No expiring ingredients</p>' : ''}
-                </div>
-            </div>
+            ` : ''}
 
-            <div class="recipe-section need-ingredients-section">
-                <div class="section-header-card" style="background: #fef5e7; border-left: 4px solid #ed8936;">
-                    <h3 style="margin: 0; color: #ed8936; font-size: 16px; font-weight: 700;">📝 Need Ingredients (${needIngredientsRecipes.length})</h3>
+            ${needIngredientsRecipes.length > 0 ? `
+                <div class="recipe-deck-section">
+                    <div class="deck-section-header need-ingredients">
+                        <h3>📝 Need Ingredients</h3>
+                        <span class="recipe-count">${needIngredientsRecipes.length} recipe${needIngredientsRecipes.length !== 1 ? 's' : ''}</span>
+                    </div>
+                    <div class="recipe-cards-grid">
+                        ${needIngredientsRecipes.map(recipe => renderRecipeCard(recipe)).join('')}
+                    </div>
                 </div>
-                <div class="recipe-cards-wrapper">
-                    ${needIngredientsRecipes.map(recipe => renderRecipeCard(recipe)).join('')}
-                    ${needIngredientsRecipes.length === 0 ? '<p style="text-align: center; color: #718096; padding: 20px;">All recipes ready!</p>' : ''}
+            ` : ''}
+
+            ${readyRecipes.length === 0 && cookSoonRecipes.length === 0 && needIngredientsRecipes.length === 0 ? `
+                <div class="empty-recipes-state">
+                    <p>No recipes yet. Add your first recipe to get started! 🍳</p>
                 </div>
-            </div>
+            ` : ''}
         </div>
     `;
 
