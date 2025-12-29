@@ -10,386 +10,446 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <div class="header-content">
-                <h1>Taskify Smart Pantry</h1>
-                <p class="subtitle">Kitchen management made simple</p>
-            </div>
-        </header>
-
-        <nav class="main-nav">
-            <button class="nav-btn active" data-section="dashboard">Dashboard</button>
-            <button class="nav-btn" data-section="ingredients">Pantry</button>
-            <button class="nav-btn" data-section="recipes">Recipes</button>
-            <button class="nav-btn" data-section="shopping">Shopping</button>
-            <button class="nav-btn" data-section="meal-plan">Meal Plan</button>
-            <button class="nav-btn" data-section="settings">Settings</button>
-        </nav>
-
-        <!-- Dashboard Section -->
-        <section id="dashboard" class="section active">
-            <div class="dashboard-welcome">
-                <h2>Dashboard</h2>
-                <p class="dashboard-subtitle">Overview of your kitchen</p>
+    <!-- ============================================ -->
+    <!-- AUTHENTICATION SCREEN (New) -->
+    <!-- ============================================ -->
+    <div id="auth-screen" style="display: none;">
+        <div class="auth-container">
+            <div class="auth-header">
+                <h1>🥕 Taskify Smart Pantry</h1>
+                <p>Kitchen management made simple</p>
             </div>
 
-            <!-- Expiring Items Alert -->
-            <div id="expiring-alert" class="dashboard-alert" style="display: none;">
-                <div class="alert-content">
-                    <h3>Items Expiring Soon</h3>
-                    <p id="expiring-alert-text"></p>
+            <!-- Login Form -->
+            <div id="login-form" class="auth-form">
+                <h2>Welcome Back</h2>
+                <div class="form-group">
+                    <label for="login-email">Email</label>
+                    <input 
+                        type="email" 
+                        id="login-email" 
+                        placeholder="your@email.com"
+                        autocomplete="email"
+                    >
                 </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input 
+                        type="password" 
+                        id="login-password" 
+                        placeholder="••••••••"
+                        autocomplete="current-password"
+                    >
+                </div>
+                <button class="btn-auth-primary" onclick="handleLogin()">Sign In</button>
+                <p class="auth-switch">
+                    Don't have an account? 
+                    <a href="#" onclick="showSignupForm(); return false;">Sign up</a>
+                </p>
             </div>
 
-            <!-- Today's Meal Plan -->
-            <div id="today-meal-plan" class="today-meals-section" style="display: none;">
-                <h3>Today's Meals</h3>
-                <div id="today-meals-content"></div>
+            <!-- Signup Form -->
+            <div id="signup-form" class="auth-form" style="display: none;">
+                <h2>Create Account</h2>
+                <div class="form-group">
+                    <label for="signup-name">Display Name</label>
+                    <input 
+                        type="text" 
+                        id="signup-name" 
+                        placeholder="Your Name"
+                        autocomplete="name"
+                    >
+                </div>
+                <div class="form-group">
+                    <label for="signup-email">Email</label>
+                    <input 
+                        type="email" 
+                        id="signup-email" 
+                        placeholder="your@email.com"
+                        autocomplete="email"
+                    >
+                </div>
+                <div class="form-group">
+                    <label for="signup-password">Password</label>
+                    <input 
+                        type="password" 
+                        id="signup-password" 
+                        placeholder="••••••••"
+                        autocomplete="new-password"
+                    >
+                    <small>At least 6 characters</small>
+                </div>
+                <button class="btn-auth-primary" onclick="handleSignup()">Create Account</button>
+                <p class="auth-switch">
+                    Already have an account? 
+                    <a href="#" onclick="showLoginForm(); return false;">Sign in</a>
+                </p>
             </div>
+        </div>
+    </div>
 
-            <div class="dashboard-grid">
-                <div class="dashboard-card" data-navigate="ingredients">
-                    <h3>Pantry</h3>
-                    <p class="card-stat" id="dashboard-ingredients-count">0 items</p>
-                    <p class="card-description">Manage ingredients</p>
+    <!-- ============================================ -->
+    <!-- MAIN APP CONTENT (Wrapped) -->
+    <!-- ============================================ -->
+    <div id="app-content" style="display: none;">
+        <div class="container">
+            <header>
+                <div class="header-content">
+                    <h1>Taskify Smart Pantry</h1>
+                    <p class="subtitle">Kitchen management made simple</p>
+                </div>
+                <div class="header-user-actions">
+                    <span id="household-name-display" class="household-badge"></span>
+                    <button onclick="showInviteModal()" class="btn-outline-small">Share Pantry</button>
+                    <button onclick="handleSignout()" class="btn-outline-small">Sign Out</button>
+                </div>
+            </header>
+
+            <nav class="main-nav">
+                <button class="nav-btn active" data-section="dashboard">Dashboard</button>
+                <button class="nav-btn" data-section="ingredients">Pantry</button>
+                <button class="nav-btn" data-section="recipes">Recipes</button>
+                <button class="nav-btn" data-section="shopping">Shopping</button>
+                <button class="nav-btn" data-section="meal-plan">Meal Plan</button>
+                <button class="nav-btn" data-section="settings">Settings</button>
+            </nav>
+
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="section active">
+                <div class="dashboard-welcome">
+                    <h2>Dashboard</h2>
+                    <p class="dashboard-subtitle">Overview of your kitchen</p>
                 </div>
 
-                <div class="dashboard-card" data-navigate="recipes">
-                    <h3>Recipes</h3>
-                    <p class="card-stat" id="dashboard-recipes-count">0 recipes</p>
-                    <p class="card-description">Browse collection</p>
-                </div>
-
-                <div class="dashboard-card" data-navigate="shopping">
-                    <h3>Shopping</h3>
-                    <p class="card-stat" id="dashboard-shopping-count">0 items</p>
-                    <p class="card-description">Shopping list</p>
-                </div>
-
-                <div class="dashboard-card" data-navigate="meal-plan">
-                    <h3>Meal Plan</h3>
-                    <p class="card-stat" id="dashboard-meals-count">Plan your week</p>
-                    <p class="card-description">Weekly planning</p>
-                </div>
-            </div>
-
-            <div class="quick-actions">
-                <h3>Quick Actions</h3>
-                <div class="quick-action-buttons">
-                    <button class="btn-secondary" onclick="navigateToSection('ingredients')">Add Ingredient</button>
-                    <button class="btn-secondary" onclick="navigateToSection('recipes')">Browse Recipes</button>
-                    <button class="btn-secondary" onclick="navigateToSection('shopping')">View Shopping</button>
-                </div>
-            </div>
-        </section>
-
-        <!-- Ingredients Section -->
-        <section id="ingredients" class="section">
-            <div class="section-header">
-                <h2>My Pantry</h2>
-                <button class="btn-primary" id="toggle-add-ingredient">Add Ingredient</button>
-            </div>
-
-            <div class="add-ingredient-form hidden" id="add-ingredient-form-container">
-                <div class="form-card">
-                    <h3>Add New Ingredient</h3>
-                    <div class="form-group">
-                        <label>Ingredient Name</label>
-                        <input type="text" id="ingredient-name" placeholder="e.g., Flour, Milk, Tomatoes" list="ingredient-names-list" />
-                        <datalist id="ingredient-names-list"></datalist>
+                <!-- Expiring Items Alert -->
+                <div id="expiring-alert" class="dashboard-alert" style="display: none;">
+                    <div class="alert-content">
+                        <h3>Items Expiring Soon</h3>
+                        <p id="expiring-alert-text"></p>
                     </div>
-                    <div class="form-row">
+                </div>
+
+                <!-- Today's Meal Plan -->
+                <div id="today-meal-plan" class="today-meals-section" style="display: none;">
+                    <h3>Today's Meals</h3>
+                    <div id="today-meals-content"></div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="dashboard-card" data-navigate="ingredients">
+                        <h3>Pantry</h3>
+                        <p class="card-stat" id="dashboard-ingredients-count">0 items</p>
+                        <p class="card-description">Manage ingredients</p>
+                    </div>
+
+                    <div class="dashboard-card" data-navigate="recipes">
+                        <h3>Recipes</h3>
+                        <p class="card-stat" id="dashboard-recipes-count">0 recipes</p>
+                        <p class="card-description">Browse collection</p>
+                    </div>
+
+                    <div class="dashboard-card" data-navigate="shopping">
+                        <h3>Shopping</h3>
+                        <p class="card-stat" id="dashboard-shopping-count">0 items</p>
+                        <p class="card-description">Shopping list</p>
+                    </div>
+
+                    <div class="dashboard-card" data-navigate="meal-plan">
+                        <h3>Meal Plan</h3>
+                        <p class="card-stat" id="dashboard-meals-count">Plan your week</p>
+                        <p class="card-description">Weekly planning</p>
+                    </div>
+                </div>
+
+                <div class="quick-actions">
+                    <h3>Quick Actions</h3>
+                    <div class="quick-action-buttons">
+                        <button class="btn-secondary" onclick="navigateToSection('ingredients')">Add Ingredient</button>
+                        <button class="btn-secondary" onclick="navigateToSection('recipes')">Browse Recipes</button>
+                        <button class="btn-secondary" onclick="navigateToSection('shopping')">View Shopping</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Ingredients Section -->
+            <section id="ingredients" class="section">
+                <div class="section-header">
+                    <h2>My Pantry</h2>
+                    <button class="btn-primary" id="toggle-add-ingredient">Add Ingredient</button>
+                </div>
+
+                <div class="add-ingredient-form hidden" id="add-ingredient-form-container">
+                    <div class="form-card">
+                        <h3>Add New Ingredient</h3>
                         <div class="form-group">
-                            <label>Quantity</label>
-                            <input type="number" id="ingredient-quantity" placeholder="1" min="0.1" step="0.1" value="1" />
+                            <label>Ingredient Name</label>
+                            <input type="text" id="ingredient-name" placeholder="e.g., Flour, Milk, Tomatoes" list="ingredient-names-list" />
+                            <datalist id="ingredient-names-list"></datalist>
                         </div>
-                        <div class="form-group">
-                            <label>Unit</label>
-                            <input type="text" id="ingredient-unit" placeholder="cups, lbs, etc." list="units-list" />
-                            <datalist id="units-list"></datalist>
-                        </div>
-                        <div class="form-group">
-                            <label>Category</label>
-                            <select id="ingredient-category">
-                                <option value="pantry">Pantry</option>
-                                <option value="fridge">Fridge</option>
-                                <option value="freezer">Freezer</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Expiration (optional)</label>
-                            <input type="date" id="ingredient-expiration" />
-                        </div>
-                    </div>
-                    <div class="form-actions">
-                        <button id="add-ingredient-btn" class="primary-btn">Save Ingredient</button>
-                        <button id="cancel-add-ingredient" class="secondary-btn">Cancel</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="ingredient-search-bar">
-                <input type="text" id="ingredient-search" placeholder="Search ingredients..." />
-            </div>
-
-            <div class="location-tabs">
-                <button class="location-btn active" data-location="pantry">Pantry</button>
-                <button class="location-btn" data-location="fridge">Fridge</button>
-                <button class="location-btn" data-location="freezer">Freezer</button>
-            </div>
-
-            <div class="ingredient-lists">
-                <div id="pantry-list" class="ingredient-list active">
-                    <h3>Pantry Items</h3>
-                    <ul id="pantry-items"></ul>
-                </div>
-                <div id="fridge-list" class="ingredient-list">
-                    <h3>Fridge Items</h3>
-                    <ul id="fridge-items"></ul>
-                </div>
-                <div id="freezer-list" class="ingredient-list">
-                    <h3>Freezer Items</h3>
-                    <ul id="freezer-items"></ul>
-                </div>
-            </div>
-        </section>
-
-        <!-- Recipes Section -->
-        <section id="recipes" class="section">
-            <div class="section-header">
-                <h2>My Recipes</h2>
-                <button class="btn-primary" id="add-recipe-btn">Add Recipe</button>
-            </div>
-
-            <div class="recipe-search-container">
-                <input type="text" id="recipe-search" placeholder="Search recipes..." />
-                <button class="btn-secondary" id="toggle-filters">Filters</button>
-            </div>
-
-            <div class="filters-container hidden" id="filters-container">
-                <div class="filter-group">
-                    <label>Status</label>
-                    <div class="recipe-filters">
-                        <button class="filter-btn active" data-filter="all">All</button>
-                        <button class="filter-btn" data-filter="ready">Ready to Cook</button>
-                        <button class="filter-btn" data-filter="missing">Missing Items</button>
-                        <button class="filter-btn" data-filter="favorites">Favorites</button>
-                    </div>
-                </div>
-                <div class="filter-group">
-                    <label>Category</label>
-                    <div class="category-filter-container">
-                        <button class="category-filter-btn active" data-category="all">All</button>
-                        <button class="category-filter-btn" data-category="breakfast">Breakfast</button>
-                        <button class="category-filter-btn" data-category="lunch">Lunch</button>
-                        <button class="category-filter-btn" data-category="dinner">Dinner</button>
-                        <button class="category-filter-btn" data-category="dessert">Dessert</button>
-                        <button class="category-filter-btn" data-category="snack">Snack</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Add Recipe Form (Initially Hidden) -->
-            <div id="add-recipe-form" class="modal hidden">
-                <div class="modal-content">
-                    <span class="close-modal">&times;</span>
-                    <h3 id="recipe-modal-title">Add New Recipe</h3>
-                    <input type="text" id="recipe-name" placeholder="Recipe name" />
-
-                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                        <div style="flex: 1;">
-                            <label style="display: block; margin-bottom: 5px; font-weight: 600;">Servings:</label>
-                            <input type="number" id="recipe-servings" placeholder="Servings" min="1" value="4" style="width: 100%;" />
-                        </div>
-                        <div style="flex: 1;">
-                            <label style="display: block; margin-bottom: 5px; font-weight: 600;">Category:</label>
-                            <select id="recipe-category" style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
-                                <option value="">Select category</option>
-                                <option value="breakfast">Breakfast</option>
-                                <option value="lunch">Lunch</option>
-                                <option value="dinner">Dinner</option>
-                                <option value="dessert">Dessert</option>
-                                <option value="snack">Snack</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <input type="text" id="recipe-image" placeholder="Image URL (optional)" />
-                    <textarea id="recipe-instructions" placeholder="Instructions (optional)" rows="4"></textarea>
-
-                    <div class="recipe-ingredients-input">
-                        <h4>Ingredients Required</h4>
-                        <div id="recipe-ingredient-inputs">
-                            <div class="recipe-ingredient-row">
-                                <input type="text" class="recipe-ing-name" placeholder="Ingredient" />
-                                <input type="number" class="recipe-ing-qty" placeholder="Qty" min="0.1" step="0.1" value="1" />
-                                <input type="text" class="recipe-ing-unit" placeholder="Unit" />
-                                <button type="button" class="remove-ing-btn">Remove</button>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Quantity</label>
+                                <input type="number" id="ingredient-quantity" placeholder="1" min="0.1" step="0.1" value="1" />
+                            </div>
+                            <div class="form-group">
+                                <label>Unit</label>
+                                <input type="text" id="ingredient-unit" placeholder="cups, lbs, etc." list="units-list" />
+                                <datalist id="units-list"></datalist>
+                            </div>
+                            <div class="form-group">
+                                <label>Category</label>
+                                <select id="ingredient-category">
+                                    <option value="pantry">Pantry</option>
+                                    <option value="fridge">Fridge</option>
+                                    <option value="freezer">Freezer</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Expiration (optional)</label>
+                                <input type="date" id="ingredient-expiration" />
                             </div>
                         </div>
-                        <button type="button" id="add-recipe-ingredient-btn">+ Add Ingredient</button>
+                        <div class="form-actions">
+                            <button id="add-ingredient-btn" class="primary-btn">Save Ingredient</button>
+                            <button id="cancel-add-ingredient" class="secondary-btn">Cancel</button>
+                        </div>
                     </div>
-
-                    <button id="save-recipe-btn">Save Recipe</button>
                 </div>
-            </div>
 
-            <!-- Smart Meal Suggestions Banner -->
-            <div id="meal-suggestions" class="meal-suggestions" style="display: none;"></div>
-
-            <div id="recipe-list" class="recipe-grid"></div>
-        </section>
-
-        <!-- Shopping List Section -->
-        <section id="shopping" class="section">
-            <div class="section-header">
-                <h2>Shopping List</h2>
-                <div class="header-actions">
-                    <button class="btn-primary" id="toggle-add-shopping">Add Item</button>
-                    <button class="btn-secondary" id="toggle-shopping-actions">Actions</button>
+                <div class="ingredient-search-bar">
+                    <input type="text" id="ingredient-search" placeholder="Search ingredients..." />
                 </div>
-            </div>
 
-            <div class="shopping-actions hidden" id="shopping-actions-container">
-                <button id="auto-generate-list-btn" class="btn-secondary">Auto-Generate from Recipes</button>
-                <button id="generate-from-meal-plan-btn" class="btn-secondary">Generate from Meal Plan</button>
-                <button id="print-shopping-list-btn" class="btn-secondary">Print List</button>
-                <button id="clear-shopping-list-btn" class="btn-danger">Clear List</button>
-            </div>
+                <div class="location-tabs">
+                    <button class="location-btn active" data-location="pantry">Pantry</button>
+                    <button class="location-btn" data-location="fridge">Fridge</button>
+                    <button class="location-btn" data-location="freezer">Freezer</button>
+                </div>
 
-            <div class="add-shopping-item hidden" id="add-shopping-form-container">
-                <div class="form-card">
-                    <h3>Add Shopping Item</h3>
-                    <div class="form-group">
-                        <label>Item Name</label>
-                        <input type="text" id="shopping-item-name" placeholder="e.g., Milk, Bread" />
+                <div class="ingredient-lists">
+                    <div id="pantry-list" class="ingredient-list active">
+                        <h3>Pantry Items</h3>
+                        <ul id="pantry-items"></ul>
                     </div>
-                    <div class="form-row">
+                    <div id="fridge-list" class="ingredient-list">
+                        <h3>Fridge Items</h3>
+                        <ul id="fridge-items"></ul>
+                    </div>
+                    <div id="freezer-list" class="ingredient-list">
+                        <h3>Freezer Items</h3>
+                        <ul id="freezer-items"></ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Recipes Section -->
+            <section id="recipes" class="section">
+                <div class="section-header">
+                    <h2>My Recipes</h2>
+                    <button class="btn-primary" id="add-recipe-btn">Add Recipe</button>
+                </div>
+
+                <div class="recipe-search-container">
+                    <input type="text" id="recipe-search" placeholder="Search recipes..." />
+                    <button class="btn-secondary" id="toggle-filters">Filters</button>
+                </div>
+
+                <div class="filters-container hidden" id="filters-container">
+                    <div class="filter-group">
+                        <label>Status</label>
+                        <div class="recipe-filters">
+                            <button class="filter-btn active" data-filter="all">All</button>
+                            <button class="filter-btn" data-filter="ready">Ready to Cook</button>
+                            <button class="filter-btn" data-filter="missing">Missing Items</button>
+                            <button class="filter-btn" data-filter="favorites">Favorites</button>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label>Category</label>
+                        <div class="category-filter-container">
+                            <button class="category-filter-btn active" data-category="all">All</button>
+                            <button class="category-filter-btn" data-category="breakfast">Breakfast</button>
+                            <button class="category-filter-btn" data-category="lunch">Lunch</button>
+                            <button class="category-filter-btn" data-category="dinner">Dinner</button>
+                            <button class="category-filter-btn" data-category="dessert">Dessert</button>
+                            <button class="category-filter-btn" data-category="snack">Snack</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add Recipe Form (Initially Hidden) -->
+                <div id="add-recipe-form" class="modal hidden">
+                    <div class="modal-content">
+                        <span class="close-modal">&times;</span>
+                        <h3 id="recipe-modal-title">Add New Recipe</h3>
+                        <input type="text" id="recipe-name" placeholder="Recipe name" />
+
+                        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                            <div style="flex: 1;">
+                                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Servings:</label>
+                                <input type="number" id="recipe-servings" placeholder="Servings" min="1" value="4" style="width: 100%;" />
+                            </div>
+                            <div style="flex: 1;">
+                                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Category:</label>
+                                <select id="recipe-category" style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
+                                    <option value="">Select category</option>
+                                    <option value="breakfast">Breakfast</option>
+                                    <option value="lunch">Lunch</option>
+                                    <option value="dinner">Dinner</option>
+                                    <option value="dessert">Dessert</option>
+                                    <option value="snack">Snack</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <input type="text" id="recipe-image" placeholder="Image URL (optional)" />
+                        <textarea id="recipe-instructions" placeholder="Instructions (optional)" rows="4"></textarea>
+
+                        <div class="recipe-ingredients-input">
+                            <h4>Ingredients Required</h4>
+                            <div id="recipe-ingredient-inputs">
+                                <div class="recipe-ingredient-row">
+                                    <input type="text" class="recipe-ing-name" placeholder="Ingredient" />
+                                    <input type="number" class="recipe-ing-qty" placeholder="Qty" min="0.1" step="0.1" value="1" />
+                                    <input type="text" class="recipe-ing-unit" placeholder="Unit" />
+                                    <button type="button" class="remove-ing-btn">Remove</button>
+                                </div>
+                            </div>
+                            <button type="button" id="add-recipe-ingredient-btn">+ Add Ingredient</button>
+                        </div>
+
+                        <button id="save-recipe-btn">Save Recipe</button>
+                    </div>
+                </div>
+
+                <!-- Smart Meal Suggestions Banner -->
+                <div id="meal-suggestions" class="meal-suggestions" style="display: none;"></div>
+
+                <div id="recipe-list" class="recipe-grid"></div>
+            </section>
+
+            <!-- Shopping List Section -->
+            <section id="shopping" class="section">
+                <div class="section-header">
+                    <h2>Shopping List</h2>
+                    <div class="header-actions">
+                        <button class="btn-primary" id="toggle-add-shopping">Add Item</button>
+                        <button class="btn-secondary" id="toggle-shopping-actions">Actions</button>
+                    </div>
+                </div>
+
+                <div class="shopping-actions hidden" id="shopping-actions-container">
+                    <button id="auto-generate-list-btn" class="btn-secondary">Auto-Generate from Recipes</button>
+                    <button id="generate-from-meal-plan-btn" class="btn-secondary">Generate from Meal Plan</button>
+                    <button id="print-shopping-list-btn" class="btn-secondary">Print List</button>
+                    <button id="clear-shopping-list-btn" class="btn-danger">Clear List</button>
+                </div>
+
+                <div class="add-shopping-item hidden" id="add-shopping-form-container">
+                    <div class="form-card">
+                        <h3>Add Shopping Item</h3>
                         <div class="form-group">
-                            <label>Quantity</label>
-                            <input type="number" id="shopping-item-qty" placeholder="1" min="0.1" step="0.1" value="1" />
+                            <label>Item Name</label>
+                            <input type="text" id="shopping-item-name" placeholder="e.g., Milk, Bread" />
                         </div>
-                        <div class="form-group">
-                            <label>Unit</label>
-                            <input type="text" id="shopping-item-unit" placeholder="lbs, pcs" />
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Quantity</label>
+                                <input type="number" id="shopping-item-qty" placeholder="1" min="0.1" step="0.1" value="1" />
+                            </div>
+                            <div class="form-group">
+                                <label>Unit</label>
+                                <input type="text" id="shopping-item-unit" placeholder="lbs, pcs" />
+                            </div>
+                            <div class="form-group">
+                                <label>Category</label>
+                                <select id="shopping-item-category">
+                                    <option value="produce">Produce</option>
+                                    <option value="dairy">Dairy</option>
+                                    <option value="meat">Meat/Seafood</option>
+                                    <option value="pantry">Pantry</option>
+                                    <option value="frozen">Frozen</option>
+                                    <option value="bakery">Bakery</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Category</label>
-                            <select id="shopping-item-category">
-                                <option value="produce">Produce</option>
-                                <option value="dairy">Dairy</option>
-                                <option value="meat">Meat/Seafood</option>
-                                <option value="pantry">Pantry</option>
-                                <option value="frozen">Frozen</option>
-                                <option value="bakery">Bakery</option>
-                                <option value="other">Other</option>
-                            </select>
+                        <div class="form-actions">
+                            <button id="add-shopping-item-btn" class="primary-btn">Add to List</button>
+                            <button id="cancel-add-shopping" class="secondary-btn">Cancel</button>
                         </div>
-                    </div>
-                    <div class="form-actions">
-                        <button id="add-shopping-item-btn" class="primary-btn">Add to List</button>
-                        <button id="cancel-add-shopping" class="secondary-btn">Cancel</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="shopping-category-filter">
-                <button class="shop-cat-btn active" data-shop-category="all">All</button>
-                <button class="shop-cat-btn" data-shop-category="produce">Produce</button>
-                <button class="shop-cat-btn" data-shop-category="dairy">Dairy</button>
-                <button class="shop-cat-btn" data-shop-category="meat">Meat</button>
-                <button class="shop-cat-btn" data-shop-category="pantry">Pantry</button>
-                <button class="shop-cat-btn" data-shop-category="frozen">Frozen</button>
-                <button class="shop-cat-btn" data-shop-category="bakery">Bakery</button>
-            </div>
-
-            <div id="shopping-list-by-category"></div>
-        </section>
-
-        <!-- Meal Plan Section -->
-        <section id="meal-plan" class="section">
-            <div class="section-header">
-                <h2>Weekly Meal Plan</h2>
-                <div class="header-actions">
-                    <button class="btn-secondary" id="duplicate-week-btn">Duplicate Week</button>
-                    <button class="btn-danger" id="clear-meal-plan">Clear Plan</button>
-                </div>
-            </div>
-
-            <div id="meal-plan-grid" class="meal-plan-grid">
-                <!-- Days will be generated dynamically -->
-            </div>
-        </section>
-
-        <!-- Settings Section -->
-        <section id="settings" class="section">
-            <h2>Settings & Data Management</h2>
-
-            <div class="settings-card">
-                <h3>Cloud Sync</h3>
-                <p class="card-description">
-                    Sync your data across all devices with a secure token. Your token works like a password - keep it safe!
-                </p>
-
-                <div id="logged-out-state" style="display: none;">
-                    <button id="register-btn" class="btn-success">Generate New Token</button>
-                    <div style="margin-top: 20px;">
-                        <p class="card-description">Already have a token?</p>
-                        <input type="text" id="login-token-input"
-                               placeholder="Enter your token (e.g., KITCH-ABC123)"
-                               style="width: 100%; margin-bottom: 10px; text-transform: uppercase;" />
-                        <button id="login-btn" class="btn-primary">Login with Token</button>
                     </div>
                 </div>
 
-                <div id="logged-in-state" style="display: none;">
-                    <div class="token-display">
-                        <strong style="display: block; margin-bottom: 8px;">Your Sync Token:</strong>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span id="display-token" class="token-code"></span>
-                            <button onclick="copyToken()" class="btn-secondary btn-sm">Copy</button>
-                        </div>
+                <div class="shopping-category-filter">
+                    <button class="shop-cat-btn active" data-shop-category="all">All</button>
+                    <button class="shop-cat-btn" data-shop-category="produce">Produce</button>
+                    <button class="shop-cat-btn" data-shop-category="dairy">Dairy</button>
+                    <button class="shop-cat-btn" data-shop-category="meat">Meat</button>
+                    <button class="shop-cat-btn" data-shop-category="pantry">Pantry</button>
+                    <button class="shop-cat-btn" data-shop-category="frozen">Frozen</button>
+                    <button class="shop-cat-btn" data-shop-category="bakery">Bakery</button>
+                </div>
+
+                <div id="shopping-list-by-category"></div>
+            </section>
+
+            <!-- Meal Plan Section -->
+            <section id="meal-plan" class="section">
+                <div class="section-header">
+                    <h2>Weekly Meal Plan</h2>
+                    <div class="header-actions">
+                        <button class="btn-secondary" id="duplicate-week-btn">Duplicate Week</button>
+                        <button class="btn-danger" id="clear-meal-plan">Clear Plan</button>
                     </div>
+                </div>
+
+                <div id="meal-plan-grid" class="meal-plan-grid">
+                    <!-- Days will be generated dynamically -->
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section id="settings" class="section">
+                <h2>Settings & Data Management</h2>
+
+                <div class="settings-card">
+                    <h3>Household Sharing</h3>
                     <p class="card-description">
-                        Save this token to access your data from any device. Data syncs automatically when online.
+                        Your pantry is shared with everyone in your household. Invite others to collaborate!
                     </p>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
+                        <button onclick="showInviteModal()" class="btn-primary">Generate Invite Code</button>
+                        <button onclick="showJoinModal()" class="btn-secondary">Join Another Household</button>
+                    </div>
+                </div>
+
+                <div class="settings-card">
+                    <h3>Data Backup & Restore</h3>
+                    <p class="card-description">Export your data for backup or import from a previous backup.</p>
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <button id="sync-now-btn" class="btn-primary">Sync Now</button>
-                        <button id="logout-btn" class="btn-danger">Logout</button>
+                        <button id="export-data-btn" class="btn-success">Export All Data</button>
+                        <label for="import-data-file" style="cursor: pointer; display: inline-block;">
+                            <button type="button" id="import-trigger-btn" class="btn-primary">Import Data</button>
+                            <input type="file" id="import-data-file" accept=".json" style="display: none;" />
+                        </label>
                     </div>
-                    <div id="sync-status" class="sync-status">
-                        Last synced: Never
+                </div>
+
+                <div class="settings-card">
+                    <h3>Statistics</h3>
+                    <div id="stats-display" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
+                        <!-- Stats will be populated here -->
                     </div>
                 </div>
-            </div>
 
-            <div class="settings-card">
-                <h3>Data Backup & Restore</h3>
-                <p class="card-description">Export your data for backup or import from a previous backup.</p>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <button id="export-data-btn" class="btn-success">Export All Data</button>
-                    <label for="import-data-file" style="cursor: pointer; display: inline-block;">
-                        <button type="button" id="import-trigger-btn" class="btn-primary">Import Data</button>
-                        <input type="file" id="import-data-file" accept=".json" style="display: none;" />
-                    </label>
-                    <button id="clear-all-data-btn" class="btn-danger">Clear All Data</button>
+                <div class="settings-card">
+                    <h3>About Taskify Smart Pantry</h3>
+                    <p class="card-description">Version 3.0 - Supabase Edition</p>
+                    <p class="card-description" style="margin-top: 10px;">Your complete kitchen management solution with real-time sync across all devices!</p>
                 </div>
-            </div>
-
-            <div class="settings-card">
-                <h3>Statistics</h3>
-                <div id="stats-display" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
-                    <!-- Stats will be populated here -->
-                </div>
-            </div>
-
-            <div class="settings-card">
-                <h3>About Taskify Smart Pantry</h3>
-                <p class="card-description">Version 2.5 - Cloud Sync Edition</p>
-                <p class="card-description" style="margin-top: 10px;">Your complete kitchen management solution. Track ingredients, plan meals, generate shopping lists, and more!</p>
-            </div>
-        </section>
+            </section>
+        </div>
     </div>
 
     <!-- Toast Notification Container -->
@@ -412,7 +472,62 @@
             <button id="save-ingredient-edit-btn">Save Changes</button>
         </div>
     </div>
+
+    <!-- ============================================ -->
+    <!-- HOUSEHOLD MODALS (New) -->
+    <!-- ============================================ -->
+
+    <!-- Invite Modal -->
+    <div id="invite-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-modal" onclick="hideInviteModal()">&times;</span>
+            <h2>Invite to Household</h2>
+            <p>Share this code with someone to add them to your pantry:</p>
+            <div class="invite-code-box">
+                <code id="invite-code-display">LOADING...</code>
+            </div>
+            <button onclick="copyInviteCode()" class="btn-primary">Copy Code</button>
+            <button onclick="hideInviteModal()" class="btn-secondary">Close</button>
+            <p class="small-text">Code expires in 7 days</p>
+        </div>
+    </div>
+
+    <!-- Join Household Modal -->
+    <div id="join-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-modal" onclick="hideJoinModal()">&times;</span>
+            <h2>Join Household</h2>
+            <p>Enter an invite code to join a shared pantry:</p>
+            <div class="form-group">
+                <input 
+                    type="text" 
+                    id="join-code-input" 
+                    placeholder="XXXXXXXX"
+                    style="text-transform: uppercase; width: 100%;"
+                >
+            </div>
+            <button onclick="handleJoinHousehold()" class="btn-primary">Join</button>
+            <button onclick="hideJoinModal()" class="btn-secondary">Cancel</button>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- SCRIPTS (Order matters!) -->
+    <!-- ============================================ -->
+    
+    <!-- Supabase Client Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Supabase Configuration (loads first) -->
+    <script src="supabase-config.js"></script>
+    
+    <!-- Authentication Functions -->
+    <script src="auth.js"></script>
+    
+    <!-- Database Functions -->
+    <script src="db.js"></script>
+    
+    <!-- Your existing app.js (loads last) -->
     <script src="app.js"></script>
 </body>
 </html>
