@@ -2591,7 +2591,7 @@ function collapseAllMealDays() {
     // No longer needed with simplified design
 }
 
-function addRecipeToMeal(week, day, recipeId) {
+async function addRecipeToMeal(week, day, recipeId) {
     if (!recipeId) return;
 
     recipeId = parseInt(recipeId);
@@ -2604,20 +2604,49 @@ function addRecipeToMeal(week, day, recipeId) {
     // Add recipe if not already there
     if (!mealPlan[week][day].includes(recipeId)) {
         mealPlan[week][day].push(recipeId);
-        saveToLocalStorage();
-        renderMealPlan();
-        renderIngredients(); // Update ingredient availability
-        showToast('Meal Added', 'Recipe added to meal plan', 'success');
+
+        try {
+            // Save to Supabase
+            await addMealPlanItem({
+                week,
+                day,
+                recipe_id: recipeId
+            });
+
+            // Reload from Supabase
+            mealPlan = await loadMealPlan();
+            renderMealPlan();
+            renderIngredients();
+            showToast('Meal Added', 'Recipe added to meal plan', 'success');
+        } catch (error) {
+            console.error('Error adding meal:', error);
+            alert('Failed to add meal: ' + error.message);
+        }
     }
 }
 
-function removeRecipeFromMeal(week, day, recipeId) {
+async function removeRecipeFromMeal(week, day, recipeId) {
     if (Array.isArray(mealPlan[week][day])) {
-        mealPlan[week][day] = mealPlan[week][day].filter(id => id !== parseInt(recipeId));
-        saveToLocalStorage();
-        renderMealPlan();
-        renderIngredients(); // Update ingredient availability
-        showToast('Meal Removed', 'Recipe removed from plan', 'success');
+        try {
+            // Delete from Supabase
+            const { error } = await supabase
+                .from('meal_plans')
+                .delete()
+                .eq('week', week)
+                .eq('day', day)
+                .eq('recipe_id', parseInt(recipeId));
+
+            if (error) throw error;
+
+            // Reload from Supabase
+            mealPlan = await loadMealPlan();
+            renderMealPlan();
+            renderIngredients();
+            showToast('Meal Removed', 'Recipe removed from plan', 'success');
+        } catch (error) {
+            console.error('Error removing meal:', error);
+            alert('Failed to remove meal: ' + error.message);
+        }
     }
 }
 
