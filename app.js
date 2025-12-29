@@ -1086,16 +1086,38 @@ async function setRecipeColor(id, color) {
 let currentModalRecipeId = null;
 
 function openRecipeDetailModal(id) {
+    console.log('🔍 openRecipeDetailModal called with id:', id);
+    console.log('📚 Available recipes:', recipes);
+
     const recipe = recipes.find(r => r.id === id);
-    if (!recipe) return;
+    console.log('📖 Found recipe:', recipe);
+
+    if (!recipe) {
+        console.error('❌ Recipe not found with id:', id);
+        return;
+    }
 
     currentModalRecipeId = id;
     populateRecipeModal(recipe);
 
     const modal = document.getElementById('recipe-detail-modal');
+    console.log('🎭 Modal element:', modal);
+
+    if (!modal) {
+        console.error('❌ Modal element not found in DOM!');
+        return;
+    }
+
     modal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    document.body.style.overflow = 'hidden';
+    console.log('✅ Modal should be visible now');
 }
+
+// Test function to verify it's accessible globally
+window.testModalFunction = function() {
+    console.log('✅ Modal functions are globally accessible');
+    console.log('📊 Current recipes:', recipes.length);
+};
 
 function closeRecipeDetailModal() {
     const modal = document.getElementById('recipe-detail-modal');
@@ -1542,7 +1564,7 @@ function renderRecipes() {
         const statusColor = status.isReady ? '#48bb78' : '#ed8936';
 
         return `
-            <div class="recipe-card ${statusClass}" data-recipe-id="${recipe.id}" onclick="openRecipeDetailModal(${recipe.id})">
+            <div class="recipe-card ${statusClass}" data-recipe-id="${recipe.id}" onclick="console.log('Card clicked!', ${recipe.id}); openRecipeDetailModal(${recipe.id}); return false;">
                 ${recipe.favorite ? '<div class="favorite-badge">⭐</div>' : ''}
 
                 <div class="recipe-card-header">
