@@ -461,6 +461,70 @@
     <!-- Toast Notification Container -->
     <div id="toast-container" class="toast-container"></div>
 
+    <!-- Recipe Detail Modal (Traditional Recipe Card) -->
+    <div id="recipe-detail-modal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeRecipeDetailModal()"></div>
+        <div class="recipe-card-modal">
+            <button class="close-recipe-modal" onclick="closeRecipeDetailModal()">&times;</button>
+
+            <div class="recipe-card-modal-header">
+                <h2 id="modal-recipe-name">Recipe Name</h2>
+                <div class="recipe-card-modal-meta">
+                    <span id="modal-recipe-category" class="recipe-category-badge"></span>
+                    <span id="modal-recipe-servings" class="recipe-servings-badge"></span>
+                </div>
+            </div>
+
+            <div id="modal-recipe-image-container" class="recipe-card-modal-image"></div>
+
+            <div class="recipe-card-divider"></div>
+
+            <div class="recipe-card-modal-body">
+                <div class="recipe-card-section">
+                    <h3 class="recipe-card-section-title">Ingredients</h3>
+                    <div class="servings-adjuster">
+                        <label>Adjust servings:</label>
+                        <select id="modal-servings-multiplier">
+                            <option value="0.5">½x</option>
+                            <option value="1" selected>1x</option>
+                            <option value="1.5">1.5x</option>
+                            <option value="2">2x</option>
+                            <option value="3">3x</option>
+                        </select>
+                    </div>
+                    <ul id="modal-ingredients-list" class="recipe-modal-ingredients-list"></ul>
+                </div>
+
+                <div id="modal-instructions-section" class="recipe-card-section">
+                    <h3 class="recipe-card-section-title">Instructions</h3>
+                    <p id="modal-recipe-instructions" class="recipe-instructions-text"></p>
+                </div>
+
+                <div id="modal-missing-section" class="recipe-card-section missing-section">
+                    <h3 class="recipe-card-section-title">Missing Ingredients</h3>
+                    <ul id="modal-missing-list" class="recipe-modal-missing-list"></ul>
+                    <button id="modal-add-missing-btn" class="btn-secondary" onclick="addMissingFromModal()">
+                        Add Missing to Shopping List
+                    </button>
+                </div>
+            </div>
+
+            <div class="recipe-card-divider"></div>
+
+            <div class="recipe-card-modal-actions">
+                <button id="modal-cook-btn" class="btn-primary" onclick="cookFromModal()">
+                    🍳 Cook This Recipe
+                </button>
+                <button class="btn-secondary" onclick="editFromModal()">
+                    ✏️ Edit Recipe
+                </button>
+                <button id="modal-favorite-btn" class="btn-favorite" onclick="toggleFavoriteFromModal()">
+                    ⭐ Favorite
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Edit Ingredient Modal -->
     <div id="edit-ingredient-modal" class="modal hidden">
         <div class="modal-content" style="max-width: 400px;">

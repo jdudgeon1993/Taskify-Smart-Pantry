@@ -1082,28 +1082,154 @@ async function setRecipeColor(id, color) {
     }
 }
 
-function toggleRecipeCard(event, id) {
-    // Don't trigger if clicking on buttons, color picker, selects, or action buttons
-    if (event.target.tagName === 'BUTTON' ||
-        event.target.tagName === 'SELECT' ||
-        event.target.closest('.recipe-color-picker') ||
-        event.target.closest('.recipe-actions') ||
-        event.target.closest('button')) {
-        return;
-    }
+// Global variable to track current recipe in modal
+let currentModalRecipeId = null;
 
+function openRecipeDetailModal(id) {
     const recipe = recipes.find(r => r.id === id);
     if (!recipe) return;
 
-    // Toggle the expanded state
-    recipe.isExpanded = !recipe.isExpanded;
+    currentModalRecipeId = id;
+    populateRecipeModal(recipe);
 
-    // Close all other recipe cards
-    recipes.forEach(r => {
-        if (r.id !== id) r.isExpanded = false;
-    });
+    const modal = document.getElementById('recipe-detail-modal');
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden'; // Prevent background scrolling
+}
 
-    renderRecipes();
+function closeRecipeDetailModal() {
+    const modal = document.getElementById('recipe-detail-modal');
+    modal.classList.add('hidden');
+    document.body.style.overflow = ''; // Restore scrolling
+    currentModalRecipeId = null;
+}
+
+function populateRecipeModal(recipe) {
+    const status = checkRecipeStatus(recipe);
+
+    // Set recipe name
+    document.getElementById('modal-recipe-name').textContent = recipe.name;
+
+    // Set category badge
+    const categoryBadge = document.getElementById('modal-recipe-category');
+    if (recipe.category) {
+        categoryBadge.textContent = recipe.category.charAt(0).toUpperCase() + recipe.category.slice(1);
+        categoryBadge.style.display = 'inline-block';
+    } else {
+        categoryBadge.style.display = 'none';
+    }
+
+    // Set servings badge
+    document.getElementById('modal-recipe-servings').textContent = `Serves ${recipe.servings || 4}`;
+
+    // Set image
+    const imageContainer = document.getElementById('modal-recipe-image-container');
+    if (recipe.image) {
+        imageContainer.innerHTML = `<img src="${recipe.image}" alt="${recipe.name}" onerror="this.parentElement.style.display='none'">`;
+        imageContainer.style.display = 'block';
+    } else {
+        imageContainer.style.display = 'none';
+    }
+
+    // Reset servings multiplier
+    document.getElementById('modal-servings-multiplier').value = '1';
+
+    // Populate ingredients list
+    const ingredientsList = document.getElementById('modal-ingredients-list');
+    ingredientsList.innerHTML = recipe.ingredients.map(ing => {
+        const hasIt = status.have.some(h => h.name === ing.name);
+        const className = hasIt ? '' : 'need';
+        return `<li class="${className}" data-base-qty="${ing.quantity}">
+            <span class="qty-display">${ing.quantity}</span> ${ing.unit} ${ing.name}
+        </li>`;
+    }).join('');
+
+    // Handle servings adjustment
+    document.getElementById('modal-servings-multiplier').onchange = function() {
+        const multiplier = parseFloat(this.value);
+        const items = ingredientsList.querySelectorAll('li');
+        items.forEach(item => {
+            const baseQty = parseFloat(item.getAttribute('data-base-qty'));
+            const qtyDisplay = item.querySelector('.qty-display');
+            if (qtyDisplay && !isNaN(baseQty)) {
+                const scaledQty = (baseQty * multiplier).toFixed(2);
+                const formatted = parseFloat(scaledQty).toString();
+                qtyDisplay.textContent = formatted;
+            }
+        });
+    };
+
+    // Populate instructions
+    const instructionsSection = document.getElementById('modal-instructions-section');
+    const instructionsText = document.getElementById('modal-recipe-instructions');
+    if (recipe.instructions && recipe.instructions.trim()) {
+        instructionsText.textContent = recipe.instructions;
+        instructionsSection.style.display = 'block';
+    } else {
+        instructionsSection.style.display = 'none';
+    }
+
+    // Handle missing ingredients section
+    const missingSection = document.getElementById('modal-missing-section');
+    const missingList = document.getElementById('modal-missing-list');
+    if (!status.isReady && status.missing.length > 0) {
+        missingList.innerHTML = status.missing.map(ing =>
+            `<li>${ing.quantity} ${ing.unit} ${ing.name}</li>`
+        ).join('');
+        missingSection.style.display = 'block';
+    } else {
+        missingSection.style.display = 'none';
+    }
+
+    // Update Cook button
+    const cookBtn = document.getElementById('modal-cook-btn');
+    if (status.isReady) {
+        cookBtn.style.display = 'inline-flex';
+    } else {
+        cookBtn.style.display = 'none';
+    }
+
+    // Update favorite button
+    const favoriteBtn = document.getElementById('modal-favorite-btn');
+    if (recipe.favorite) {
+        favoriteBtn.textContent = '⭐ Favorited';
+        favoriteBtn.classList.add('active');
+    } else {
+        favoriteBtn.textContent = '☆ Favorite';
+        favoriteBtn.classList.remove('active');
+    }
+}
+
+async function cookFromModal() {
+    if (!currentModalRecipeId) return;
+    closeRecipeDetailModal();
+    await cookRecipe(currentModalRecipeId);
+}
+
+function editFromModal() {
+    if (!currentModalRecipeId) return;
+    closeRecipeDetailModal();
+    editRecipe(currentModalRecipeId);
+}
+
+async function toggleFavoriteFromModal() {
+    if (!currentModalRecipeId) return;
+    await toggleFavorite(currentModalRecipeId);
+    const recipe = recipes.find(r => r.id === currentModalRecipeId);
+    if (recipe) {
+        populateRecipeModal(recipe); // Refresh modal content
+    }
+}
+
+function addMissingFromModal() {
+    if (!currentModalRecipeId) return;
+    const multiplier = parseFloat(document.getElementById('modal-servings-multiplier').value) || 1;
+    addMissingToShopping(currentModalRecipeId, multiplier);
+}
+
+// Keep for backward compatibility but unused in new design
+function toggleRecipeCard(event, id) {
+    openRecipeDetailModal(id);
 }
 
 function scaleRecipe(recipeId, multiplier) {
@@ -1412,87 +1538,36 @@ function renderRecipes() {
     function renderRecipeCard(recipe, showExpiringBadge = false) {
         const status = checkRecipeStatus(recipe);
         const statusClass = status.isReady ? 'ready' : 'missing';
-        const statusText = status.isReady ? 'Ready to Cook' : 'Need Ingredients';
-        const recipeColor = recipe.color || 'default';
-        const colorPickerVisible = recipe.showColorPicker ? '' : 'display: none;';
-        const isExpanded = recipe.isExpanded || false;
-        const cardState = isExpanded ? 'expanded' : 'collapsed';
+        const statusText = status.isReady ? '✓ Ready to Cook' : '○ Need Ingredients';
+        const statusColor = status.isReady ? '#48bb78' : '#ed8936';
 
         return `
-            <div class="recipe-card ${statusClass} ${cardState}" data-color="${recipeColor}" data-recipe-id="${recipe.id}" onclick="toggleRecipeCard(event, ${recipe.id})">
-                <button onclick="toggleFavorite(${recipe.id}); event.stopPropagation();" style="position: absolute; top: 10px; right: 10px; background: ${recipe.favorite ? '#fbbf24' : 'rgba(255,255,255,0.9)'}; border: 2px solid #fbbf24; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; z-index: 10; transition: all 0.2s;" title="${recipe.favorite ? 'Remove from favorites' : 'Add to favorites'}">
-                    ${recipe.favorite ? '⭐' : '☆'}
-                </button>
-                <button onclick="toggleColorPicker(${recipe.id}); event.stopPropagation();" style="position: absolute; top: 10px; left: 10px; background: rgba(255,255,255,0.9); border: 2px solid var(--gray-400); border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; z-index: 10; transition: all 0.2s;" title="Choose card color">
-                    🎨
-                </button>
-                <div class="recipe-color-picker" style="${colorPickerVisible}">
-                    <div class="color-swatch ${recipeColor === 'sage' ? 'selected' : ''}" style="background: var(--sage-green);" onclick="setRecipeColor(${recipe.id}, 'sage'); event.stopPropagation();" title="Sage Green"></div>
-                    <div class="color-swatch ${recipeColor === 'rose' ? 'selected' : ''}" style="background: var(--dusty-rose);" onclick="setRecipeColor(${recipe.id}, 'rose'); event.stopPropagation();" title="Dusty Rose"></div>
-                    <div class="color-swatch ${recipeColor === 'lavender' ? 'selected' : ''}" style="background: var(--lavender);" onclick="setRecipeColor(${recipe.id}, 'lavender'); event.stopPropagation();" title="Lavender"></div>
-                    <div class="color-swatch ${recipeColor === 'yellow' ? 'selected' : ''}" style="background: var(--butter-yellow);" onclick="setRecipeColor(${recipe.id}, 'yellow'); event.stopPropagation();" title="Butter Yellow"></div>
-                    <div class="color-swatch ${recipeColor === 'pink' ? 'selected' : ''}" style="background: var(--soft-pink);" onclick="setRecipeColor(${recipe.id}, 'pink'); event.stopPropagation();" title="Soft Pink"></div>
-                </div>
+            <div class="recipe-card ${statusClass}" data-recipe-id="${recipe.id}" onclick="openRecipeDetailModal(${recipe.id})">
+                ${recipe.favorite ? '<div class="favorite-badge">⭐</div>' : ''}
 
                 <div class="recipe-card-header">
                     <h3>${recipe.name}</h3>
                 </div>
 
-                <div class="recipe-card-content">
-                    ${recipe.image ? `<img src="${recipe.image}" alt="${recipe.name}" class="recipe-image" onerror="this.style.display='none'" style="max-width: 100%; border-radius: 8px; margin-bottom: 12px;">` : ''}
-                    ${recipe.category ? `<span class="recipe-category-badge">${recipe.category}</span>` : ''}
-                    ${showExpiringBadge ? `<span class="recipe-status expiring" style="background: #f59e0b;">🔥 Cook These Soon!</span>` : `<span class="recipe-status ${statusClass}">${statusText}</span>`}
-
-                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                        <p class="recipe-servings" style="margin: 0;">Serves: ${recipe.servings || 4}</p>
-                        <select onchange="scaleRecipe(${recipe.id}, this.value); event.stopPropagation();" style="padding: 4px 8px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 13px;">
-                            <option value="0.5">×0.5</option>
-                            <option value="1" selected>×1</option>
-                            <option value="1.5">×1.5</option>
-                            <option value="2">×2</option>
-                            <option value="3">×3</option>
-                        </select>
-                    </div>
-
-                    <div class="recipe-ingredients">
-                        <h4>Ingredients:</h4>
-                        <ul id="ingredients-list-${recipe.id}">
-                            ${recipe.ingredients.map(ing => {
-                                const hasIt = status.have.some(h => h.name === ing.name);
-                                return `<li class="${hasIt ? 'have' : 'need'}" data-base-qty="${ing.quantity}"><span class="qty-display">${ing.quantity}</span> ${ing.unit} ${ing.name}</li>`;
-                            }).join('')}
-                        </ul>
-                    </div>
-
-                    ${!status.isReady ? `
-                        <div class="missing-ingredients">
-                            <h5>Missing ${status.missing.length} ingredient${status.missing.length > 1 ? 's' : ''}:</h5>
-                            <ul>
-                                ${status.missing.map(ing => `<li>${ing.quantity} ${ing.unit} ${ing.name}</li>`).join('')}
-                            </ul>
-                            <div style="display: flex; gap: 10px; align-items: center; margin-top: 10px;">
-                                <select id="servings-multiplier-${recipe.id}" style="padding: 8px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 14px;" onclick="event.stopPropagation();">
-                                    <option value="0.5">×0.5 (Half)</option>
-                                    <option value="1" selected>×1 (Original)</option>
-                                    <option value="1.5">×1.5</option>
-                                    <option value="2">×2 (Double)</option>
-                                    <option value="3">×3 (Triple)</option>
-                                    <option value="4">×4</option>
-                                </select>
-                                <button style="background: #f59e0b; flex: 1; padding: 10px;" onclick="addMissingToShopping(${recipe.id}, parseFloat(document.getElementById('servings-multiplier-${recipe.id}').value)); event.stopPropagation();">
-                                    📝 Add to Shopping
-                                </button>
-                            </div>
-                        </div>
+                <div style="display: flex; flex-direction: column; gap: 0.75rem; align-items: center; width: 100%;">
+                    ${recipe.category ? `
+                        <span class="recipe-category-badge" style="background: var(--primary-50); color: var(--primary-700); padding: 0.375rem 0.875rem; border-radius: 12px; font-size: 0.8125rem; font-weight: 600; border: 1px solid var(--primary-600);">
+                            ${recipe.category.charAt(0).toUpperCase() + recipe.category.slice(1)}
+                        </span>
                     ` : ''}
 
-                    ${recipe.instructions ? `<p style="margin-top: 10px; font-size: 0.9em; color: #4a5568;"><strong>Instructions:</strong> ${recipe.instructions}</p>` : ''}
+                    <span style="background: var(--sage-green); color: white; padding: 0.375rem 0.875rem; border-radius: 12px; font-size: 0.8125rem; font-weight: 600;">
+                        Serves ${recipe.servings || 4}
+                    </span>
 
-                    <div class="recipe-actions">
-                        ${status.isReady ? `<button style="background: #667eea; font-weight: bold;" onclick="cookRecipe(${recipe.id}); event.stopPropagation();">🍳 Cook This</button>` : ''}
-                        <button style="background: #48bb78;" onclick="editRecipe(${recipe.id}); event.stopPropagation();">Edit</button>
-                        <button class="delete-btn" onclick="deleteRecipe(${recipe.id}); event.stopPropagation();">Delete</button>
-                    </div>
+                    ${showExpiringBadge ?
+                        `<span class="recipe-status" style="background: #f59e0b; color: white; padding: 0.375rem 0.875rem; border-radius: 12px; font-size: 0.8125rem; font-weight: 600;">🔥 Cook Soon!</span>` :
+                        `<span class="recipe-status" style="background: ${statusColor}; color: white; padding: 0.375rem 0.875rem; border-radius: 12px; font-size: 0.8125rem; font-weight: 600;">${statusText}</span>`
+                    }
+                </div>
+
+                <div style="margin-top: auto; padding-top: 1rem; text-align: center; color: var(--gray-500); font-size: 0.8125rem; font-weight: 500;">
+                    Click to view recipe
                 </div>
             </div>
         `;
