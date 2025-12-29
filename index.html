@@ -514,20 +514,20 @@
     <!-- ============================================ -->
     <!-- SCRIPTS (Order matters!) -->
     <!-- ============================================ -->
-    
-    <!-- Supabase Client Library -->
+
+    <!-- Supabase Client Library - Load synchronously -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- Supabase Configuration (loads first) -->
-    <script src="supabase-config.js"></script>
-    
+
+    <!-- Supabase Configuration - Initialize client -->
+    <script src="supabase-config.js?v=3"></script>
+
     <!-- Authentication Functions -->
-    <script src="auth.js"></script>
-    
+    <script src="auth.js?v=3"></script>
+
     <!-- Database Functions -->
-    <script src="db.js"></script>
-    
-    <!-- Your existing app.js (loads last) -->
-    <script src="app.js"></script>
+    <script src="db.js?v=3"></script>
+
+    <!-- Main Application -->
+    <script src="app.js?v=3"></script>
 </body>
 </html>
