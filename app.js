@@ -212,6 +212,11 @@ async function initializeApp() {
         if (householdDisplay && currentHousehold) {
             householdDisplay.textContent = currentHousehold.name;
         }
+        // Set household name for mobile bottom bar
+        const appContent = document.getElementById('app-content');
+        if (appContent && currentHousehold) {
+            appContent.setAttribute('data-household', currentHousehold.name);
+        }
         await loadAllDataFromSupabase();
         updateDataLists();
         initNavigation();
