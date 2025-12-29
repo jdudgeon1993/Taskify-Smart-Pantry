@@ -2673,12 +2673,25 @@ function cookNowAndDeduct(recipeId, week, day) {
 function initSettings() {
     // Cloud sync UI is now enabled!
     // Data management listeners
-    document.getElementById('export-data-btn').addEventListener('click', exportData);
-    document.getElementById('import-trigger-btn').addEventListener('click', () => {
-        document.getElementById('import-data-file').click();
-    });
-    document.getElementById('import-data-file').addEventListener('change', importData);
-    document.getElementById('clear-all-data-btn').addEventListener('click', clearAllData);
+    const exportBtn = document.getElementById('export-data-btn');
+    const importTriggerBtn = document.getElementById('import-trigger-btn');
+    const importFileInput = document.getElementById('import-data-file');
+    const clearAllDataBtn = document.getElementById('clear-all-data-btn');
+
+    if (exportBtn) {
+        exportBtn.addEventListener('click', exportData);
+    }
+    if (importTriggerBtn && importFileInput) {
+        importTriggerBtn.addEventListener('click', () => {
+            importFileInput.click();
+        });
+    }
+    if (importFileInput) {
+        importFileInput.addEventListener('change', importData);
+    }
+    if (clearAllDataBtn) {
+        clearAllDataBtn.addEventListener('click', clearAllData);
+    }
 
     // Cloud sync button listeners
     const registerBtn = document.getElementById('register-btn');
