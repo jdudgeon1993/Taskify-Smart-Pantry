@@ -1,6 +1,5 @@
-// Smart Pantry Application v2.5 - Enhanced Edition with Cloud Sync
-// API Configuration
-const API_BASE_URL = 'https://rtd-n-line-api.onrender.com';
+// Smart Pantry Application v3.0 - Supabase Edition
+// Now powered by Supabase for real-time multi-user sync!
 
 // ========================================
 // TOAST NOTIFICATION SYSTEM
@@ -75,8 +74,9 @@ let editingRecipeId = null;
 let editingIngredientData = null;
 
 // Authentication State
-let userToken = null;
-let isSyncing = false;
+let currentUser = null;
+let currentHousehold = null;
+let isLoading = false;
 
 // Meal Plan UI State
 let currentWeekView = 'week1'; // Which week is being displayed
