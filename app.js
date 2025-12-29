@@ -199,7 +199,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // Initialize the main app after successful login
 async function initializeApp() {
+    console.log('🚀 initializeApp() called');
+    console.log('📺 Calling showAppScreen()...');
     showAppScreen();
+    console.log('📊 Loading app data...');
     try {
         currentUser = await getCurrentUser();
         currentHousehold = await getUserHousehold();
