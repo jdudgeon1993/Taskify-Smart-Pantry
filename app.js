@@ -892,7 +892,7 @@ function clearRecipeForm() {
     updateDataLists(); // Refresh autocomplete options
 }
 
-function saveRecipe() {
+async function saveRecipe() {
     const name = document.getElementById('recipe-name').value.trim();
     const servings = parseInt(document.getElementById('recipe-servings').value) || 4;
     const category = document.getElementById('recipe-category').value;
@@ -926,42 +926,45 @@ function saveRecipe() {
         return;
     }
 
-    if (editingRecipeId) {
-        const recipe = recipes.find(r => r.id === editingRecipeId);
-        if (recipe) {
-            recipe.name = name;
-            recipe.servings = servings;
-            recipe.category = category;
-            recipe.image = image;
-            recipe.instructions = instructions;
-            recipe.ingredients = recipeIngredients;
+    try {
+        if (editingRecipeId) {
+            // Update existing recipe in Supabase
+            await updateRecipe(editingRecipeId, {
+                name,
+                servings,
+                category,
+                image,
+                instructions,
+                ingredients: recipeIngredients
+            });
+            showToast('Recipe Updated!', `${name} has been updated`, 'success');
+        } else {
+            // Add new recipe to Supabase
+            const recipe = {
+                name,
+                servings,
+                category,
+                image,
+                instructions,
+                ingredients: recipeIngredients
+            };
+            await addRecipe(recipe);
+            showToast('Recipe Added!', `${name} has been added to your recipes`, 'success');
         }
+
+        // Reload recipes from Supabase
+        recipes = await loadRecipes();
+        renderRecipes();
+        renderMealPlan();
+        updateDashboardStats();
+        updateDataLists();
+
+        document.getElementById('add-recipe-form').classList.add('hidden');
         editingRecipeId = null;
-    } else {
-        const recipe = {
-            id: Date.now(),
-            name,
-            servings,
-            category,
-            image,
-            instructions,
-            ingredients: recipeIngredients
-        };
-        recipes.push(recipe);
+    } catch (error) {
+        console.error('Error saving recipe:', error);
+        alert('Failed to save recipe: ' + error.message);
     }
-
-    saveToLocalStorage();
-    renderRecipes();
-    renderMealPlan();
-    updateDashboardStats();
-    updateDataLists(); // Update autocomplete options
-
-    document.getElementById('add-recipe-form').classList.add('hidden');
-
-    // Show success toast
-    const action = editingRecipeId ? 'updated' : 'added';
-    showToast(`Recipe ${action.charAt(0).toUpperCase() + action.slice(1)}!`, `${name} has been ${action} to your recipes`, 'success');
-    editingRecipeId = null;
 }
 
 function editRecipe(id) {

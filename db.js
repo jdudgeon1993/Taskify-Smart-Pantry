@@ -103,7 +103,18 @@ async function joinHousehold(code) {
     throw new Error('Invite code has expired');
   }
 
-  // Add user to household
+  // IMPORTANT: Remove user from ALL other households first
+  // This prevents conflicts when users are in multiple households
+  const { error: removeError } = await supabase
+    .from('household_members')
+    .delete()
+    .eq('user_id', user.id);
+
+  if (removeError) {
+    console.error('Error removing old household memberships:', removeError);
+  }
+
+  // Add user to new household
   const { error: memberError } = await supabase
     .from('household_members')
     .insert({
