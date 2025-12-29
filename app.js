@@ -186,15 +186,18 @@ function updateDataLists() {
 
 // Initialize App - Wait for auth before loading data
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('App initializing...');
+    console.log('📍 DOMContentLoaded fired');
+    console.log('📍 Checking for existing session...');
     const { data: { session } } = await supabase.auth.getSession();
+    console.log('📍 Session check result:', session ? 'Session exists' : 'No session');
     if (session) {
-        console.log('User logged in, initializing app...');
+        console.log('📍 User already logged in, calling initializeApp...');
         await initializeApp();
     } else {
-        console.log('No session, showing login screen');
+        console.log('📍 No session, showing login screen');
         showLoginScreen();
     }
+    console.log('📍 DOMContentLoaded complete');
 });
 
 // Initialize the main app after successful login
