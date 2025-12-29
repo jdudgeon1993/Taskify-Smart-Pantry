@@ -22,6 +22,10 @@ try {
       console.log('Auth state changed:', event);
       if (event === 'SIGNED_IN') {
         console.log('User signed in:', session?.user?.email);
+        // Initialize app when user successfully signs in
+        if (typeof window.initializeApp === 'function') {
+          await window.initializeApp();
+        }
       } else if (event === 'SIGNED_OUT') {
         console.log('User signed out');
         if (typeof showLoginScreen === 'function') {
