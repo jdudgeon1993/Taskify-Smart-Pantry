@@ -105,8 +105,8 @@ async function handleSignout() {
     // Clear local state
     currentUser = null;
     currentHousehold = null;
-    isInitialized = false; // Reset initialization flag
-    isLoading = false; // Reset loading flag
+    window.isInitialized = false; // Reset initialization flag
+    window.isLoading = false; // Reset loading flag
     ingredients = { pantry: [], fridge: [], freezer: [] };
     recipes = [];
     shoppingList = [];

@@ -79,6 +79,10 @@ let currentHousehold = null;
 let isLoading = false;
 let isInitialized = false; // Prevent double initialization
 
+// Expose state flags globally so auth.js can reset them
+window.isInitialized = false;
+window.isLoading = false;
+
 // Meal Plan UI State
 let currentWeekView = 'week1'; // Which week is being displayed
 
@@ -206,16 +210,16 @@ async function initializeApp() {
     console.log('🚀 initializeApp() called');
 
     // Prevent double initialization
-    if (isInitialized) {
+    if (window.isInitialized) {
         console.log('⚠️ App already initialized, skipping...');
         return;
     }
-    if (isLoading) {
+    if (window.isLoading) {
         console.log('⚠️ App is currently loading, skipping duplicate call...');
         return;
     }
 
-    isLoading = true;
+    window.isLoading = true;
     console.log('📺 Calling showAppScreen()...');
     showAppScreen();
     console.log('📊 Loading app data...');
@@ -267,11 +271,11 @@ async function initializeApp() {
         setupRealtimeSubscriptions();
 
         console.log('✅✅✅ App initialized successfully!');
-        isInitialized = true;
-        isLoading = false;
+        window.isInitialized = true;
+        window.isLoading = false;
     } catch (error) {
         console.error('Error initializing app:', error);
-        isLoading = false; // Reset loading flag on error
+        window.isLoading = false; // Reset loading flag on error
         showToast('Error', 'Failed to initialize app: ' + error.message, 'error');
         // On error, show login screen and sign out to allow recovery
         alert('Critical error during initialization:\n\n' + error.message + '\n\nPlease contact support or try again. You will be logged out.');
