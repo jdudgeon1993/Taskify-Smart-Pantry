@@ -17,31 +17,8 @@ try {
 
     console.log('✅ Supabase client initialized successfully');
 
-    // Auth state listener
-    window.supabaseClient.auth.onAuthStateChange(async (event, session) => {
-      console.log('🔔 Auth state changed:', event);
-      if (event === 'SIGNED_IN') {
-        console.log('✅ User signed in:', session?.user?.email);
-        console.log('🔍 Checking for initializeApp...', typeof window.initializeApp);
-        // Initialize app when user successfully signs in
-        if (typeof window.initializeApp === 'function') {
-          console.log('📱 Calling initializeApp()...');
-          try {
-            await window.initializeApp();
-            console.log('✅ initializeApp() completed');
-          } catch (error) {
-            console.error('❌ Error in initializeApp:', error);
-          }
-        } else {
-          console.warn('⚠️ initializeApp is not available yet');
-        }
-      } else if (event === 'SIGNED_OUT') {
-        console.log('👋 User signed out');
-        if (typeof showLoginScreen === 'function') {
-          showLoginScreen();
-        }
-      }
-    });
+    // Auth state listener is now in app.js (after initializeApp is defined)
+    // This ensures initializeApp is available when auth events fire
   } else {
     console.error('❌ Supabase library not loaded from CDN!');
     console.error('window.supabase =', window.supabase);

@@ -244,6 +244,27 @@ async function initializeApp() {
 // Expose initializeApp to global scope for auth.js
 window.initializeApp = initializeApp;
 
+// Set up auth state listener NOW that initializeApp is available
+if (window.supabaseClient) {
+    console.log('🔧 Setting up auth state listener in app.js');
+    window.supabaseClient.auth.onAuthStateChange(async (event, session) => {
+        console.log('🔔 [APP.JS] Auth state changed:', event);
+        if (event === 'SIGNED_IN' && session) {
+            console.log('✅ [APP.JS] User signed in:', session.user.email);
+            console.log('📱 [APP.JS] Calling initializeApp()...');
+            try {
+                await initializeApp();
+                console.log('✅ [APP.JS] initializeApp() completed');
+            } catch (error) {
+                console.error('❌ [APP.JS] Error in initializeApp:', error);
+            }
+        } else if (event === 'SIGNED_OUT') {
+            console.log('👋 [APP.JS] User signed out');
+            showLoginScreen();
+        }
+    });
+}
+
 async function loadAllDataFromSupabase() {
     try {
         ingredients = await loadPantryItems();
