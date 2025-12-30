@@ -1144,6 +1144,38 @@ table tr:hover {
 }
 
 /* ==========================================
+   NEW: LOCATION TABS
+   ========================================== */
+.location-tabs {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin: var(--spacing-lg) 0;
+    flex-wrap: wrap;
+}
+
+.location-tab {
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border: 2px solid var(--border);
+    background: var(--white);
+    color: var(--text-primary);
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.location-tab:hover {
+    background: var(--bg-secondary);
+    border-color: var(--accent);
+}
+
+.location-tab.active {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: var(--white);
+    border-color: var(--primary);
+}
+
+/* ==========================================
    NEW: INGREDIENTS GRID (3 COLUMNS)
    ========================================== */
 .ingredients-grid {
@@ -1181,6 +1213,43 @@ table tr:hover {
     font-weight: 600;
     color: var(--text-primary);
     margin: 0;
+}
+
+.ingredient-card-badges {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    align-items: flex-end;
+}
+
+.category-badge {
+    font-size: 0.7rem;
+    color: var(--white);
+    background: linear-gradient(135deg, var(--accent), var(--primary));
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.exp-badge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.exp-badge.expiring {
+    background: #FFF3CD;
+    color: #856404;
+}
+
+.exp-badge.expired {
+    background: #F8D7DA;
+    color: #721C24;
 }
 
 .ingredient-card-category {
@@ -1227,6 +1296,27 @@ table tr:hover {
 
 .quantity-value.available {
     color: var(--accent);
+}
+
+/* Quantity Boxes (new naming) */
+.qty-box {
+    text-align: center;
+    padding: var(--spacing-xs);
+}
+
+.qty-label {
+    font-size: 0.7rem;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.qty-value {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
 }
 
 .ingredient-card-expiration {

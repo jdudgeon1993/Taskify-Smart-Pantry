@@ -188,6 +188,63 @@ function updateDataLists() {
     }
 }
 
+// ==============================================
+// GREETING BANNER
+// ==============================================
+
+function updateGreeting() {
+    const greetingText = document.getElementById('greeting-text');
+    const datetimeText = document.getElementById('current-datetime');
+
+    if (!greetingText || !datetimeText) return;
+
+    const now = new Date();
+    const hour = now.getHours();
+
+    // Determine greeting based on time
+    let greeting = 'Good Evening';
+    if (hour < 12) greeting = 'Good Morning';
+    else if (hour < 17) greeting = 'Good Afternoon';
+
+    // Format date and time
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+    const dayName = days[now.getDay()];
+    const monthName = months[now.getMonth()];
+    const date = now.getDate();
+    const year = now.getFullYear();
+
+    // Add ordinal suffix
+    const ordinal = (date) => {
+        if (date > 3 && date < 21) return 'th';
+        switch (date % 10) {
+            case 1: return 'st';
+            case 2: return 'nd';
+            case 3: return 'rd';
+            default: return 'th';
+        }
+    };
+
+    // Format time
+    let hours = now.getHours();
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12 || 12;
+
+    greetingText.textContent = greeting;
+    datetimeText.textContent = `${dayName}, ${hours}:${minutes} ${ampm}, ${monthName} ${date}${ordinal(date)}, ${year}`;
+}
+
+// Update greeting every minute
+setInterval(updateGreeting, 60000);
+// Update immediately on load
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', updateGreeting);
+} else {
+    updateGreeting();
+}
+
 // Initialize App - Wait for auth before loading data
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('📍 DOMContentLoaded fired');
@@ -530,14 +587,24 @@ function checkExpiringItems() {
     }
 }
 
-// Ingredients Section
-function initIngredients() {
-    const locationButtons = document.querySelectorAll('.location-btn');
+// ==============================================
+// INGREDIENTS SECTION
+// ==============================================
+
+let currentLocationFilter = 'all'; // Track active location tab
+
+async function initIngredients() {
     const addIngredientBtn = document.getElementById('add-ingredient-btn');
-    const toggleAddIngredientBtn = document.getElementById('toggle-add-ingredient');
+    const floatingAddBtn = document.getElementById('floating-add-ingredient');
     const cancelAddIngredientBtn = document.getElementById('cancel-add-ingredient');
     const formContainer = document.getElementById('add-ingredient-form-container');
     const searchInput = document.getElementById('ingredient-search');
+
+    // Load categories and locations, then populate dropdowns
+    await populateIngredientsDropdowns();
+
+    // Create dynamic location tabs
+    await createLocationTabs();
 
     // Ingredient search
     if (searchInput) {
@@ -547,18 +614,21 @@ function initIngredients() {
         });
     }
 
-    // Toggle add ingredient form
-    if (toggleAddIngredientBtn) {
-        toggleAddIngredientBtn.addEventListener('click', () => {
-            formContainer.classList.toggle('hidden');
-            if (!formContainer.classList.contains('hidden')) {
-                updateDataLists(); // Refresh autocomplete options
-                document.getElementById('ingredient-name').focus();
-            }
+    // Floating + button - show form
+    if (floatingAddBtn) {
+        floatingAddBtn.addEventListener('click', () => {
+            // Show form
+            formContainer.classList.remove('hidden');
+            // Refresh autocomplete
+            updateDataLists();
+            // Focus on name input
+            document.getElementById('ingredient-name').focus();
+            // Clear form
+            clearIngredientForm();
         });
     }
 
-    // Cancel button
+    // Cancel button - hide form
     if (cancelAddIngredientBtn) {
         cancelAddIngredientBtn.addEventListener('click', () => {
             formContainer.classList.add('hidden');
@@ -566,36 +636,93 @@ function initIngredients() {
         });
     }
 
-    locationButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            currentLocation = btn.dataset.location;
+    // Save ingredient button
+    if (addIngredientBtn) {
+        addIngredientBtn.addEventListener('click', addIngredient);
+    }
 
-            locationButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-
-            document.querySelectorAll('.ingredient-list').forEach(list => {
-                list.classList.remove('active');
-            });
-            document.getElementById(`${currentLocation}-list`).classList.add('active');
-
-            renderIngredients();
+    // Enter key on name input
+    const nameInput = document.getElementById('ingredient-name');
+    if (nameInput) {
+        nameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addIngredient();
         });
-    });
+    }
 
-    addIngredientBtn.addEventListener('click', addIngredient);
-
-    document.getElementById('ingredient-name').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') addIngredient();
-    });
-
-    // Edit ingredient modal
-    document.querySelector('.close-edit-ingredient').addEventListener('click', () => {
-        document.getElementById('edit-ingredient-modal').classList.add('hidden');
-    });
-
-    document.getElementById('save-ingredient-edit-btn').addEventListener('click', saveIngredientEdit);
-
+    // Initial render
     renderIngredients();
+}
+
+// Populate the Storage Location and Item Category dropdowns
+async function populateIngredientsDropdowns() {
+    const locationSelect = document.getElementById('ingredient-location');
+    const categorySelect = document.getElementById('ingredient-item-category');
+
+    if (!locationSelect || !categorySelect) return;
+
+    try {
+        // Load locations from database
+        const locations = await loadLocations();
+        locationSelect.innerHTML = locations.map(loc =>
+            `<option value="${loc.name.toLowerCase()}">${loc.name}</option>`
+        ).join('');
+
+        // Default to first location
+        if (locations.length > 0) {
+            currentLocation = locations[0].name.toLowerCase();
+        }
+
+        // Load categories from database
+        const categories = await loadCategories();
+        categorySelect.innerHTML = `<option value="">-- Select Category --</option>` +
+            categories.map(cat =>
+                `<option value="${cat.name}">${cat.name}</option>`
+            ).join('');
+    } catch (error) {
+        console.error('Error populating ingredient dropdowns:', error);
+    }
+}
+
+// Create dynamic location tabs based on database locations
+async function createLocationTabs() {
+    const tabsContainer = document.getElementById('location-tabs');
+    if (!tabsContainer) return;
+
+    try {
+        const locations = await loadLocations();
+
+        // Add "All" tab first
+        let tabsHTML = `
+            <button class="location-tab active" data-location="all">
+                All Locations
+            </button>
+        `;
+
+        // Add tab for each location
+        tabsHTML += locations.map(loc => `
+            <button class="location-tab" data-location="${loc.name.toLowerCase()}">
+                ${loc.name}
+            </button>
+        `).join('');
+
+        tabsContainer.innerHTML = tabsHTML;
+
+        // Set up tab click handlers
+        const tabs = tabsContainer.querySelectorAll('.location-tab');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Update active state
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                // Update filter and re-render
+                currentLocationFilter = tab.dataset.location;
+                renderIngredients();
+            });
+        });
+    } catch (error) {
+        console.error('Error creating location tabs:', error);
+    }
 }
 
 function clearIngredientForm() {
@@ -603,9 +730,15 @@ function clearIngredientForm() {
     document.getElementById('ingredient-quantity').value = '1';
     document.getElementById('ingredient-unit').value = '';
     document.getElementById('ingredient-expiration').value = '';
-    const categoryInput = document.getElementById('ingredient-category');
-    if (categoryInput) {
-        categoryInput.value = 'pantry';
+    // Reset to first location in dropdown
+    const locationSelect = document.getElementById('ingredient-location');
+    if (locationSelect && locationSelect.options.length > 0) {
+        locationSelect.selectedIndex = 0;
+    }
+    // Reset category to default
+    const categorySelect = document.getElementById('ingredient-item-category');
+    if (categorySelect) {
+        categorySelect.selectedIndex = 0; // "-- Select Category --"
     }
 }
 
@@ -614,61 +747,77 @@ async function addIngredient() {
     const quantityInput = document.getElementById('ingredient-quantity');
     const unitInput = document.getElementById('ingredient-unit');
     const expirationInput = document.getElementById('ingredient-expiration');
-    const categoryInput = document.getElementById('ingredient-category');
+    const locationSelect = document.getElementById('ingredient-location');
+    const categorySelect = document.getElementById('ingredient-item-category');
 
     const name = nameInput.value.trim();
     const quantity = parseFloat(quantityInput.value) || 1;
     const unit = unitInput.value.trim();
     const expiration = expirationInput.value || null;
-    const category = categoryInput ? categoryInput.value : currentLocation;
+    const location = locationSelect ? locationSelect.value : 'pantry'; // Storage location (WHERE)
+    const itemCategory = categorySelect && categorySelect.value ? categorySelect.value : null; // Item category (WHAT)
 
     if (!name) {
         alert('Please enter an ingredient name');
         return;
     }
 
+    if (!unit) {
+        alert('Please enter a unit (e.g., cups, lbs, items)');
+        return;
+    }
+
     try {
-        // Check if ingredient already exists in the selected category
-        const existingIngredient = ingredients[category].find(
-            ing => ing.name.toLowerCase() === name.toLowerCase() && ing.unit.toLowerCase() === unit.toLowerCase()
+        // Check if ingredient already exists in the selected location
+        const locationIngredients = ingredients[location] || [];
+        const existingIngredient = locationIngredients.find(
+            ing => ing.name.toLowerCase() === name.toLowerCase() &&
+                   ing.unit.toLowerCase() === unit.toLowerCase()
         );
 
         if (existingIngredient) {
-            // Update existing ingredient
+            // Update existing ingredient quantity
             const newQuantity = existingIngredient.quantity + quantity;
-            const newExpiration = expiration && (!existingIngredient.expiration || new Date(expiration) < new Date(existingIngredient.expiration)) ? expiration : existingIngredient.expiration;
+            const newExpiration = expiration && (!existingIngredient.expiration || new Date(expiration) < new Date(existingIngredient.expiration))
+                ? expiration
+                : existingIngredient.expiration;
 
             await updatePantryItem(existingIngredient.id, {
                 quantity: newQuantity,
-                expiration: newExpiration
+                expiration: newExpiration,
+                itemCategory: itemCategory // Update category if provided
             });
+
+            showToast('Ingredient Updated!', `${name} quantity increased to ${newQuantity} ${unit}`, 'success');
         } else {
             // Add new ingredient to Supabase
             await addPantryItem({
                 name,
                 quantity,
                 unit,
-                category,
+                category: location, // This is the storage location (legacy field name)
+                itemCategory: itemCategory, // This is the item category (Produce, Dairy, etc.)
                 expiration
             });
+
+            showToast('Ingredient Added!', `${name} has been added to your ${location}`, 'success');
         }
+
+        // Reload ingredients from database
+        ingredients = await loadPantryItems();
+        renderIngredients();
+        updateRecipeStatus();
+        updateDashboardStats();
 
         // Hide form and clear inputs
         const formContainer = document.getElementById('add-ingredient-form-container');
         if (formContainer) {
             formContainer.classList.add('hidden');
         }
-
-        nameInput.value = '';
-        quantityInput.value = '1';
-        unitInput.value = '';
-        expirationInput.value = '';
-
-        // Show success toast
-        showToast('Ingredient Added!', `${name} has been added to your ${category}`, 'success');
+        clearIngredientForm();
     } catch (error) {
         console.error('Error adding ingredient:', error);
-        showToast('Error', 'Failed to add ingredient', 'error');
+        showToast('Error', 'Failed to add ingredient: ' + error.message, 'error');
     }
 }
 
@@ -792,94 +941,122 @@ function getReservedQuantities() {
 }
 
 function renderIngredients() {
+    const gridContainer = document.getElementById('ingredients-grid');
+    if (!gridContainer) return;
+
     const reservedQty = getReservedQuantities();
 
-    ['pantry', 'fridge', 'freezer'].forEach(location => {
-        const listElement = document.getElementById(`${location}-items`);
-        let items = ingredients[location];
+    // Gather all ingredients from all locations
+    let allItems = [];
+    Object.keys(ingredients).forEach(location => {
+        const locationItems = ingredients[location] || [];
+        locationItems.forEach(item => {
+            allItems.push({
+                ...item,
+                location: location // Add location to each item
+            });
+        });
+    });
 
-        // Filter by search query
-        if (ingredientSearchQuery) {
-            items = items.filter(item =>
-                item.name.toLowerCase().includes(ingredientSearchQuery) ||
-                item.unit.toLowerCase().includes(ingredientSearchQuery)
-            );
+    // Filter by location tab
+    if (currentLocationFilter !== 'all') {
+        allItems = allItems.filter(item => item.location === currentLocationFilter);
+    }
+
+    // Filter by search query
+    if (ingredientSearchQuery) {
+        allItems = allItems.filter(item =>
+            item.name.toLowerCase().includes(ingredientSearchQuery) ||
+            (item.itemCategory && item.itemCategory.toLowerCase().includes(ingredientSearchQuery)) ||
+            item.unit.toLowerCase().includes(ingredientSearchQuery)
+        );
+    }
+
+    // Sort alphabetically by name
+    allItems = allItems.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+
+    // Handle empty state
+    if (allItems.length === 0) {
+        const message = ingredientSearchQuery
+            ? 'No ingredients match your search'
+            : currentLocationFilter === 'all'
+                ? 'No ingredients yet. Click the + button to add your first item!'
+                : `No items in ${currentLocationFilter}`;
+        gridContainer.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--text-muted);">
+                <p style="font-size: 1.1rem;">${message}</p>
+            </div>
+        `;
+        return;
+    }
+
+    // Render ingredient cards
+    gridContainer.innerHTML = allItems.map(item => {
+        const expStatus = getExpirationStatus(item.expiration);
+        let expBadge = '';
+        let cardClass = 'ingredient-card';
+
+        if (expStatus === 'expired') {
+            cardClass += ' expired';
+            expBadge = '<span class="exp-badge expired">EXPIRED</span>';
+        } else if (expStatus === 'expiring-soon') {
+            cardClass += ' expiring-soon';
+            expBadge = '<span class="exp-badge expiring">EXPIRING SOON</span>';
         }
 
-        // Sort alphabetically
-        items = items.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+        // Calculate reserved and available quantities
+        const key = `${item.name.toLowerCase()}|${item.unit.toLowerCase()}`;
+        const reserved = item.reserved || reservedQty[key] || 0;
+        const available = item.available !== undefined ? item.available : (item.quantity - reserved);
 
-        if (items.length === 0) {
-            const message = ingredientSearchQuery ?
-                'No ingredients match your search' :
-                'No items yet';
-            listElement.innerHTML = `<li style="background: none; text-align: center; color: #6c757d;">${message}</li>`;
-            return;
-        }
+        // Determine availability color
+        const availColor = available <= 0
+            ? 'var(--danger)'
+            : (available < item.quantity * 0.3 ? 'var(--warning)' : 'var(--success)');
 
-        listElement.innerHTML = items.map(item => {
-            const expStatus = getExpirationStatus(item.expiration);
-            let classList = '';
-            let expBadge = '';
+        // Category badge (optional)
+        const categoryBadge = item.itemCategory
+            ? `<span class="category-badge">${item.itemCategory}</span>`
+            : '';
 
-            if (expStatus === 'expired') {
-                classList = 'ingredient-expired';
-                expBadge = '<span class="expiration-badge expired-badge">EXPIRED</span>';
-            } else if (expStatus === 'expiring-soon') {
-                classList = 'ingredient-expiring-soon';
-                expBadge = '<span class="expiration-badge expiring-soon-badge">EXPIRING SOON</span>';
-            }
-
-            // Calculate available quantity after meal plan
-            const key = `${item.name.toLowerCase()}|${item.unit.toLowerCase()}`;
-            const reserved = reservedQty[key] || 0;
-            const available = item.quantity - reserved;
-
-            // Build availability display
-            const availColor = available <= 0 ? '#e53e3e' : (available < item.quantity * 0.3 ? '#ed8936' : '#48bb78');
-            let availabilityHTML = `
-                <div class="ingredient-availability">
-                    <div class="availability-item">
-                        <span class="availability-label">On Hand:</span>
-                        <span class="availability-value">${item.quantity} ${item.unit}</span>
-                    </div>
-                    <div class="availability-item">
-                        <span class="availability-label">Available:</span>
-                        <span class="availability-value" style="color: ${availColor}; font-weight: 700;">${available} ${item.unit}</span>
-                    </div>
-                    ${reserved > 0 ? `
-                    <div class="availability-item reserved-info">
-                        <span class="availability-label">Reserved:</span>
-                        <span class="availability-value">${reserved} ${item.unit}</span>
-                    </div>
-                    ` : ''}
-                </div>
-            `;
-
-            return `
-            <li class="${classList}">
-                <div class="ingredient-card-content">
-                    <div class="ingredient-header">
-                        <span class="ingredient-name">${item.name}</span>
+        return `
+            <div class="${cardClass}">
+                <div class="ingredient-card-header">
+                    <h4 class="ingredient-card-name">${item.name}</h4>
+                    <div class="ingredient-card-badges">
+                        ${categoryBadge}
                         ${expBadge}
                     </div>
-                    <div class="ingredient-quantity-display">
-                        <span class="quantity-number">${item.quantity}</span>
-                        <span class="quantity-unit">${item.unit}</span>
-                    </div>
-                    ${availabilityHTML}
                 </div>
-                <div class="ingredient-actions">
-                    <button class="icon-btn edit-btn" onclick="editIngredient('${location}', ${item.id})" title="Edit">
+
+                <div class="ingredient-card-quantities">
+                    <div class="qty-box qty-onhand">
+                        <div class="qty-label">On Hand</div>
+                        <div class="qty-value">${item.quantity} ${item.unit}</div>
+                    </div>
+                    <div class="qty-box qty-reserved">
+                        <div class="qty-label">Reserved</div>
+                        <div class="qty-value">${reserved} ${item.unit}</div>
+                    </div>
+                    <div class="qty-box qty-available">
+                        <div class="qty-label">Available</div>
+                        <div class="qty-value" style="color: ${availColor}; font-weight: 700;">
+                            ${available} ${item.unit}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ingredient-card-actions">
+                    <button class="icon-btn edit-btn" onclick="editIngredient('${item.location}', ${item.id})" title="Edit">
                         ✏️
                     </button>
-                    <button class="icon-btn delete-btn" onclick="deleteIngredient('${location}', ${item.id})" title="Delete">
+                    <button class="icon-btn delete-btn" onclick="deleteIngredient('${item.location}', ${item.id})" title="Delete">
                         🗑️
                     </button>
                 </div>
-            </li>
-        `}).join('');
-    });
+            </div>
+        `;
+    }).join('');
 }
 
 // Recipes Section
