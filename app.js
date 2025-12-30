@@ -430,29 +430,15 @@ if (window.supabaseClient) {
             console.log('✅ [APP.JS] User signed in:', session.user.email);
             console.log('📱 [APP.JS] Calling initializeApp()...');
             try {
-                // Increased timeout to 60 seconds for better reliability
-                await withTimeout(initializeApp(), 60000, 'App initialization');
+                // Initialize app without timeout for debugging
+                await initializeApp();
                 console.log('✅ [APP.JS] initializeApp() completed');
             } catch (error) {
                 console.error('❌ [APP.JS] Error in initializeApp:', error);
                 window.isLoading = false;
                 window.isInitialized = false;
-
-                // Show a more helpful error message
-                if (error.message.includes('timed out')) {
-                    showToast('Loading...', 'App is still loading, please wait...', 'info');
-                    // Retry initialization once
-                    console.log('🔄 Retrying initialization...');
-                    try {
-                        await initializeApp();
-                        console.log('✅ [APP.JS] Retry successful');
-                    } catch (retryError) {
-                        console.error('❌ [APP.JS] Retry failed:', retryError);
-                        showToast('Error', 'Failed to load. Please refresh the page.', 'error');
-                    }
-                } else {
-                    showToast('Error', 'Failed to initialize: ' + error.message, 'error');
-                }
+                showToast('Error', 'Failed to initialize: ' + error.message, 'error');
+                alert('Error loading app:\n\n' + error.message + '\n\nPlease check the console for details.');
             }
         } else if (event === 'SIGNED_OUT') {
             console.log('👋 [APP.JS] User signed out');
@@ -502,8 +488,11 @@ async function ensureDefaultCategoriesAndLocations() {
 
 async function loadAllDataFromSupabase() {
     try {
-        console.log('⏳ Ensuring default categories and locations...');
-        await ensureDefaultCategoriesAndLocations();
+        // Start ensuring defaults in background (don't wait for it)
+        console.log('⏳ Starting default categories and locations setup...');
+        ensureDefaultCategoriesAndLocations().catch(err => {
+            console.warn('Could not ensure defaults:', err);
+        });
 
         // Load all data in parallel for better performance
         console.log('⏳ Loading all data in parallel...');
