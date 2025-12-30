@@ -582,6 +582,23 @@ function navigateToSection(sectionId) {
     }
 }
 
+// Toggle recipe filters
+function toggleRecipeFilters() {
+    const filterPanel = document.getElementById('recipe-filter-panel');
+    const toggleBtn = document.getElementById('recipe-filter-toggle');
+
+    if (filterPanel.style.display === 'none' || filterPanel.style.display === '') {
+        filterPanel.style.display = 'block';
+        toggleBtn.classList.add('active');
+    } else {
+        filterPanel.style.display = 'none';
+        toggleBtn.classList.remove('active');
+    }
+}
+
+// Expose to window
+window.toggleRecipeFilters = toggleRecipeFilters;
+
 // Dashboard
 function initDashboard() {
     // Update dashboard stats
@@ -1420,8 +1437,8 @@ function initRecipes() {
     const addRecipeForm = document.getElementById('add-recipe-form');
     const closeModal = addRecipeForm ? addRecipeForm.querySelector('.close-modal') : null;
     const addRecipeIngredientBtn = document.getElementById('add-recipe-ingredient-btn');
-    const filterButtons = document.querySelectorAll('.filter-btn');
-    const categoryButtons = document.querySelectorAll('.category-filter-btn');
+    const categoryChips = document.querySelectorAll('.filter-chip[data-category]');
+    const favoritesToggle = document.getElementById('favorites-toggle');
     const searchInput = document.getElementById('recipe-search');
     const floatingAddBtn = document.getElementById('floating-add-recipe');
 
@@ -1462,25 +1479,22 @@ function initRecipes() {
         addRecipeIngredientBtn.addEventListener('click', addRecipeIngredientRow);
     }
 
-    // Status filter buttons (All, Ready to Cook, Expiring Soon, Missing Items, Favorites)
-    filterButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            currentRecipeFilter = btn.dataset.filter;
-            filterButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
+    // Category filter chips
+    categoryChips.forEach(chip => {
+        chip.addEventListener('click', () => {
+            currentRecipeCategory = chip.dataset.category;
+            categoryChips.forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
             renderRecipes();
         });
     });
 
-    // Category filter buttons
-    categoryButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            currentRecipeCategory = btn.dataset.category;
-            categoryButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
+    // Favorites toggle
+    if (favoritesToggle) {
+        favoritesToggle.addEventListener('change', () => {
             renderRecipes();
         });
-    });
+    }
 
     // Search input
     if (searchInput) {
@@ -2164,11 +2178,26 @@ function updateMealSuggestions() {
 }
 
 function renderRecipes() {
-    const recipeList = document.getElementById('recipe-list');
+    // Get column containers
+    const readyColumn = document.getElementById('ready-recipes');
+    const expiringColumn = document.getElementById('expiring-recipes');
+    const missingColumn = document.getElementById('missing-recipes');
 
+    // Get count badges
+    const readyCountEl = document.getElementById('ready-count');
+    const expiringCountEl = document.getElementById('expiring-count');
+    const missingCountEl = document.getElementById('missing-count');
+
+    if (!readyColumn || !expiringColumn || !missingColumn) return;
+
+    // Check if we have any recipes at all
     if (recipes.length === 0) {
-        recipeList.innerHTML = '<div class="empty-state"><p>No recipes yet. Add your first recipe!</p></div>';
-        document.getElementById('meal-suggestions').style.display = 'none';
+        readyColumn.innerHTML = '<div class="column-recipes empty">No recipes yet!</div>';
+        expiringColumn.innerHTML = '<div class="column-recipes empty">No recipes yet!</div>';
+        missingColumn.innerHTML = '<div class="column-recipes empty">No recipes yet!</div>';
+        readyCountEl.textContent = '0';
+        expiringCountEl.textContent = '0';
+        missingCountEl.textContent = '0';
         return;
     }
 
@@ -2176,7 +2205,6 @@ function renderRecipes() {
 
     // Helper function to check if recipe has expiring ingredients
     function hasExpiringIngredients(recipe) {
-        // Get all ingredients from all locations (including custom ones)
         let allIngredients = [];
         Object.keys(ingredients).forEach(location => {
             allIngredients = allIngredients.concat(ingredients[location] || []);
@@ -2191,168 +2219,93 @@ function renderRecipes() {
         });
     }
 
-    // Filter by status
-    if (currentRecipeFilter === 'ready') {
-        filteredRecipes = filteredRecipes.filter(recipe => checkRecipeStatus(recipe).isReady);
-    } else if (currentRecipeFilter === 'expiring') {
-        // Show recipes with expiring ingredients
-        filteredRecipes = filteredRecipes.filter(recipe => hasExpiringIngredients(recipe));
-    } else if (currentRecipeFilter === 'missing') {
-        filteredRecipes = filteredRecipes.filter(recipe => !checkRecipeStatus(recipe).isReady);
-    } else if (currentRecipeFilter === 'favorites') {
-        filteredRecipes = filteredRecipes.filter(recipe => recipe.favorite === true);
-    }
-
+    // Apply filters from the filter panel
     // Filter by category
     if (currentRecipeCategory !== 'all') {
         filteredRecipes = filteredRecipes.filter(recipe => recipe.category === currentRecipeCategory);
+    }
+
+    // Filter by favorites toggle
+    const favoritesToggle = document.getElementById('favorites-toggle');
+    if (favoritesToggle && favoritesToggle.checked) {
+        filteredRecipes = filteredRecipes.filter(recipe => recipe.favorite === true);
     }
 
     // Filter by search query
     if (recipeSearchQuery) {
         filteredRecipes = filteredRecipes.filter(recipe =>
             recipe.name.toLowerCase().includes(recipeSearchQuery) ||
-            recipe.ingredients.some(ing => ing.name.includes(recipeSearchQuery))
+            recipe.ingredients.some(ing => ing.name.toLowerCase().includes(recipeSearchQuery))
         );
     }
 
-    if (filteredRecipes.length === 0) {
-        recipeList.innerHTML = '<div class="empty-state"><p>No recipes match your filters</p></div>';
-        return;
-    }
-
-    // Categorize recipes into three groups
+    // Categorize recipes into three columns
     const readyRecipes = [];
-    const cookSoonRecipes = [];
-    const needIngredientsRecipes = [];
+    const expiringRecipes = [];
+    const missingRecipes = [];
 
     filteredRecipes.forEach(recipe => {
         const status = checkRecipeStatus(recipe);
         if (status.isReady) {
             if (hasExpiringIngredients(recipe)) {
-                cookSoonRecipes.push(recipe);
+                expiringRecipes.push(recipe);
             } else {
                 readyRecipes.push(recipe);
             }
         } else {
-            needIngredientsRecipes.push(recipe);
+            missingRecipes.push(recipe);
         }
     });
 
     // Sort each group alphabetically
     readyRecipes.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
-    cookSoonRecipes.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
-    needIngredientsRecipes.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+    expiringRecipes.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+    missingRecipes.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
 
-    // Render function for recipe cards
-    function renderRecipeCard(recipe, showExpiringBadge = false) {
-        const status = checkRecipeStatus(recipe);
-        const statusClass = status.isReady ? 'ready' : 'missing';
-        const statusText = status.isReady ? '✓ Ready' : 'Need Ingredients';
+    // Update counts
+    readyCountEl.textContent = readyRecipes.length;
+    expiringCountEl.textContent = expiringRecipes.length;
+    missingCountEl.textContent = missingRecipes.length;
 
-        // Assign color based on category - refined, sophisticated palette
-        const categoryColors = {
-            'breakfast': '#D4A574',      // Gentle amber
-            'lunch': '#8B9D83',          // Muted sage
-            'dinner': '#7C6A5C',         // Warm taupe
-            'dessert': '#C4998B',        // Soft terracotta
-            'snack': '#C4A892',          // Warm sand
-            'default': '#A8B89F'         // Soft sage
-        };
-        const cardColor = categoryColors[recipe.category?.toLowerCase()] || categoryColors['default'];
+    // Render function for recipe cards in columns
+    function renderColumnCard(recipe, statusType) {
+        const favoriteIcon = recipe.favorite ? '⭐' : '';
+        const category = recipe.category ? recipe.category.charAt(0).toUpperCase() + recipe.category.slice(1) : 'Uncategorized';
 
         return `
-            <div class="cottage-recipe-card"
-                 data-recipe-id="${recipe.id}"
-                 onclick="openRecipeDetailModal('${recipe.id}')"
-                 style="border-left: 6px solid ${cardColor};">
-
-                ${recipe.favorite ? '<div class="recipe-favorite-star">⭐</div>' : ''}
-
-                <div class="recipe-card-title">
-                    <h3>${recipe.name}</h3>
+            <div class="recipe-column-card" onclick="openRecipeDetailModal('${recipe.id}')">
+                <div class="recipe-column-card-header">
+                    <h4 class="recipe-column-card-title">${recipe.name}</h4>
+                    ${favoriteIcon ? `<span class="recipe-favorite-icon">${favoriteIcon}</span>` : ''}
                 </div>
-
-                <div class="recipe-card-meta">
-                    ${recipe.category ? `
-                        <span class="recipe-meta-item">
-                            <span class="meta-label">Category:</span>
-                            <span class="meta-value">${recipe.category.charAt(0).toUpperCase() + recipe.category.slice(1)}</span>
-                        </span>
-                    ` : ''}
-
-                    <span class="recipe-meta-item">
-                        <span class="meta-label">Serves:</span>
-                        <span class="meta-value">${recipe.servings || 4}</span>
-                    </span>
-                </div>
-
-                <div class="recipe-card-status ${statusClass}">
-                    ${showExpiringBadge ?
-                        '<span class="status-badge expiring">🔥 Cook Soon!</span>' :
-                        `<span class="status-badge">${statusText}</span>`
-                    }
-                </div>
-
-                <div class="recipe-card-hint">
-                    Tap to view full recipe →
+                <div class="recipe-column-card-meta">
+                    <span class="recipe-column-card-category">${category}</span>
+                    <span>Serves: ${recipe.servings || 4}</span>
                 </div>
             </div>
         `;
     }
 
-    // Build responsive deck-style layout
-    let html = `
-        <div class="recipe-deck-container">
-            ${readyRecipes.length > 0 ? `
-                <div class="recipe-deck-section">
-                    <div class="deck-section-header ready">
-                        <h3>✅ Ready to Cook</h3>
-                        <span class="recipe-count">${readyRecipes.length} recipe${readyRecipes.length !== 1 ? 's' : ''}</span>
-                    </div>
-                    <div class="recipe-cards-grid">
-                        ${readyRecipes.map(recipe => renderRecipeCard(recipe)).join('')}
-                    </div>
-                </div>
-            ` : ''}
+    // Render Ready to Cook column
+    if (readyRecipes.length > 0) {
+        readyColumn.innerHTML = readyRecipes.map(recipe => renderColumnCard(recipe, 'ready')).join('');
+    } else {
+        readyColumn.innerHTML = '<div class="column-recipes empty">No recipes ready to cook</div>';
+    }
 
-            ${cookSoonRecipes.length > 0 ? `
-                <div class="recipe-deck-section">
-                    <div class="deck-section-header cook-soon">
-                        <h3>🔥 Cook These Soon!</h3>
-                        <span class="recipe-count">${cookSoonRecipes.length} recipe${cookSoonRecipes.length !== 1 ? 's' : ''}</span>
-                        <p class="section-note">Ingredients expiring soon</p>
-                    </div>
-                    <div class="recipe-cards-grid">
-                        ${cookSoonRecipes.map(recipe => renderRecipeCard(recipe, true)).join('')}
-                    </div>
-                </div>
-            ` : ''}
+    // Render Expiring Soon column
+    if (expiringRecipes.length > 0) {
+        expiringColumn.innerHTML = expiringRecipes.map(recipe => renderColumnCard(recipe, 'expiring')).join('');
+    } else {
+        expiringColumn.innerHTML = '<div class="column-recipes empty">No recipes with expiring ingredients</div>';
+    }
 
-            ${needIngredientsRecipes.length > 0 ? `
-                <div class="recipe-deck-section">
-                    <div class="deck-section-header need-ingredients">
-                        <h3>📝 Need Ingredients</h3>
-                        <span class="recipe-count">${needIngredientsRecipes.length} recipe${needIngredientsRecipes.length !== 1 ? 's' : ''}</span>
-                    </div>
-                    <div class="recipe-cards-grid">
-                        ${needIngredientsRecipes.map(recipe => renderRecipeCard(recipe)).join('')}
-                    </div>
-                </div>
-            ` : ''}
-
-            ${readyRecipes.length === 0 && cookSoonRecipes.length === 0 && needIngredientsRecipes.length === 0 ? `
-                <div class="empty-recipes-state">
-                    <p>No recipes yet. Add your first recipe to get started! 🍳</p>
-                </div>
-            ` : ''}
-        </div>
-    `;
-
-    recipeList.innerHTML = html;
-
-    // Update smart meal suggestions
-    updateMealSuggestions();
+    // Render Missing Ingredients column
+    if (missingRecipes.length > 0) {
+        missingColumn.innerHTML = missingRecipes.map(recipe => renderColumnCard(recipe, 'missing')).join('');
+    } else {
+        missingColumn.innerHTML = '<div class="column-recipes empty">No recipes missing ingredients</div>';
+    }
 }
 
 // ==============================================
