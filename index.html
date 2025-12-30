@@ -455,6 +455,34 @@
                     </div>
                 </div>
 
+                <!-- NEW: Manage Storage Locations -->
+                <div class="settings-card">
+                    <h3>Storage Locations</h3>
+                    <p class="card-description">
+                        Manage where you store your ingredients. Add custom locations like "Garage Freezer" or "Wine Fridge".
+                    </p>
+                    <div style="margin-top: 15px;">
+                        <button class="btn-primary" id="add-location-btn">+ Add Location</button>
+                    </div>
+                    <div id="locations-list" style="margin-top: 15px;">
+                        <!-- Locations will be populated here -->
+                    </div>
+                </div>
+
+                <!-- NEW: Manage Categories -->
+                <div class="settings-card">
+                    <h3>Item Categories</h3>
+                    <p class="card-description">
+                        Organize your ingredients by type. Add custom categories like "Spices", "Baking", or "Asian Ingredients".
+                    </p>
+                    <div style="margin-top: 15px;">
+                        <button class="btn-primary" id="add-category-btn">+ Add Category</button>
+                    </div>
+                    <div id="categories-list" style="margin-top: 15px;">
+                        <!-- Categories will be populated here -->
+                    </div>
+                </div>
+
                 <div class="settings-card">
                     <h3>Data Backup & Restore</h3>
                     <p class="card-description">Export your data for backup or import from a previous backup.</p>
@@ -630,15 +658,15 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <!-- Supabase Configuration - Initialize client -->
-    <script src="supabase-config.js?v=1767050739"></script>
+    <script src="supabase-config.js?v=1767061553"></script>
 
     <!-- Authentication Functions -->
-    <script src="auth.js?v=1767050739"></script>
+    <script src="auth.js?v=1767061553"></script>
 
     <!-- Database Functions -->
-    <script src="db.js?v=1767050739"></script>
+    <script src="db.js?v=1767061553"></script>
 
     <!-- Main Application -->
-    <script src="app.js?v=1767050739"></script>
+    <script src="app.js?v=1767061553"></script>
 </body>
 </html>

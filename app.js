@@ -3012,6 +3012,22 @@ function initSettings() {
         copyTokenBtn.addEventListener('click', copyToken);
     }
 
+    // NEW: Categories and Locations management
+    const addCategoryBtn = document.getElementById('add-category-btn');
+    const addLocationBtn = document.getElementById('add-location-btn');
+
+    if (addCategoryBtn) {
+        addCategoryBtn.addEventListener('click', showAddCategoryPrompt);
+    }
+
+    if (addLocationBtn) {
+        addLocationBtn.addEventListener('click', showAddLocationPrompt);
+    }
+
+    // Load and display categories and locations
+    loadAndDisplayCategories();
+    loadAndDisplayLocations();
+
     updateStats();
 }
 
@@ -3159,6 +3175,158 @@ function updateStats() {
         </div>
         ` : ''}
     `;
+}
+
+// ==============================================
+// CATEGORIES AND LOCATIONS MANAGEMENT
+// ==============================================
+
+// Load and display categories
+async function loadAndDisplayCategories() {
+    try {
+        const categories = await loadCategories();
+        const categoriesList = document.getElementById('categories-list');
+
+        if (!categoriesList) return;
+
+        if (categories.length === 0) {
+            categoriesList.innerHTML = '<p style="color: #888; font-style: italic;">No categories yet. Add one above!</p>';
+            return;
+        }
+
+        categoriesList.innerHTML = categories.map(cat => `
+            <div class="settings-list-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f7fafc; border-radius: 8px; margin-bottom: 8px;">
+                <span style="font-weight: 500;">${cat.name}${cat.is_default ? ' <span style="color: #888; font-size: 0.85em;">(default)</span>' : ''}</span>
+                <div style="display: flex; gap: 8px;">
+                    ${!cat.is_default ? `
+                        <button onclick="editCategory('${cat.id}', '${cat.name}')" class="btn-secondary" style="padding: 6px 12px; font-size: 0.9em;">Edit</button>
+                        <button onclick="handleDeleteCategory('${cat.id}')" class="btn-danger" style="padding: 6px 12px; font-size: 0.9em;">Delete</button>
+                    ` : ''}
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading categories:', error);
+        showToast('Error', 'Failed to load categories', 'error');
+    }
+}
+
+// Load and display locations
+async function loadAndDisplayLocations() {
+    try {
+        const locations = await loadLocations();
+        const locationsList = document.getElementById('locations-list');
+
+        if (!locationsList) return;
+
+        if (locations.length === 0) {
+            locationsList.innerHTML = '<p style="color: #888; font-style: italic;">No locations yet. Add one above!</p>';
+            return;
+        }
+
+        locationsList.innerHTML = locations.map(loc => `
+            <div class="settings-list-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f7fafc; border-radius: 8px; margin-bottom: 8px;">
+                <span style="font-weight: 500;">${loc.name}${loc.is_default ? ' <span style="color: #888; font-size: 0.85em;">(default)</span>' : ''}</span>
+                <div style="display: flex; gap: 8px;">
+                    ${!loc.is_default ? `
+                        <button onclick="editLocation('${loc.id}', '${loc.name}')" class="btn-secondary" style="padding: 6px 12px; font-size: 0.9em;">Edit</button>
+                        <button onclick="handleDeleteLocation('${loc.id}')" class="btn-danger" style="padding: 6px 12px; font-size: 0.9em;">Delete</button>
+                    ` : ''}
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading locations:', error);
+        showToast('Error', 'Failed to load locations', 'error');
+    }
+}
+
+// Show add category prompt
+async function showAddCategoryPrompt() {
+    const name = prompt('Enter category name (e.g., Spices, Baking, Asian Ingredients):');
+    if (!name || !name.trim()) return;
+
+    try {
+        await addCategory(name.trim());
+        showToast('Success', `Added category: ${name}`, 'success');
+        await loadAndDisplayCategories();
+    } catch (error) {
+        console.error('Error adding category:', error);
+        showToast('Error', 'Failed to add category. It may already exist.', 'error');
+    }
+}
+
+// Show add location prompt
+async function showAddLocationPrompt() {
+    const name = prompt('Enter location name (e.g., Garage Freezer, Wine Fridge, Basement Pantry):');
+    if (!name || !name.trim()) return;
+
+    try {
+        await addLocation(name.trim());
+        showToast('Success', `Added location: ${name}`, 'success');
+        await loadAndDisplayLocations();
+    } catch (error) {
+        console.error('Error adding location:', error);
+        showToast('Error', 'Failed to add location. It may already exist.', 'error');
+    }
+}
+
+// Edit category
+async function editCategory(id, currentName) {
+    const newName = prompt('Edit category name:', currentName);
+    if (!newName || !newName.trim() || newName === currentName) return;
+
+    try {
+        await updateCategory(id, newName.trim());
+        showToast('Success', `Renamed category to: ${newName}`, 'success');
+        await loadAndDisplayCategories();
+    } catch (error) {
+        console.error('Error updating category:', error);
+        showToast('Error', 'Failed to update category', 'error');
+    }
+}
+
+// Edit location
+async function editLocation(id, currentName) {
+    const newName = prompt('Edit location name:', currentName);
+    if (!newName || !newName.trim() || newName === currentName) return;
+
+    try {
+        await updateLocation(id, newName.trim());
+        showToast('Success', `Renamed location to: ${newName}`, 'success');
+        await loadAndDisplayLocations();
+    } catch (error) {
+        console.error('Error updating location:', error);
+        showToast('Error', 'Failed to update location', 'error');
+    }
+}
+
+// Delete category with confirmation
+async function handleDeleteCategory(id) {
+    if (!confirm('Are you sure you want to delete this category? This cannot be undone.')) return;
+
+    try {
+        await deleteCategory(id);
+        showToast('Success', 'Category deleted', 'success');
+        await loadAndDisplayCategories();
+    } catch (error) {
+        console.error('Error deleting category:', error);
+        showToast('Error', 'Failed to delete category. It may be in use.', 'error');
+    }
+}
+
+// Delete location with confirmation
+async function handleDeleteLocation(id) {
+    if (!confirm('Are you sure you want to delete this location? This cannot be undone.')) return;
+
+    try {
+        await deleteLocation(id);
+        showToast('Success', 'Location deleted', 'success');
+        await loadAndDisplayLocations();
+    } catch (error) {
+        console.error('Error deleting location:', error);
+        showToast('Error', 'Failed to delete location. It may be in use.', 'error');
+    }
 }
 
 // ==================== AUTHENTICATION & SYNC ====================
