@@ -433,15 +433,32 @@
             <!-- Meal Plan Section -->
             <section id="meal-plan" class="section">
                 <div class="section-header">
-                    <h2>Weekly Meal Plan</h2>
+                    <h2>2-Week Meal Plan</h2>
                     <div class="header-actions">
                         <button class="btn-secondary" id="duplicate-week-btn">Duplicate Week</button>
                         <button class="btn-danger" id="clear-meal-plan">Clear Plan</button>
                     </div>
                 </div>
 
-                <div id="meal-plan-grid" class="meal-plan-grid">
-                    <!-- Days will be generated dynamically -->
+                <!-- 2-Week Side-by-Side Grid -->
+                <div class="two-week-container">
+                    <div class="week-column">
+                        <div class="week-column-header">
+                            <h3>Week 1 (Current)</h3>
+                        </div>
+                        <div id="week1-days" class="week-days-grid">
+                            <!-- Week 1 days will be generated -->
+                        </div>
+                    </div>
+
+                    <div class="week-column">
+                        <div class="week-column-header">
+                            <h3>Week 2 (Next)</h3>
+                        </div>
+                        <div id="week2-days" class="week-days-grid">
+                            <!-- Week 2 days will be generated -->
+                        </div>
+                    </div>
                 </div>
             </section>
 

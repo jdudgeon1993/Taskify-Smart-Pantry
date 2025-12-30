@@ -3076,7 +3076,8 @@ function pasteWeek() {
 }
 
 function renderMealPlan() {
-    const mealPlanGrid = document.getElementById('meal-plan-grid');
+    const week1Container = document.getElementById('week1-days');
+    const week2Container = document.getElementById('week2-days');
     const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
     const today = getTodayDayName();
 
@@ -3106,7 +3107,9 @@ function renderMealPlan() {
     }
 
     if (recipes.length === 0) {
-        mealPlanGrid.innerHTML = '<div class="empty-state"><p>No recipes available. Add some recipes first to create your meal plan!</p></div>';
+        const emptyState = '<div class="empty-state"><p>No recipes available. Add some recipes first to create your meal plan!</p></div>';
+        if (week1Container) week1Container.innerHTML = emptyState;
+        if (week2Container) week2Container.innerHTML = emptyState;
         return;
     }
 
@@ -3115,83 +3118,75 @@ function renderMealPlan() {
         .map(recipe => `<option value="${recipe.id}">${recipe.name}</option>`)
         .join('');
 
-    // Week tabs
-    const weekTabs = `
-        <div class="week-tabs">
-            <button class="week-tab ${currentWeekView === 'week1' ? 'active' : ''}" onclick="switchWeek('week1')">
-                Week 1 (Current)
-            </button>
-            <button class="week-tab ${currentWeekView === 'week2' ? 'active' : ''}" onclick="switchWeek('week2')">
-                Week 2 (Next)
-            </button>
-        </div>
-    `;
+    // Helper function to render a single week's days
+    const renderWeekDays = (weekKey, container) => {
+        const weekData = mealPlan[weekKey];
+        const dayOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        const todayIndex = dayOrder.indexOf(today);
 
-    // Get the appropriate week's data
-    const weekData = mealPlan[currentWeekView];
+        const isPastDay = (day) => {
+            if (weekKey === 'week2') return false; // Week 2 is always future
+            const dayIndex = dayOrder.indexOf(day);
+            return dayIndex < todayIndex;
+        };
 
-    // Helper to check if day is in the past (only for week1)
-    const dayOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-    const todayIndex = dayOrder.indexOf(today);
+        const isToday = (day) => {
+            return weekKey === 'week1' && day === today;
+        };
 
-    const isPastDay = (day) => {
-        if (currentWeekView === 'week2') return false; // Week 2 is always future
-        const dayIndex = dayOrder.indexOf(day);
-        return dayIndex < todayIndex;
-    };
+        const daysHTML = days.map(day => {
+            const dayRecipes = (weekData[day] || []).map(id => recipes.find(r => r.id === id)).filter(Boolean);
+            const dayName = day.charAt(0).toUpperCase() + day.slice(1);
+            const past = isPastDay(day);
+            const todayDay = isToday(day);
 
-    const isToday = (day) => {
-        return currentWeekView === 'week1' && day === today;
-    };
-
-    const daysHTML = days.map(day => {
-        const dayRecipes = (weekData[day] || []).map(id => recipes.find(r => r.id === id)).filter(Boolean);
-        const dayName = day.charAt(0).toUpperCase() + day.slice(1);
-        const past = isPastDay(day);
-        const todayDay = isToday(day);
-
-        return `
-        <div class="meal-day ${past ? 'past-day' : ''} ${todayDay ? 'today-day' : ''}" id="meal-day-${currentWeekView}-${day}">
-            <div class="meal-day-header">
-                <div class="meal-day-title">
-                    <h3>${dayName}</h3>
-                    ${todayDay ? '<span class="today-badge">TODAY</span>' : ''}
-                </div>
-                <span class="meal-count">${dayRecipes.length} meal${dayRecipes.length !== 1 ? 's' : ''}</span>
-            </div>
-
-            <div class="meal-list">
-                ${dayRecipes.map(recipe => `
-                    <div class="meal-item">
-                        <div class="meal-item-content">
-                            <span class="meal-recipe-name">${recipe.name}</span>
-                            ${recipe.servings ? `<span class="meal-servings">${recipe.servings} servings</span>` : ''}
-                        </div>
-                        <div class="meal-item-actions">
-                            <button class="btn-sm btn-primary" onclick="cookNowAndDeduct(${recipe.id}, '${currentWeekView}', '${day}')" title="Cook this recipe now">
-                                Cook Now
-                            </button>
-                            <button class="btn-sm btn-danger" onclick="removeRecipeFromMeal('${currentWeekView}', '${day}', ${recipe.id})" title="Remove from plan">
-                                Remove
-                            </button>
-                        </div>
+            return `
+            <div class="meal-day-card ${past ? 'past-day' : ''} ${todayDay ? 'today-day' : ''}" id="meal-day-${weekKey}-${day}">
+                <div class="meal-day-header">
+                    <div class="meal-day-title">
+                        <h4>${dayName}</h4>
+                        ${todayDay ? '<span class="today-badge">📍 TODAY</span>' : ''}
                     </div>
-                `).join('')}
+                    <span class="meal-count">${dayRecipes.length} ${dayRecipes.length === 1 ? 'meal' : 'meals'}</span>
+                </div>
 
-                ${dayRecipes.length === 0 ? '<p class="empty-day-message">No meals planned for this day</p>' : ''}
+                <div class="meal-list">
+                    ${dayRecipes.map(recipe => `
+                        <div class="meal-item">
+                            <div class="meal-item-content">
+                                <span class="meal-recipe-name">${recipe.name}</span>
+                                ${recipe.servings ? `<span class="meal-servings">${recipe.servings} servings</span>` : ''}
+                            </div>
+                            <div class="meal-item-actions">
+                                <button class="meal-action-btn cook-btn" onclick="cookNowAndDeduct(${recipe.id}, '${weekKey}', '${day}')" title="Cook this recipe now">
+                                    🍳
+                                </button>
+                                <button class="meal-action-btn remove-btn" onclick="removeRecipeFromMeal('${weekKey}', '${day}', ${recipe.id})" title="Remove from plan">
+                                    ✕
+                                </button>
+                            </div>
+                        </div>
+                    `).join('')}
 
-                <div class="add-meal-section">
-                    <select class="add-meal-select" onchange="addRecipeToMeal('${currentWeekView}', '${day}', this.value); this.value='';">
-                        <option value="">+ Add a meal</option>
-                        ${recipeOptions}
-                    </select>
+                    ${dayRecipes.length === 0 ? '<p class="empty-day-message">No meals planned</p>' : ''}
+
+                    <div class="add-meal-section">
+                        <select class="add-meal-select" onchange="addRecipeToMeal('${weekKey}', '${day}', this.value); this.value='';">
+                            <option value="">+ Add meal</option>
+                            ${recipeOptions}
+                        </select>
+                    </div>
                 </div>
             </div>
-        </div>
-        `;
-    }).join('');
+            `;
+        }).join('');
 
-    mealPlanGrid.innerHTML = weekTabs + daysHTML;
+        container.innerHTML = daysHTML;
+    };
+
+    // Render both weeks
+    if (week1Container) renderWeekDays('week1', week1Container);
+    if (week2Container) renderWeekDays('week2', week2Container);
 }
 
 function switchWeek(week) {

@@ -1506,3 +1506,251 @@ table tr:hover {
         width: 100%;
     }
 }
+
+/* ==========================================
+   MEAL PLAN: 2-WEEK SIDE-BY-SIDE LAYOUT
+   ========================================== */
+.two-week-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-xl);
+    margin-top: var(--spacing-lg);
+}
+
+.week-column {
+    min-width: 0; /* Prevents grid blowout */
+}
+
+.week-column-header {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: var(--white);
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    margin-bottom: var(--spacing-md);
+}
+
+.week-column-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.week-days-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+/* Meal Day Cards */
+.meal-day-card {
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-md);
+    transition: all 0.3s ease;
+}
+
+.meal-day-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--accent);
+}
+
+/* TODAY highlighting */
+.meal-day-card.today-day {
+    border: 3px solid var(--accent);
+    background: linear-gradient(135deg, #FFF9E6 0%, var(--bg-card) 100%);
+    box-shadow: 0 4px 12px rgba(124, 106, 92, 0.15);
+}
+
+.meal-day-card.today-day .meal-day-header {
+    border-bottom: 2px solid var(--accent);
+}
+
+/* Past days (faded) */
+.meal-day-card.past-day {
+    opacity: 0.6;
+    background: var(--bg-secondary);
+}
+
+.meal-day-card.past-day:hover {
+    opacity: 0.8;
+}
+
+/* Day Header */
+.meal-day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+    border-bottom: 2px solid var(--border);
+}
+
+.meal-day-title {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.meal-day-title h4 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.today-badge {
+    background: linear-gradient(135deg, var(--accent), var(--primary));
+    color: var(--white);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.meal-count {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* Meal List */
+.meal-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.meal-item {
+    background: var(--bg-secondary);
+    padding: var(--spacing-sm);
+    border-radius: var(--radius-md);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.meal-item:hover {
+    background: var(--white);
+    transform: translateX(4px);
+}
+
+.meal-item-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.meal-recipe-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    display: block;
+}
+
+.meal-servings {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    display: block;
+    margin-top: 0.125rem;
+}
+
+.meal-item-actions {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.meal-action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.meal-action-btn.cook-btn {
+    background: var(--success);
+    color: var(--white);
+}
+
+.meal-action-btn.cook-btn:hover {
+    background: #38a169;
+    transform: scale(1.1);
+}
+
+.meal-action-btn.remove-btn {
+    background: var(--danger);
+    color: var(--white);
+}
+
+.meal-action-btn.remove-btn:hover {
+    background: #c53030;
+    transform: scale(1.1);
+}
+
+.empty-day-message {
+    text-align: center;
+    color: var(--text-tertiary);
+    font-size: 0.85rem;
+    font-style: italic;
+    margin: var(--spacing-sm) 0;
+}
+
+.add-meal-section {
+    margin-top: var(--spacing-sm);
+}
+
+.add-meal-select {
+    width: 100%;
+    padding: var(--spacing-sm);
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-md);
+    background: var(--white);
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.add-meal-select:hover {
+    border-color: var(--accent);
+    background: var(--bg-secondary);
+}
+
+.add-meal-select:focus {
+    outline: none;
+    border-color: var(--primary);
+    border-style: solid;
+}
+
+/* Responsive: Stack weeks on mobile */
+@media (max-width: 1024px) {
+    .two-week-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .meal-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-sm);
+    }
+
+    .meal-item-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .week-column-header h3 {
+        font-size: 1rem;
+    }
+}
