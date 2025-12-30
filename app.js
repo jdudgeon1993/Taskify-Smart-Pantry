@@ -3627,8 +3627,6 @@ async function confirmSendToPantry() {
 }
 
 // Category filtering for shopping list
-let currentShoppingCategory = 'all';
-
 function filterShoppingByCategory(category) {
     currentShoppingCategory = category;
 
