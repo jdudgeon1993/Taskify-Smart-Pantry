@@ -280,13 +280,23 @@ async function initializeApp() {
     showAppScreen();
     console.log('📊 Loading app data...');
     try {
+        console.log('🔍 Step 1: Getting current user...');
         currentUser = await getCurrentUser();
+        console.log('✅ Current user:', currentUser?.email);
+
+        console.log('🔍 Step 2: Getting user household...');
         currentHousehold = await getUserHousehold();
+        console.log('✅ Current household:', currentHousehold?.name);
+
         if (!currentHousehold) {
+            console.log('🏠 Creating new household...');
             const householdName = currentUser.email.split('@')[0] + '\'s Pantry';
             currentHousehold = await createHousehold(householdName);
+            console.log('✅ Household created:', householdName);
             showToast('Welcome!', 'Created household: ' + householdName, 'success');
         }
+
+        console.log('🔍 Step 3: Updating household display...');
         const householdDisplay = document.getElementById('household-name-display');
         if (householdDisplay && currentHousehold) {
             householdDisplay.textContent = currentHousehold.name;
@@ -296,6 +306,8 @@ async function initializeApp() {
         if (appContent && currentHousehold) {
             appContent.setAttribute('data-household', currentHousehold.name);
         }
+
+        console.log('🔍 Step 4: Loading all data from Supabase...');
         await loadAllDataFromSupabase();
         console.log('✅ Data loading complete');
 
@@ -330,7 +342,8 @@ async function initializeApp() {
         window.isInitialized = true;
         window.isLoading = false;
     } catch (error) {
-        console.error('Error initializing app:', error);
+        console.error('❌ Error initializing app:', error);
+        console.error('Error stack:', error.stack);
         window.isLoading = false; // Reset loading flag on error
         showToast('Error', 'Failed to initialize app: ' + error.message, 'error');
         // On error, show login screen and sign out to allow recovery
@@ -343,6 +356,16 @@ async function initializeApp() {
 // Expose initializeApp to global scope for auth.js
 window.initializeApp = initializeApp;
 
+// Timeout wrapper for async operations
+function withTimeout(promise, timeoutMs = 10000, operationName = 'Operation') {
+    return Promise.race([
+        promise,
+        new Promise((_, reject) =>
+            setTimeout(() => reject(new Error(`${operationName} timed out after ${timeoutMs}ms`)), timeoutMs)
+        )
+    ]);
+}
+
 // Set up auth state listener NOW that initializeApp is available
 if (window.supabaseClient) {
     console.log('🔧 Setting up auth state listener in app.js');
@@ -352,10 +375,18 @@ if (window.supabaseClient) {
             console.log('✅ [APP.JS] User signed in:', session.user.email);
             console.log('📱 [APP.JS] Calling initializeApp()...');
             try {
-                await initializeApp();
+                // Add timeout to initialization
+                await withTimeout(initializeApp(), 30000, 'App initialization');
                 console.log('✅ [APP.JS] initializeApp() completed');
             } catch (error) {
                 console.error('❌ [APP.JS] Error in initializeApp:', error);
+                window.isLoading = false;
+                window.isInitialized = false;
+                showToast('Error', 'Failed to initialize: ' + error.message, 'error');
+                // Show a helpful error message
+                if (error.message.includes('timed out')) {
+                    alert('The app is taking too long to load. This might be a network issue. Please refresh the page and try again.');
+                }
             }
         } else if (event === 'SIGNED_OUT') {
             console.log('👋 [APP.JS] User signed out');
@@ -364,8 +395,50 @@ if (window.supabaseClient) {
     });
 }
 
+async function ensureDefaultCategoriesAndLocations() {
+    try {
+        console.log('🔍 Ensuring default categories and locations exist...');
+
+        // Check if categories exist
+        const categories = await loadCategories();
+        if (categories.length === 0) {
+            console.log('📝 Creating default categories...');
+            const defaultCategories = ['Produce', 'Dairy', 'Meat', 'Grains', 'Condiments', 'Beverages', 'Snacks', 'Other'];
+            for (const cat of defaultCategories) {
+                try {
+                    await addCategory(cat);
+                } catch (err) {
+                    console.warn(`Could not add category ${cat}:`, err);
+                }
+            }
+        }
+
+        // Check if locations exist
+        const locations = await loadLocations();
+        if (locations.length === 0) {
+            console.log('📝 Creating default locations...');
+            const defaultLocations = ['Pantry', 'Fridge', 'Freezer'];
+            for (const loc of defaultLocations) {
+                try {
+                    await addLocation(loc);
+                } catch (err) {
+                    console.warn(`Could not add location ${loc}:`, err);
+                }
+            }
+        }
+
+        console.log('✅ Default categories and locations ensured');
+    } catch (error) {
+        console.warn('⚠️ Could not ensure defaults (tables may not exist yet):', error);
+        // Don't throw - allow app to continue even if these tables don't exist
+    }
+}
+
 async function loadAllDataFromSupabase() {
     try {
+        console.log('⏳ Ensuring default categories and locations...');
+        await ensureDefaultCategoriesAndLocations();
+
         console.log('⏳ Loading pantry items...');
         ingredients = await loadPantryItems();
         const totalItems = (ingredients.pantry?.length || 0) + (ingredients.fridge?.length || 0) + (ingredients.freezer?.length || 0);
