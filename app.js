@@ -3548,7 +3548,7 @@ async function removeRecipeFromMeal(week, day, recipeId) {
 // Expose to window for inline handlers
 window.removeRecipeFromMeal = removeRecipeFromMeal;
 
-function cookNowAndDeduct(recipeId, week, day) {
+async function cookNowAndDeduct(recipeId, week, day) {
     const recipe = recipes.find(r => r.id === recipeId);
     if (!recipe) return;
 
