@@ -4149,6 +4149,20 @@ async function cookNowAndDeduct(recipeId, week, day) {
 // Expose to window for inline handlers
 window.cookNowAndDeduct = cookNowAndDeduct;
 
+// Toggle collapsible sections in settings
+function toggleSettingsSection(sectionName) {
+    const content = document.getElementById(`${sectionName}-content`);
+    const arrow = document.getElementById(`${sectionName}-arrow`);
+
+    if (content.style.display === 'none') {
+        content.style.display = 'block';
+        arrow.textContent = '▲';
+    } else {
+        content.style.display = 'none';
+        arrow.textContent = '▼';
+    }
+}
+
 // Settings Section
 function initSettings() {
     // Cloud sync UI is now enabled!

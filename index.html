@@ -565,77 +565,88 @@
 
             <!-- Settings Section -->
             <section id="settings" class="section">
-                <h2>Settings & Data Management</h2>
+                <div class="section-header">
+                    <h2>Settings & Data Management</h2>
+                </div>
 
-                <div class="settings-card">
-                    <h3>Household Sharing</h3>
-                    <p class="card-description">
-                        Your pantry is shared with everyone in your household. Invite others to collaborate!
-                    </p>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
-                        <button onclick="showInviteModal()" class="btn-primary">Generate Invite Code</button>
-                        <button onclick="showJoinModal()" class="btn-secondary">Join Another Household</button>
+                <!-- Top Cards Grid -->
+                <div class="settings-top-grid">
+                    <!-- Household Sharing Card -->
+                    <div class="settings-main-card">
+                        <h3>Household Sharing</h3>
+                        <p class="card-description">
+                            Your pantry is shared with everyone in your household. Invite others to collaborate!
+                        </p>
+                        <div class="settings-button-group">
+                            <button onclick="showInviteModal()" class="btn-settings btn-settings-primary">Generate Invite Code</button>
+                            <button onclick="showJoinModal()" class="btn-settings">Join Household</button>
+                        </div>
+                    </div>
+
+                    <!-- Data Backup & Restore Card -->
+                    <div class="settings-main-card">
+                        <h3>Data Backup & Restore</h3>
+                        <p class="card-description">Export your data for backup or import from a previous backup.</p>
+                        <div class="settings-button-group">
+                            <button id="export-data-btn" class="btn-settings btn-settings-success">Export</button>
+                            <label for="import-data-file" class="btn-settings-wrapper">
+                                <button type="button" id="import-trigger-btn" class="btn-settings">Import</button>
+                                <input type="file" id="import-data-file" accept=".json" style="display: none;" />
+                            </label>
+                        </div>
                     </div>
                 </div>
 
-                <!-- NEW: Manage Storage Locations -->
-                <div class="settings-card">
-                    <h3>Storage Locations</h3>
-                    <p class="card-description">
-                        Manage where you store your ingredients. Add custom locations like "Garage Freezer" or "Wine Fridge".
-                    </p>
-                    <div style="margin-top: 15px;">
+                <!-- Collapsible Sections -->
+                <div class="settings-collapsible-section">
+                    <button class="collapsible-header" onclick="toggleSettingsSection('locations')">
+                        <span class="collapsible-title">
+                            <span class="collapsible-icon">📍</span>
+                            Storage Locations
+                        </span>
+                        <span class="collapsible-arrow" id="locations-arrow">▼</span>
+                    </button>
+                    <div class="collapsible-content" id="locations-content" style="display: none;">
+                        <p class="card-description">
+                            Manage where you store your ingredients. Add custom locations like "Garage Freezer" or "Wine Fridge".
+                        </p>
                         <button class="btn-primary" id="add-location-btn">+ Add Location</button>
-                    </div>
-                    <div id="locations-list" style="margin-top: 15px;">
-                        <!-- Locations will be populated here -->
+                        <div id="locations-list" style="margin-top: 15px;">
+                            <!-- Locations will be populated here -->
+                        </div>
                     </div>
                 </div>
 
-                <!-- NEW: Manage Categories -->
-                <div class="settings-card">
-                    <h3>Item Categories</h3>
-                    <p class="card-description">
-                        Organize your ingredients by type. Add custom categories like "Spices", "Baking", or "Asian Ingredients".
-                    </p>
-                    <div style="margin-top: 15px;">
+                <div class="settings-collapsible-section">
+                    <button class="collapsible-header" onclick="toggleSettingsSection('categories')">
+                        <span class="collapsible-title">
+                            <span class="collapsible-icon">🏷️</span>
+                            Item Categories
+                        </span>
+                        <span class="collapsible-arrow" id="categories-arrow">▼</span>
+                    </button>
+                    <div class="collapsible-content" id="categories-content" style="display: none;">
+                        <p class="card-description">
+                            Organize your ingredients by type. Add custom categories like "Spices", "Baking", or "Asian Ingredients".
+                        </p>
                         <button class="btn-primary" id="add-category-btn">+ Add Category</button>
-                    </div>
-                    <div id="categories-list" style="margin-top: 15px;">
-                        <!-- Categories will be populated here -->
-                    </div>
-                </div>
-
-                <div class="settings-card">
-                    <h3>Data Backup & Restore</h3>
-                    <p class="card-description">Export your data for backup or import from a previous backup.</p>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <button id="export-data-btn" class="btn-success">Export All Data</button>
-                        <label for="import-data-file" style="cursor: pointer; display: inline-block;">
-                            <button type="button" id="import-trigger-btn" class="btn-primary">Import Data</button>
-                            <input type="file" id="import-data-file" accept=".json" style="display: none;" />
-                        </label>
+                        <div id="categories-list" style="margin-top: 15px;">
+                            <!-- Categories will be populated here -->
+                        </div>
                     </div>
                 </div>
 
-                <div class="settings-card">
-                    <h3>Statistics</h3>
-                    <div id="stats-display" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
-                        <!-- Stats will be populated here -->
-                    </div>
-                </div>
-
-                <div class="settings-card">
-                    <h3>About Taskify Smart Pantry</h3>
-                    <p class="card-description">Version 3.0 - Supabase Edition</p>
-                    <p class="card-description" style="margin-top: 10px;">Your complete kitchen management solution with real-time sync across all devices!</p>
-                </div>
-
-                <div class="settings-card">
-                    <h3>Account Management</h3>
-                    <p class="card-description">Sign out of your account</p>
-                    <div style="margin-top: 15px;">
-                        <button onclick="handleSignout()" class="btn-danger">Sign Out</button>
+                <!-- About & Sign Out Section -->
+                <div class="settings-footer-card">
+                    <div class="settings-footer-content">
+                        <div class="settings-about">
+                            <h3>About Taskify Smart Pantry</h3>
+                            <p class="version-text">Version: 3.0</p>
+                            <p class="card-description">Your complete kitchen management solution with real-time sync across all devices!</p>
+                        </div>
+                        <div class="settings-signout">
+                            <button onclick="handleSignout()" class="btn-signout">Sign Out</button>
+                        </div>
                     </div>
                 </div>
             </section>

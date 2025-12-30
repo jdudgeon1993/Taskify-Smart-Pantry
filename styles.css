@@ -2354,6 +2354,242 @@ textarea:focus {
     outline-offset: 2px;
 }
 
+/* ==============================================
+   SETTINGS SECTION
+   ============================================== */
+
+/* Settings Top Grid - Two cards side by side */
+.settings-top-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
+}
+
+/* Settings Main Cards */
+.settings-main-card {
+    background: var(--white);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
+}
+
+.settings-main-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.settings-main-card h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 var(--spacing-sm) 0;
+    text-align: center;
+}
+
+.settings-main-card .card-description {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: var(--spacing-lg);
+    text-align: center;
+}
+
+/* Settings Button Group */
+.settings-button-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-md);
+}
+
+.btn-settings-wrapper {
+    display: contents;
+}
+
+.btn-settings {
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: var(--white);
+    color: var(--text-primary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.btn-settings:hover {
+    background: var(--bg-secondary);
+    border-color: var(--primary);
+    transform: translateY(-1px);
+}
+
+.btn-settings-primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: var(--white);
+    border-color: var(--primary);
+}
+
+.btn-settings-primary:hover {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-settings-success {
+    background: linear-gradient(135deg, #48bb78, #38a169);
+    color: var(--white);
+    border-color: #48bb78;
+}
+
+.btn-settings-success:hover {
+    background: linear-gradient(135deg, #38a169, #2f855a);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Collapsible Sections */
+.settings-collapsible-section {
+    background: var(--white);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--spacing-lg);
+    overflow: hidden;
+}
+
+.collapsible-header {
+    width: 100%;
+    padding: var(--spacing-lg);
+    background: var(--bg-secondary);
+    border: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.collapsible-header:hover {
+    background: #e8eaf0;
+}
+
+.collapsible-title {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.collapsible-icon {
+    font-size: 1.3rem;
+}
+
+.collapsible-arrow {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    transition: transform 0.2s ease;
+}
+
+.collapsible-content {
+    padding: var(--spacing-lg);
+}
+
+.collapsible-content .card-description {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: var(--spacing-md);
+}
+
+/* Footer Card - About & Sign Out */
+.settings-footer-card {
+    background: linear-gradient(135deg, var(--bg-secondary), var(--white));
+    border: 2px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    margin-top: var(--spacing-xl);
+}
+
+.settings-footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--spacing-xl);
+}
+
+.settings-about h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 var(--spacing-xs) 0;
+}
+
+.version-text {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    margin: var(--spacing-xs) 0;
+}
+
+.settings-about .card-description {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin: var(--spacing-sm) 0 0 0;
+}
+
+.settings-signout {
+    flex-shrink: 0;
+}
+
+.btn-signout {
+    padding: var(--spacing-md) var(--spacing-xl);
+    background: linear-gradient(135deg, #f56565, #e53e3e);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-lg);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-signout:hover {
+    background: linear-gradient(135deg, #e53e3e, #c53030);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .settings-top-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .settings-button-group {
+        grid-template-columns: 1fr;
+    }
+
+    .settings-footer-content {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .settings-about {
+        text-align: center;
+    }
+
+    .btn-signout {
+        width: 100%;
+    }
+}
+
 /* Screen reader only content */
 .sr-only {
     position: absolute;
