@@ -822,6 +822,27 @@ async function initIngredients() {
         });
     }
 
+    // Event delegation for edit/delete buttons
+    const ingredientsGrid = document.getElementById('ingredients-grid');
+    if (ingredientsGrid) {
+        ingredientsGrid.addEventListener('click', (e) => {
+            const button = e.target.closest('.icon-btn');
+            if (!button) return;
+
+            const action = button.dataset.action;
+            const location = button.dataset.location;
+            const id = parseInt(button.dataset.id);
+
+            if (action === 'edit') {
+                editIngredient(location, id);
+            } else if (action === 'delete') {
+                if (confirm('Are you sure you want to delete this ingredient?')) {
+                    deleteIngredient(location, id);
+                }
+            }
+        });
+    }
+
     // Initial render
     renderIngredients();
 }
@@ -1252,10 +1273,18 @@ function renderIngredients() {
                 </div>
 
                 <div class="ingredient-card-actions">
-                    <button class="icon-btn edit-btn" onclick="editIngredient('${item.location}', ${item.id})" title="Edit">
+                    <button class="icon-btn edit-btn"
+                            data-action="edit"
+                            data-location="${item.location}"
+                            data-id="${item.id}"
+                            title="Edit">
                         ✏️
                     </button>
-                    <button class="icon-btn delete-btn" onclick="deleteIngredient('${item.location}', ${item.id})" title="Delete">
+                    <button class="icon-btn delete-btn"
+                            data-action="delete"
+                            data-location="${item.location}"
+                            data-id="${item.id}"
+                            title="Delete">
                         🗑️
                     </button>
                 </div>
@@ -2823,16 +2852,16 @@ function renderShoppingList() {
                     ${items.map(item => `
                         <li class="${item.checked ? 'checked' : ''}" style="background: #f8f9fa; padding: 15px; margin-bottom: 10px; border-radius: 8px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${item.checked ? '10px' : '5px'};">
-                                <div onclick="toggleShoppingItem(${item.id})" style="cursor: pointer; flex: 1;">
+                                <div onclick="toggleShoppingItem('${item.id}')" style="cursor: pointer; flex: 1;">
                                     <span style="font-weight: 600; font-size: 15px;">${item.name}</span>
                                 </div>
                                 <div style="display: flex; gap: 5px;">
-                                    <button onclick="editShoppingItem(${item.id})" style="padding: 6px 12px; background: #667eea; color: white; border: none; border-radius: 6px; font-size: 12px; cursor: pointer;">Edit</button>
-                                    <button class="delete-btn" onclick="deleteShoppingItem(${item.id})">Delete</button>
+                                    <button onclick="editShoppingItem('${item.id}')" style="padding: 6px 12px; background: #667eea; color: white; border: none; border-radius: 6px; font-size: 12px; cursor: pointer;">Edit</button>
+                                    <button class="delete-btn" onclick="deleteShoppingItem('${item.id}')">Delete</button>
                                 </div>
                             </div>
                             ${!item.checked ? `
-                                <div onclick="toggleShoppingItem(${item.id})" style="cursor: pointer; color: #667eea; font-size: 14px; margin-bottom: 5px;">
+                                <div onclick="toggleShoppingItem('${item.id}')" style="cursor: pointer; color: #667eea; font-size: 14px; margin-bottom: 5px;">
                                     <span>Need: ${item.quantity} ${item.unit}</span>
                                     <span style="margin-left: 10px; color: #718096;">→ ${item.targetLocation === 'pantry' ? '🏺 Pantry' : item.targetLocation === 'fridge' ? '❄️ Fridge' : '🧊 Freezer'}</span>
                                 </div>
@@ -2844,7 +2873,7 @@ function renderShoppingList() {
                                             <label style="display: block; font-size: 12px; color: #718096; margin-bottom: 4px;">Quantity Purchased</label>
                                             <input type="number"
                                                    value="${item.purchasedQuantity || item.quantity}"
-                                                   onchange="updatePurchasedQuantity(${item.id}, this.value)"
+                                                   onchange="updatePurchasedQuantity('${item.id}', this.value)"
                                                    onclick="event.stopPropagation()"
                                                    step="0.1"
                                                    min="0"
