@@ -422,49 +422,39 @@
                     <h2>Shopping List</h2>
                 </div>
 
-                <!-- Actions Bar (Always Visible) -->
-                <div class="shopping-actions-bar">
+                <!-- Category Filters -->
+                <div class="shopping-category-filters">
+                    <button class="category-filter-btn active" data-category="all" onclick="filterShoppingByCategory('all')">All</button>
+                    <button class="category-filter-btn" data-category="Produce" onclick="filterShoppingByCategory('Produce')">Produce</button>
+                    <button class="category-filter-btn" data-category="Dairy" onclick="filterShoppingByCategory('Dairy')">Dairy</button>
+                    <button class="category-filter-btn" data-category="Meat" onclick="filterShoppingByCategory('Meat')">Meat</button>
+                    <button class="category-filter-btn" data-category="Pantry" onclick="filterShoppingByCategory('Pantry')">Pantry</button>
+                    <button class="category-filter-btn" data-category="Frozen" onclick="filterShoppingByCategory('Frozen')">Frozen</button>
+                    <button class="category-filter-btn" data-category="Bakery" onclick="filterShoppingByCategory('Bakery')">Bakery</button>
+                </div>
+
+                <!-- Quick Actions Row -->
+                <div class="shopping-quick-actions">
+                    <button id="quick-add-common-items-btn" class="btn-secondary">Quick Add Common Items</button>
+
+                    <div class="quick-actions-group">
+                        <h3>Quick Actions</h3>
+                        <div class="quick-actions-buttons">
+                            <button id="check-all-shopping-btn" class="btn-secondary">Check All</button>
+                            <button id="send-to-pantry-btn" class="btn-primary">Send to Pantry<br><small>** Only works when items are checked **</small></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Generation Actions (Moved below Quick Actions) -->
+                <div class="shopping-generation-bar">
                     <button id="auto-generate-list-btn" class="btn-secondary">Auto-Generate from Recipes</button>
                     <button id="generate-from-meal-plan-btn" class="btn-secondary">Generate from Meal Plan</button>
                     <button id="print-shopping-list-btn" class="btn-secondary">Print List</button>
                     <button id="clear-shopping-list-btn" class="btn-danger">Clear List</button>
                 </div>
 
-                <div class="add-shopping-item hidden" id="add-shopping-form-container">
-                    <div class="form-card">
-                        <h3>Add Shopping Item</h3>
-                        <div class="form-group">
-                            <label>Item Name</label>
-                            <input type="text" id="shopping-item-name" placeholder="e.g., Milk, Bread" />
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Quantity</label>
-                                <input type="number" id="shopping-item-qty" placeholder="1" min="0.1" step="0.1" value="1" />
-                            </div>
-                            <div class="form-group">
-                                <label>Unit</label>
-                                <input type="text" id="shopping-item-unit" placeholder="lbs, pcs" />
-                            </div>
-                            <div class="form-group">
-                                <label>Category</label>
-                                <select id="shopping-item-category">
-                                    <!-- Will be populated from database -->
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-actions">
-                            <button id="add-shopping-item-btn" class="primary-btn">Add to List</button>
-                            <button id="cancel-add-shopping" class="secondary-btn">Cancel</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Quick Add from Recent Purchases -->
-                <div id="recent-purchases-section" class="recent-purchases-section">
-                    <!-- Will be populated dynamically -->
-                </div>
-
+                <!-- Shopping List Display -->
                 <div id="shopping-list-by-category"></div>
 
                 <!-- Floating Add Button -->
@@ -472,6 +462,50 @@
                     <span>+</span>
                 </button>
             </section>
+
+            <!-- Add Shopping Item Modal -->
+            <div id="add-shopping-modal" class="modal hidden">
+                <div class="modal-content">
+                    <span class="close-modal" id="close-shopping-modal">&times;</span>
+                    <h3>Add Shopping Item</h3>
+                    <div class="form-group">
+                        <label>Item Name</label>
+                        <input type="text" id="shopping-item-name" placeholder="e.g., Milk, Bread" />
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Quantity</label>
+                            <input type="number" id="shopping-item-qty" placeholder="1" min="0.1" step="0.1" value="1" />
+                        </div>
+                        <div class="form-group">
+                            <label>Unit</label>
+                            <input type="text" id="shopping-item-unit" placeholder="lbs, pcs" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="shopping-item-category">
+                            <!-- Will be populated from database -->
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button id="add-shopping-item-btn" class="primary-btn">Add to List</button>
+                        <button id="cancel-add-shopping" class="secondary-btn">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Add Common Items Modal -->
+            <div id="quick-add-modal" class="modal hidden">
+                <div class="modal-content">
+                    <span class="close-modal" id="close-quick-add-modal">&times;</span>
+                    <h3>Quick Add Common Items</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 20px;">Click items to add them to your shopping list</p>
+                    <div id="common-items-grid" class="common-items-grid">
+                        <!-- Will be populated with common items -->
+                    </div>
+                </div>
+            </div>
 
             <!-- Meal Plan Section -->
             <section id="meal-plan" class="section">

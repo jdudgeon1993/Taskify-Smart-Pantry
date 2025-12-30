@@ -2569,26 +2569,34 @@ async function initShopping() {
     const clearListBtn = document.getElementById('clear-shopping-list-btn');
     const floatingAddBtn = document.getElementById('floating-add-shopping');
     const cancelAddShoppingBtn = document.getElementById('cancel-add-shopping');
-    const shoppingFormContainer = document.getElementById('add-shopping-form-container');
+    const shoppingModal = document.getElementById('add-shopping-modal');
+    const closeShoppingModal = document.getElementById('close-shopping-modal');
+    const quickAddBtn = document.getElementById('quick-add-common-items-btn');
+    const checkAllBtn = document.getElementById('check-all-shopping-btn');
+    const sendToPantryBtn = document.getElementById('send-to-pantry-btn');
 
     // Populate category dropdown from database
     await populateShoppingCategoryDropdown();
 
-    // Load and display recent purchases
-    await loadAndDisplayRecentPurchases();
-
-    // Floating + button - show form
+    // Floating + button - show modal
     if (floatingAddBtn) {
         floatingAddBtn.addEventListener('click', () => {
-            shoppingFormContainer.classList.remove('hidden');
+            shoppingModal.classList.remove('hidden');
             document.getElementById('shopping-item-name').focus();
         });
     }
 
-    // Cancel button
+    // Close modal buttons
+    if (closeShoppingModal) {
+        closeShoppingModal.addEventListener('click', () => {
+            shoppingModal.classList.add('hidden');
+            clearShoppingForm();
+        });
+    }
+
     if (cancelAddShoppingBtn) {
         cancelAddShoppingBtn.addEventListener('click', () => {
-            shoppingFormContainer.classList.add('hidden');
+            shoppingModal.classList.add('hidden');
             clearShoppingForm();
         });
     }
@@ -2615,6 +2623,21 @@ async function initShopping() {
     const printListBtn = document.getElementById('print-shopping-list-btn');
     if (printListBtn) {
         printListBtn.addEventListener('click', printShoppingList);
+    }
+
+    // Quick Add Common Items button
+    if (quickAddBtn) {
+        quickAddBtn.addEventListener('click', openQuickAddModal);
+    }
+
+    // Check All button
+    if (checkAllBtn) {
+        checkAllBtn.addEventListener('click', checkAllShoppingItems);
+    }
+
+    // Send to Pantry button
+    if (sendToPantryBtn) {
+        sendToPantryBtn.addEventListener('click', openSendToPantryModal);
     }
 
     // Enter key on name input
@@ -2761,20 +2784,31 @@ async function quickAddRecentItem(itemName, unit) {
     }
 }
 
-async function addShoppingItem() {
-    const nameInput = document.getElementById('shopping-item-name');
-    const quantityInput = document.getElementById('shopping-item-qty');
-    const unitInput = document.getElementById('shopping-item-unit');
-    const categorySelect = document.getElementById('shopping-item-category');
+async function addShoppingItem(itemData) {
+    let name, quantity, unit, category;
 
-    const name = nameInput.value.trim();
-    const quantity = parseFloat(quantityInput.value) || 1;
-    const unit = unitInput.value.trim();
-    const category = categorySelect.value;
+    // If itemData is provided (from generate functions), use it
+    if (itemData && typeof itemData === 'object') {
+        name = itemData.name;
+        quantity = itemData.quantity;
+        unit = itemData.unit;
+        category = itemData.category;
+    } else {
+        // Otherwise, read from form inputs (manual add)
+        const nameInput = document.getElementById('shopping-item-name');
+        const quantityInput = document.getElementById('shopping-item-qty');
+        const unitInput = document.getElementById('shopping-item-unit');
+        const categorySelect = document.getElementById('shopping-item-category');
 
-    if (!name) {
-        alert('Please enter an item name');
-        return;
+        name = nameInput?.value.trim();
+        quantity = parseFloat(quantityInput?.value) || 1;
+        unit = unitInput?.value.trim();
+        category = categorySelect?.value;
+
+        if (!name) {
+            alert('Please enter an item name');
+            return;
+        }
     }
 
     try {
@@ -2801,16 +2835,22 @@ async function addShoppingItem() {
         renderShoppingList();
         updateDashboardStats();
 
-        // Hide form and clear inputs
-        const formContainer = document.getElementById('add-shopping-form-container');
-        if (formContainer) {
-            formContainer.classList.add('hidden');
+        // Hide modal and clear inputs (only if called from manual form)
+        if (!itemData) {
+            const shoppingModal = document.getElementById('add-shopping-modal');
+            if (shoppingModal) {
+                shoppingModal.classList.add('hidden');
+            }
+
+            const nameInput = document.getElementById('shopping-item-name');
+            const quantityInput = document.getElementById('shopping-item-qty');
+            const unitInput = document.getElementById('shopping-item-unit');
+
+            if (nameInput) nameInput.value = '';
+            if (quantityInput) quantityInput.value = '1';
+            if (unitInput) unitInput.value = '';
         }
 
-        nameInput.value = '';
-        quantityInput.value = '1';
-        unitInput.value = '';
-        nameInput.focus();
         showToast('Item Added', `${name} added to shopping list`, 'success');
     } catch (error) {
         console.error('Error adding shopping item:', error);
@@ -3583,6 +3623,109 @@ async function confirmSendToPantry() {
     } catch (error) {
         console.error('Error sending to pantry:', error);
         showToast('Error', 'Failed to send items to pantry', 'error');
+    }
+}
+
+// Category filtering for shopping list
+let currentShoppingCategory = 'all';
+
+function filterShoppingByCategory(category) {
+    currentShoppingCategory = category;
+
+    // Update active button
+    const filterButtons = document.querySelectorAll('.category-filter-btn');
+    filterButtons.forEach(btn => {
+        if (btn.dataset.category === category) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+
+    renderShoppingList();
+}
+
+// Quick Add Common Items Modal
+function openQuickAddModal() {
+    const modal = document.getElementById('quick-add-modal');
+    const grid = document.getElementById('common-items-grid');
+
+    // Common grocery items by category
+    const commonItems = [
+        { name: 'Milk', category: 'Dairy', unit: 'gallon' },
+        { name: 'Eggs', category: 'Dairy', unit: 'dozen' },
+        { name: 'Bread', category: 'Bakery', unit: 'loaf' },
+        { name: 'Butter', category: 'Dairy', unit: 'lb' },
+        { name: 'Cheese', category: 'Dairy', unit: 'lb' },
+        { name: 'Chicken Breast', category: 'Meat', unit: 'lb' },
+        { name: 'Ground Beef', category: 'Meat', unit: 'lb' },
+        { name: 'Bananas', category: 'Produce', unit: 'bunch' },
+        { name: 'Apples', category: 'Produce', unit: 'lb' },
+        { name: 'Tomatoes', category: 'Produce', unit: 'lb' },
+        { name: 'Lettuce', category: 'Produce', unit: 'head' },
+        { name: 'Onions', category: 'Produce', unit: 'lb' },
+        { name: 'Potatoes', category: 'Produce', unit: 'lb' },
+        { name: 'Carrots', category: 'Produce', unit: 'lb' },
+        { name: 'Rice', category: 'Pantry', unit: 'lb' },
+        { name: 'Pasta', category: 'Pantry', unit: 'box' },
+        { name: 'Flour', category: 'Pantry', unit: 'lb' },
+        { name: 'Sugar', category: 'Pantry', unit: 'lb' },
+        { name: 'Salt', category: 'Pantry', unit: 'container' },
+        { name: 'Olive Oil', category: 'Pantry', unit: 'bottle' },
+        { name: 'Frozen Vegetables', category: 'Frozen', unit: 'bag' },
+        { name: 'Ice Cream', category: 'Frozen', unit: 'container' },
+        { name: 'Orange Juice', category: 'Dairy', unit: 'carton' },
+        { name: 'Coffee', category: 'Pantry', unit: 'bag' }
+    ];
+
+    grid.innerHTML = commonItems.map(item => `
+        <button class="common-item-btn" onclick="quickAddItem('${item.name}', '${item.category}', '${item.unit}')">
+            <span class="item-name">${item.name}</span>
+            <span class="item-category">${item.category}</span>
+        </button>
+    `).join('');
+
+    modal.classList.remove('hidden');
+
+    // Close modal on clicking the X or outside
+    const closeBtn = document.getElementById('close-quick-add-modal');
+    if (closeBtn) {
+        closeBtn.onclick = () => modal.classList.add('hidden');
+    }
+}
+
+async function quickAddItem(itemName, category, unit) {
+    try {
+        // Check if already in shopping list
+        const existing = shoppingList.find(item => item.name.toLowerCase() === itemName.toLowerCase());
+
+        if (existing) {
+            // Update quantity
+            const { error } = await supabase
+                .from('shopping_list')
+                .update({ quantity: existing.quantity + 1 })
+                .eq('id', existing.id);
+
+            if (error) throw error;
+
+            showToast('Quantity Updated', `${itemName} quantity increased to ${existing.quantity + 1}`, 'info');
+        } else {
+            // Add new item
+            await addShoppingItem({
+                name: itemName,
+                quantity: 1,
+                unit: unit,
+                category: category
+            });
+        }
+
+        // Reload shopping list
+        shoppingList = await loadShoppingList();
+        renderShoppingList();
+        updateDashboardStats();
+    } catch (error) {
+        console.error('Error quick-adding item:', error);
+        showToast('Error', 'Failed to add item to shopping list', 'error');
     }
 }
 
