@@ -92,6 +92,56 @@ function getTodayDayName() {
     return days[new Date().getDay()];
 }
 
+// Helper function to update greeting and datetime
+function updateGreetingAndDatetime() {
+    const now = new Date();
+    const hour = now.getHours();
+
+    // Determine greeting based on time
+    let greeting = 'Good Evening';
+    if (hour < 12) {
+        greeting = 'Good Morning';
+    } else if (hour < 18) {
+        greeting = 'Good Afternoon';
+    }
+
+    // Format date and time
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+    const dayName = days[now.getDay()];
+    const monthName = months[now.getMonth()];
+    const date = now.getDate();
+    const year = now.getFullYear();
+
+    // Add ordinal suffix (st, nd, rd, th)
+    const getOrdinalSuffix = (d) => {
+        if (d > 3 && d < 21) return 'th';
+        switch (d % 10) {
+            case 1: return 'st';
+            case 2: return 'nd';
+            case 3: return 'rd';
+            default: return 'th';
+        }
+    };
+
+    // Format time (12-hour format)
+    let hours = now.getHours();
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12 || 12;
+
+    const dateStr = `${dayName}, ${hours}:${minutes} ${ampm}`;
+    const fullDateStr = `${monthName} ${date}${getOrdinalSuffix(date)}, ${year}`;
+
+    // Update DOM
+    const greetingEl = document.getElementById('greeting-text');
+    const datetimeEl = document.getElementById('current-datetime');
+
+    if (greetingEl) greetingEl.textContent = greeting;
+    if (datetimeEl) datetimeEl.textContent = `${dateStr}, ${fullDateStr}`;
+}
+
 // Helper function to check if it's Monday and roll over weeks if needed
 function checkAndRolloverWeeks() {
     const today = getTodayDayName();
@@ -337,6 +387,11 @@ async function initializeApp() {
 
         console.log('🔧 Setting up realtime subscriptions...');
         setupRealtimeSubscriptions();
+
+        console.log('🔧 Updating greeting and datetime...');
+        updateGreetingAndDatetime();
+        // Update every minute
+        setInterval(updateGreetingAndDatetime, 60000);
 
         console.log('✅✅✅ App initialized successfully!');
         window.isInitialized = true;
@@ -1175,11 +1230,57 @@ function getReservedQuantities() {
     return reserved;
 }
 
+// Update ingredient summary boxes
+function updateIngredientSummary() {
+    // Get all ingredients
+    const allIngredients = [...ingredients.pantry, ...ingredients.fridge, ...ingredients.freezer];
+
+    // Calculate totals
+    let totalAvailable = 0;
+    let totalReserved = 0;
+    let totalExpiring = 0;
+
+    const reservedQty = getReservedQuantities();
+
+    allIngredients.forEach(item => {
+        const key = `${item.name.toLowerCase()}|${item.unit.toLowerCase()}`;
+        const reserved = item.reserved || reservedQty[key] || 0;
+        const available = item.available !== undefined ? item.available : (item.quantity - reserved);
+
+        if (available > 0) totalAvailable++;
+        if (reserved > 0) totalReserved++;
+
+        // Check if expiring
+        const expStatus = getExpirationStatus(item.expiration);
+        if (expStatus === 'expiring-soon' || expStatus === 'expired') {
+            totalExpiring++;
+        }
+    });
+
+    // Update DOM
+    const availableEl = document.getElementById('available-count');
+    const reservedEl = document.getElementById('reserved-count');
+    const expiringEl = document.getElementById('expiring-count');
+
+    if (availableEl) {
+        availableEl.textContent = `${totalAvailable} ingredient${totalAvailable !== 1 ? 's' : ''}`;
+    }
+    if (reservedEl) {
+        reservedEl.textContent = `${totalReserved} ingredient${totalReserved !== 1 ? 's' : ''}`;
+    }
+    if (expiringEl) {
+        expiringEl.textContent = `${totalExpiring} ingredient${totalExpiring !== 1 ? 's' : ''}`;
+    }
+}
+
 function renderIngredients() {
     const gridContainer = document.getElementById('ingredients-grid');
     if (!gridContainer) return;
 
     const reservedQty = getReservedQuantities();
+
+    // Update summary boxes
+    updateIngredientSummary();
 
     // Gather all ingredients from all locations
     let allItems = [];
