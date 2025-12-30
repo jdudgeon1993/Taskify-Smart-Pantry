@@ -494,24 +494,28 @@ async function loadAllDataFromSupabase() {
         console.log('⏳ Ensuring default categories and locations...');
         await ensureDefaultCategoriesAndLocations();
 
-        console.log('⏳ Loading pantry items...');
-        ingredients = await loadPantryItems();
+        console.log('⏳ Loading all data in parallel...');
+        // Load all independent data sources concurrently for faster initialization
+        const [loadedIngredients, loadedRecipes, loadedShoppingList, loadedMealPlan] = await Promise.all([
+            loadPantryItems(),
+            loadRecipes(),
+            loadShoppingList(),
+            loadMealPlan()
+        ]);
+
+        // Assign loaded data to global variables
+        ingredients = loadedIngredients;
+        recipes = loadedRecipes;
+        shoppingList = loadedShoppingList;
+        mealPlan = loadedMealPlan;
+
         const totalItems = (ingredients.pantry?.length || 0) + (ingredients.fridge?.length || 0) + (ingredients.freezer?.length || 0);
-        console.log('✅ Pantry items loaded:', totalItems, 'items');
-
-        console.log('⏳ Loading recipes...');
-        recipes = await loadRecipes();
-        console.log('✅ Recipes loaded:', recipes.length, 'recipes');
-
-        console.log('⏳ Loading shopping list...');
-        shoppingList = await loadShoppingList();
-        console.log('✅ Shopping list loaded:', shoppingList.length, 'items');
-
-        console.log('⏳ Loading meal plan...');
-        mealPlan = await loadMealPlan();
-        console.log('✅ Meal plan loaded');
-
-        console.log('✅ All data loaded from Supabase');
+        console.log('✅ All data loaded:', {
+            pantryItems: totalItems,
+            recipes: recipes.length,
+            shoppingItems: shoppingList.length,
+            mealPlan: 'loaded'
+        });
     } catch (error) {
         console.error('❌ Error loading data:', error);
         throw error;
