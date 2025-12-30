@@ -472,16 +472,76 @@ function initDashboard() {
 }
 
 function updateDashboardStats() {
+    // === PANTRY STATS ===
     const totalIngredients = ingredients.pantry.length + ingredients.fridge.length + ingredients.freezer.length;
-    const totalRecipes = recipes.length;
-    const totalShoppingItems = shoppingList.length;
+
+    // Count expiring items
+    const allIngredients = [...ingredients.pantry, ...ingredients.fridge, ...ingredients.freezer];
+    const expiringCount = allIngredients.filter(item => {
+        if (!item.expiration) return false;
+        const status = getExpirationStatus(item.expiration);
+        return status === 'expiring-soon' || status === 'expired';
+    }).length;
 
     document.getElementById('dashboard-ingredients-count').textContent =
         `${totalIngredients} ${totalIngredients === 1 ? 'item' : 'items'}`;
+
+    const ingredientsSecondary = document.getElementById('dashboard-ingredients-secondary');
+    if (expiringCount > 0) {
+        ingredientsSecondary.innerHTML = `<span style="color: #D97706;">⚠️ ${expiringCount} expiring soon</span>`;
+    } else {
+        ingredientsSecondary.textContent = 'All items fresh';
+    }
+
+    // === RECIPES STATS ===
+    const totalRecipes = recipes.length;
+
+    // Count ready-to-cook recipes
+    const readyToCook = recipes.filter(recipe => {
+        const status = checkRecipeStatus(recipe);
+        return status.isReady;
+    }).length;
+
     document.getElementById('dashboard-recipes-count').textContent =
         `${totalRecipes} ${totalRecipes === 1 ? 'recipe' : 'recipes'}`;
+
+    const recipesSecondary = document.getElementById('dashboard-recipes-secondary');
+    if (readyToCook > 0) {
+        recipesSecondary.innerHTML = `<span style="color: #48BB78;">✓ ${readyToCook} ready to cook</span>`;
+    } else {
+        recipesSecondary.textContent = 'Add ingredients to cook';
+    }
+
+    // === SHOPPING LIST STATS ===
+    const totalShoppingItems = shoppingList.length;
+    const uncheckedItems = shoppingList.filter(item => !item.checked).length;
+
     document.getElementById('dashboard-shopping-count').textContent =
         `${totalShoppingItems} ${totalShoppingItems === 1 ? 'item' : 'items'}`;
+
+    const shoppingSecondary = document.getElementById('dashboard-shopping-secondary');
+    if (uncheckedItems > 0) {
+        shoppingSecondary.innerHTML = `<span style="color: #4299E1;">${uncheckedItems} items to buy</span>`;
+    } else if (totalShoppingItems > 0) {
+        shoppingSecondary.innerHTML = `<span style="color: #48BB78;">✓ All items purchased</span>`;
+    } else {
+        shoppingSecondary.textContent = 'List is empty';
+    }
+
+    // === MEAL PLAN STATS ===
+    const todayMealsCount = getTodaysMealCount();
+    const weekTotalMeals = getWeekTotalMeals();
+
+    const mealsCount = document.getElementById('dashboard-meals-count');
+    const mealsSecondary = document.getElementById('dashboard-meals-secondary');
+
+    if (todayMealsCount > 0) {
+        mealsCount.innerHTML = `${todayMealsCount} ${todayMealsCount === 1 ? 'meal' : 'meals'} today`;
+        mealsSecondary.textContent = `${weekTotalMeals} meals planned this week`;
+    } else {
+        mealsCount.textContent = 'Plan your week';
+        mealsSecondary.textContent = `${weekTotalMeals} meals planned this week`;
+    }
 
     // Check for expiring items
     checkExpiringItems();
@@ -490,67 +550,88 @@ function updateDashboardStats() {
     updateTodaysMeals();
 }
 
+// Helper: Get count of today's meals
+function getTodaysMealCount() {
+    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const today = days[new Date().getDay()];
+
+    // Check Week 1 for today's meals
+    if (mealPlan.week1 && mealPlan.week1[today]) {
+        return mealPlan.week1[today].length;
+    }
+
+    return 0;
+}
+
+// Helper: Get total meals planned for Week 1
+function getWeekTotalMeals() {
+    if (!mealPlan.week1) return 0;
+
+    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    let total = 0;
+
+    days.forEach(day => {
+        if (mealPlan.week1[day]) {
+            total += mealPlan.week1[day].length;
+        }
+    });
+
+    return total;
+}
+
 function updateTodaysMeals() {
     const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
     const today = days[new Date().getDay()];
-    const todayMeals = mealPlan[today];
 
     const container = document.getElementById('today-meal-plan');
     const content = document.getElementById('today-meals-content');
 
-    if (!todayMeals) {
+    // Check if we have week1 and today's meals
+    if (!mealPlan.week1 || !mealPlan.week1[today]) {
         container.style.display = 'none';
         return;
     }
 
-    // Check if there are any meals planned for today
-    const hasMeals = ['breakfast', 'lunch', 'dinner'].some(meal => {
-        const mealSlot = todayMeals[meal];
-        if (typeof mealSlot === 'object' && mealSlot !== null) {
-            return (mealSlot.personA && mealSlot.personA.length > 0) ||
-                   (mealSlot.personB && mealSlot.personB.length > 0) ||
-                   (mealSlot.joint && mealSlot.joint.length > 0);
-        }
-        return false;
-    });
+    const todayRecipeIds = mealPlan.week1[today];
 
-    if (!hasMeals) {
+    // If no meals planned for today
+    if (!todayRecipeIds || todayRecipeIds.length === 0) {
         container.style.display = 'none';
         return;
     }
 
     container.style.display = 'block';
 
-    const mealsHtml = ['breakfast', 'lunch', 'dinner'].map(meal => {
-        const mealSlot = todayMeals[meal];
-        if (!mealSlot || typeof mealSlot !== 'object') return '';
+    // Build the today's meals display
+    const mealsHtml = todayRecipeIds.map(recipeId => {
+        const recipe = recipes.find(r => r.id === recipeId);
+        if (!recipe) return '';
 
-        const allRecipes = [
-            ...(mealSlot.personA || []),
-            ...(mealSlot.personB || []),
-            ...(mealSlot.joint || [])
-        ].filter((id, index, self) => self.indexOf(id) === index); // Unique IDs
-
-        if (allRecipes.length === 0) return '';
-
-        const recipeNames = allRecipes.map(id => {
-            const recipe = recipes.find(r => r.id === id);
-            return recipe ? recipe.name : 'Unknown Recipe';
-        }).join(', ');
-
-        const mealIcon = meal === 'breakfast' ? '🌅' : meal === 'lunch' ? '☀️' : '🌙';
+        const status = checkRecipeStatus(recipe);
+        const statusIcon = status.isReady ? '✅' : '⚠️';
+        const statusText = status.isReady ? 'Ready to cook' : 'Missing ingredients';
+        const statusColor = status.isReady ? '#48BB78' : '#ED8936';
 
         return `
-            <div style="padding: 12px; background: #f7fafc; border-radius: 8px; margin-bottom: 10px;">
-                <div style="font-weight: 700; color: #667eea; margin-bottom: 5px;">
-                    ${mealIcon} ${meal.charAt(0).toUpperCase() + meal.slice(1)}
+            <div style="padding: 14px; background: linear-gradient(135deg, #F7FAFC 0%, #FFFFFF 100%); border-radius: var(--radius-md); margin-bottom: var(--spacing-sm); border: 2px solid var(--border); transition: all 0.2s ease;"
+                 onmouseover="this.style.transform='translateX(5px)'; this.style.borderColor='var(--primary)';"
+                 onmouseout="this.style.transform='translateX(0)'; this.style.borderColor='var(--border)';">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-weight: 700; color: var(--primary); font-size: 1rem; margin-bottom: 4px;">
+                            🍽️ ${recipe.name}
+                        </div>
+                        <div style="font-size: 0.85rem; color: ${statusColor}; font-weight: 500;">
+                            ${statusIcon} ${statusText}
+                        </div>
+                    </div>
+                    ${recipe.servings ? `<div style="color: var(--text-secondary); font-size: 0.9rem;">${recipe.servings} servings</div>` : ''}
                 </div>
-                <div style="color: #4a5568;">${recipeNames}</div>
             </div>
         `;
     }).filter(html => html).join('');
 
-    content.innerHTML = mealsHtml;
+    content.innerHTML = mealsHtml || '<p style="color: var(--text-tertiary); font-style: italic;">No meals planned for today</p>';
 }
 
 function checkExpiringItems() {
