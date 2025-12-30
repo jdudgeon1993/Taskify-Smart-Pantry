@@ -1952,30 +1952,30 @@ function renderRecipes() {
     updateMealSuggestions();
 }
 
-// Shopping List Section
-function initShopping() {
+// ==============================================
+// SHOPPING LIST SECTION
+// ==============================================
+
+async function initShopping() {
     const addShoppingItemBtn = document.getElementById('add-shopping-item-btn');
     const autoGenerateBtn = document.getElementById('auto-generate-list-btn');
     const generateFromMealPlanBtn = document.getElementById('generate-from-meal-plan-btn');
     const clearListBtn = document.getElementById('clear-shopping-list-btn');
-    const categoryButtons = document.querySelectorAll('.shop-cat-btn');
-    const toggleAddShoppingBtn = document.getElementById('toggle-add-shopping');
-    const toggleShoppingActionsBtn = document.getElementById('toggle-shopping-actions');
+    const floatingAddBtn = document.getElementById('floating-add-shopping');
     const cancelAddShoppingBtn = document.getElementById('cancel-add-shopping');
     const shoppingFormContainer = document.getElementById('add-shopping-form-container');
-    const shoppingActionsContainer = document.getElementById('shopping-actions-container');
 
-    // Toggle add shopping form
-    if (toggleAddShoppingBtn) {
-        toggleAddShoppingBtn.addEventListener('click', () => {
-            shoppingFormContainer.classList.toggle('hidden');
-        });
-    }
+    // Populate category dropdown from database
+    await populateShoppingCategoryDropdown();
 
-    // Toggle shopping actions
-    if (toggleShoppingActionsBtn) {
-        toggleShoppingActionsBtn.addEventListener('click', () => {
-            shoppingActionsContainer.classList.toggle('hidden');
+    // Load and display recent purchases
+    await loadAndDisplayRecentPurchases();
+
+    // Floating + button - show form
+    if (floatingAddBtn) {
+        floatingAddBtn.addEventListener('click', () => {
+            shoppingFormContainer.classList.remove('hidden');
+            document.getElementById('shopping-item-name').focus();
         });
     }
 
@@ -1987,30 +1987,96 @@ function initShopping() {
         });
     }
 
-    addShoppingItemBtn.addEventListener('click', addShoppingItem);
-    autoGenerateBtn.addEventListener('click', autoGenerateShoppingList);
-    generateFromMealPlanBtn.addEventListener('click', generateFromMealPlan);
-    clearListBtn.addEventListener('click', clearShoppingList);
+    // Add shopping item button
+    if (addShoppingItemBtn) {
+        addShoppingItemBtn.addEventListener('click', addShoppingItem);
+    }
 
+    // Auto-generate buttons
+    if (autoGenerateBtn) {
+        autoGenerateBtn.addEventListener('click', autoGenerateShoppingList);
+    }
+
+    if (generateFromMealPlanBtn) {
+        generateFromMealPlanBtn.addEventListener('click', generateFromMealPlan);
+    }
+
+    if (clearListBtn) {
+        clearListBtn.addEventListener('click', clearShoppingList);
+    }
+
+    // Print button
     const printListBtn = document.getElementById('print-shopping-list-btn');
     if (printListBtn) {
         printListBtn.addEventListener('click', printShoppingList);
     }
 
-    categoryButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            currentShoppingCategory = btn.dataset.shopCategory;
-            categoryButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            renderShoppingList();
+    // Enter key on name input
+    const nameInput = document.getElementById('shopping-item-name');
+    if (nameInput) {
+        nameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addShoppingItem();
         });
-    });
-
-    document.getElementById('shopping-item-name').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') addShoppingItem();
-    });
+    }
 
     renderShoppingList();
+}
+
+// Populate category dropdown from database
+async function populateShoppingCategoryDropdown() {
+    const categorySelect = document.getElementById('shopping-item-category');
+    if (!categorySelect) return;
+
+    try {
+        const categories = await loadCategories();
+        categorySelect.innerHTML = categories.map(cat =>
+            `<option value="${cat.name}">${cat.name}</option>`
+        ).join('');
+    } catch (error) {
+        console.error('Error populating shopping category dropdown:', error);
+        // Fallback to defaults
+        categorySelect.innerHTML = `
+            <option value="Produce">Produce</option>
+            <option value="Dairy">Dairy</option>
+            <option value="Meat">Meat</option>
+            <option value="Pantry Staples">Pantry Staples</option>
+        `;
+    }
+}
+
+// Load and display top 10 recent purchases
+async function loadAndDisplayRecentPurchases() {
+    const container = document.getElementById('recent-purchases-section');
+    if (!container) return;
+
+    try {
+        const recentItems = await loadRecentPurchases();
+
+        if (recentItems.length === 0) {
+            container.style.display = 'none';
+            return;
+        }
+
+        // Take top 10
+        const top10 = recentItems.slice(0, 10);
+
+        container.innerHTML = `
+            <div class="recent-purchases-card">
+                <h4>Quick Add from Recent Purchases</h4>
+                <div class="recent-purchases-grid">
+                    ${top10.map(item => `
+                        <button class="recent-purchase-btn" onclick="quickAddRecentItem('${item.name}', '${item.unit || ''}')">
+                            + ${item.name}
+                        </button>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+        container.style.display = 'block';
+    } catch (error) {
+        console.error('Error loading recent purchases:', error);
+        container.style.display = 'none';
+    }
 }
 
 function autoCategorizeShopping(itemName) {
@@ -2038,7 +2104,55 @@ function clearShoppingForm() {
     document.getElementById('shopping-item-name').value = '';
     document.getElementById('shopping-item-qty').value = '1';
     document.getElementById('shopping-item-unit').value = '';
-    document.getElementById('shopping-item-category').value = 'produce';
+    const categorySelect = document.getElementById('shopping-item-category');
+    if (categorySelect && categorySelect.options.length > 0) {
+        categorySelect.selectedIndex = 0;
+    }
+}
+
+// Quick add from recent purchases
+async function quickAddRecentItem(itemName, unit) {
+    try {
+        const household = await getUserHousehold();
+        const user = await getCurrentUser();
+
+        // Check if already in shopping list
+        const existing = shoppingList.find(item =>
+            item.name.toLowerCase() === itemName.toLowerCase()
+        );
+
+        if (existing) {
+            showToast('Already in List', `${itemName} is already in your shopping list`, 'info');
+            return;
+        }
+
+        // Auto-categorize
+        const category = autoCategorizeShopping(itemName);
+
+        // Add to database
+        const { error } = await supabase
+            .from('shopping_list')
+            .insert({
+                household_id: household.id,
+                created_by: user.id,
+                name: itemName,
+                quantity: 1,
+                unit: unit || 'unit',
+                category: category,
+                checked: false
+            });
+
+        if (error) throw error;
+
+        // Reload shopping list
+        shoppingList = await loadShoppingList();
+        renderShoppingList();
+
+        showToast('Added!', `${itemName} added to shopping list`, 'success');
+    } catch (error) {
+        console.error('Error quick-adding item:', error);
+        showToast('Error', 'Failed to add item', 'error');
+    }
 }
 
 async function addShoppingItem() {
@@ -2449,26 +2563,16 @@ function renderShoppingList() {
 
     let html = '';
 
-    // Add quick-add common items
-    html += `
-        <div style="background: #f7fafc; padding: 15px; border-radius: 12px; margin-bottom: 15px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <h4 style="margin: 0; font-size: 14px; color: #4a5568;">Quick Add Common Items</h4>
-                ${shoppingList.length > 0 ? `
-                    <button onclick="copyShoppingListToClipboard()" style="padding: 6px 12px; background: #667eea; color: white; border: none; border-radius: 6px; font-size: 12px; cursor: pointer;">
-                        📋 Copy List
-                    </button>
-                ` : ''}
+    // Add copy list button if there are items
+    if (shoppingList.length > 0) {
+        html += `
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
+                <button onclick="copyShoppingListToClipboard()" class="btn-secondary" style="font-size: 14px;">
+                    📋 Copy List
+                </button>
             </div>
-            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                ${['Milk', 'Eggs', 'Bread', 'Butter', 'Chicken', 'Rice', 'Pasta', 'Onions', 'Garlic', 'Tomatoes'].map(item => `
-                    <button onclick="quickAddItem('${item}')" style="padding: 6px 12px; background: white; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 13px; cursor: pointer; transition: all 0.2s;">
-                        + ${item}
-                    </button>
-                `).join('')}
-            </div>
-        </div>
-    `;
+        `;
+    }
 
     // Add bulk action buttons
     if (shoppingList.length > 0) {
@@ -2491,12 +2595,12 @@ function renderShoppingList() {
         `;
     }
 
-    // Add "Move to Inventory" button if there are checked items
+    // Add "Send to Pantry" button if there are checked items
     if (hasCheckedItems) {
         html += `
             <div style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
-                <button onclick="moveCheckedToInventory()" style="background: white; color: #38a169; width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 700; font-size: 16px; cursor: pointer;">
-                    ✅ Move Checked Items to Inventory
+                <button onclick="openSendToPantryModal()" style="background: white; color: #38a169; width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 700; font-size: 16px; cursor: pointer;">
+                    ✅ Send Checked Items to Pantry
                 </button>
             </div>
         `;
@@ -2761,6 +2865,114 @@ function copyShoppingListToClipboard() {
         showToast('Copy Failed', 'Could not copy to clipboard', 'error');
     });
 }
+
+// ==============================================
+// SEND TO PANTRY MODAL
+// ==============================================
+
+async function openSendToPantryModal() {
+    const checkedItems = shoppingList.filter(item => item.checked);
+
+    if (checkedItems.length === 0) {
+        showToast('No Items', 'No items are checked', 'info');
+        return;
+    }
+
+    const modal = document.getElementById('send-to-pantry-modal');
+    const itemsList = document.getElementById('send-to-pantry-items-list');
+
+    // Load locations and categories
+    const locations = await loadLocations();
+    const categories = await loadCategories();
+
+    // Build form for each checked item
+    itemsList.innerHTML = checkedItems.map((item, index) => `
+        <div class="send-to-pantry-item" style="background: var(--bg-secondary); padding: var(--spacing-md); border-radius: var(--radius-md); margin-bottom: var(--spacing-md);">
+            <h5 style="margin: 0 0 var(--spacing-sm) 0; color: var(--text-primary);">${item.name}</h5>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-sm);">
+                <div>
+                    <label style="font-size: 0.85rem; color: var(--text-secondary); display: block; margin-bottom: 0.25rem;">Storage Location</label>
+                    <select id="pantry-location-${index}" class="pantry-location-select" style="width: 100%; padding: 0.5rem; border: 2px solid var(--border); border-radius: var(--radius-sm);">
+                        ${locations.map(loc => `<option value="${loc.name.toLowerCase()}">${loc.name}</option>`).join('')}
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 0.85rem; color: var(--text-secondary); display: block; margin-bottom: 0.25rem;">Item Category</label>
+                    <select id="pantry-category-${index}" class="pantry-category-select" style="width: 100%; padding: 0.5rem; border: 2px solid var(--border); border-radius: var(--radius-sm);">
+                        <option value="">-- Select --</option>
+                        ${categories.map(cat => `<option value="${cat.name}" ${cat.name === item.category ? 'selected' : ''}>${cat.name}</option>`).join('')}
+                    </select>
+                </div>
+            </div>
+        </div>
+    `).join('');
+
+    modal.classList.remove('hidden');
+
+    // Set up confirm button
+    const confirmBtn = document.getElementById('confirm-send-to-pantry-btn');
+    confirmBtn.onclick = confirmSendToPantry;
+}
+
+function closeSendToPantryModal() {
+    const modal = document.getElementById('send-to-pantry-modal');
+    modal.classList.add('hidden');
+}
+
+async function confirmSendToPantry() {
+    const checkedItems = shoppingList.filter(item => item.checked);
+
+    try {
+        for (let i = 0; i < checkedItems.length; i++) {
+            const item = checkedItems[i];
+            const locationSelect = document.getElementById(`pantry-location-${i}`);
+            const categorySelect = document.getElementById(`pantry-category-${i}`);
+
+            const location = locationSelect ? locationSelect.value : 'pantry';
+            const itemCategory = categorySelect && categorySelect.value ? categorySelect.value : null;
+
+            // Add to pantry
+            await addPantryItem({
+                name: item.name,
+                quantity: item.quantity,
+                unit: item.unit,
+                category: location, // Storage location (WHERE)
+                itemCategory: itemCategory, // Item category (WHAT)
+                expiration: null
+            });
+
+            // Add to recent purchases
+            await addRecentPurchase({
+                name: item.name,
+                unit: item.unit
+            });
+
+            // Delete from shopping list
+            await supabase
+                .from('shopping_list')
+                .delete()
+                .eq('id', item.id);
+        }
+
+        // Reload data
+        ingredients = await loadPantryItems();
+        shoppingList = await loadShoppingList();
+        await loadAndDisplayRecentPurchases(); // Refresh recent purchases
+        renderIngredients();
+        renderShoppingList();
+        updateDashboardStats();
+
+        closeSendToPantryModal();
+        showToast('Success!', `${checkedItems.length} item${checkedItems.length > 1 ? 's' : ''} sent to pantry`, 'success');
+    } catch (error) {
+        console.error('Error sending to pantry:', error);
+        showToast('Error', 'Failed to send items to pantry', 'error');
+    }
+}
+
+// ==============================================
+// MEAL PLAN SECTION
+// ==============================================
 
 // Meal Plan Section
 function initMealPlan() {

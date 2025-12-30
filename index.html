@@ -377,13 +377,10 @@
             <section id="shopping" class="section">
                 <div class="section-header">
                     <h2>Shopping List</h2>
-                    <div class="header-actions">
-                        <button class="btn-primary" id="toggle-add-shopping">Add Item</button>
-                        <button class="btn-secondary" id="toggle-shopping-actions">Actions</button>
-                    </div>
                 </div>
 
-                <div class="shopping-actions hidden" id="shopping-actions-container">
+                <!-- Actions Bar (Always Visible) -->
+                <div class="shopping-actions-bar">
                     <button id="auto-generate-list-btn" class="btn-secondary">Auto-Generate from Recipes</button>
                     <button id="generate-from-meal-plan-btn" class="btn-secondary">Generate from Meal Plan</button>
                     <button id="print-shopping-list-btn" class="btn-secondary">Print List</button>
@@ -409,13 +406,7 @@
                             <div class="form-group">
                                 <label>Category</label>
                                 <select id="shopping-item-category">
-                                    <option value="produce">Produce</option>
-                                    <option value="dairy">Dairy</option>
-                                    <option value="meat">Meat/Seafood</option>
-                                    <option value="pantry">Pantry</option>
-                                    <option value="frozen">Frozen</option>
-                                    <option value="bakery">Bakery</option>
-                                    <option value="other">Other</option>
+                                    <!-- Will be populated from database -->
                                 </select>
                             </div>
                         </div>
@@ -426,17 +417,17 @@
                     </div>
                 </div>
 
-                <div class="shopping-category-filter">
-                    <button class="shop-cat-btn active" data-shop-category="all">All</button>
-                    <button class="shop-cat-btn" data-shop-category="produce">Produce</button>
-                    <button class="shop-cat-btn" data-shop-category="dairy">Dairy</button>
-                    <button class="shop-cat-btn" data-shop-category="meat">Meat</button>
-                    <button class="shop-cat-btn" data-shop-category="pantry">Pantry</button>
-                    <button class="shop-cat-btn" data-shop-category="frozen">Frozen</button>
-                    <button class="shop-cat-btn" data-shop-category="bakery">Bakery</button>
+                <!-- Quick Add from Recent Purchases -->
+                <div id="recent-purchases-section" class="recent-purchases-section">
+                    <!-- Will be populated dynamically -->
                 </div>
 
                 <div id="shopping-list-by-category"></div>
+
+                <!-- Floating Add Button -->
+                <button class="floating-add-btn" id="floating-add-shopping" title="Add Item">
+                    <span>+</span>
+                </button>
             </section>
 
             <!-- Meal Plan Section -->
@@ -623,6 +614,26 @@
             </select>
             <input type="date" id="edit-ing-expiration" placeholder="Expiration (optional)" />
             <button id="save-ingredient-edit-btn">Save Changes</button>
+        </div>
+    </div>
+
+    <!-- Send to Pantry Modal -->
+    <div id="send-to-pantry-modal" class="modal hidden">
+        <div class="modal-content" style="max-width: 500px;">
+            <span class="close-modal" onclick="closeSendToPantryModal()">&times;</span>
+            <h3>Send Items to Pantry</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                Set storage location and category for your purchased items
+            </p>
+
+            <div id="send-to-pantry-items-list">
+                <!-- Will be populated with checked items -->
+            </div>
+
+            <div class="form-actions" style="margin-top: 20px;">
+                <button id="confirm-send-to-pantry-btn" class="primary-btn">Send to Pantry</button>
+                <button onclick="closeSendToPantryModal()" class="secondary-btn">Cancel</button>
+            </div>
         </div>
     </div>
 
