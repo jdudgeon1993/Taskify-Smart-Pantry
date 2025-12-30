@@ -285,20 +285,21 @@
             <section id="recipes" class="section">
                 <div class="section-header">
                     <h2>My Recipes</h2>
-                    <button class="btn-primary" id="add-recipe-btn">Add Recipe</button>
                 </div>
 
+                <!-- Search Bar -->
                 <div class="recipe-search-container">
                     <input type="text" id="recipe-search" placeholder="Search recipes..." />
-                    <button class="btn-secondary" id="toggle-filters">Filters</button>
                 </div>
 
-                <div class="filters-container hidden" id="filters-container">
+                <!-- Filter Tabs (Always Visible) -->
+                <div class="filters-container" id="filters-container">
                     <div class="filter-group">
                         <label>Status</label>
                         <div class="recipe-filters">
                             <button class="filter-btn active" data-filter="all">All</button>
                             <button class="filter-btn" data-filter="ready">Ready to Cook</button>
+                            <button class="filter-btn" data-filter="expiring">Expiring Soon</button>
                             <button class="filter-btn" data-filter="missing">Missing Items</button>
                             <button class="filter-btn" data-filter="favorites">Favorites</button>
                         </div>
@@ -365,6 +366,11 @@
                 <div id="meal-suggestions" class="meal-suggestions" style="display: none;"></div>
 
                 <div id="recipe-list" class="recipe-grid"></div>
+
+                <!-- Floating Add Button -->
+                <button class="floating-add-btn" id="floating-add-recipe" title="Add Recipe">
+                    <span>+</span>
+                </button>
             </section>
 
             <!-- Shopping List Section -->

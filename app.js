@@ -1059,38 +1059,46 @@ function renderIngredients() {
     }).join('');
 }
 
-// Recipes Section
+// ==============================================
+// RECIPES SECTION
+// ==============================================
+
 function initRecipes() {
-    const addRecipeBtn = document.getElementById('add-recipe-btn');
     const saveRecipeBtn = document.getElementById('save-recipe-btn');
     const closeModal = document.querySelector('.close-modal');
     const addRecipeIngredientBtn = document.getElementById('add-recipe-ingredient-btn');
     const filterButtons = document.querySelectorAll('.filter-btn');
     const categoryButtons = document.querySelectorAll('.category-filter-btn');
     const searchInput = document.getElementById('recipe-search');
-    const toggleFiltersBtn = document.getElementById('toggle-filters');
-    const filtersContainer = document.getElementById('filters-container');
+    const floatingAddBtn = document.getElementById('floating-add-recipe');
 
-    // Toggle filters
-    if (toggleFiltersBtn) {
-        toggleFiltersBtn.addEventListener('click', () => {
-            filtersContainer.classList.toggle('hidden');
+    // Floating + button - show recipe form
+    if (floatingAddBtn) {
+        floatingAddBtn.addEventListener('click', () => {
+            document.getElementById('recipe-modal-title').textContent = 'Add New Recipe';
+            document.getElementById('add-recipe-form').classList.remove('hidden');
+            clearRecipeForm();
         });
     }
 
-    addRecipeBtn.addEventListener('click', () => {
-        document.getElementById('recipe-modal-title').textContent = 'Add New Recipe';
-        document.getElementById('add-recipe-form').classList.remove('hidden');
-        clearRecipeForm();
-    });
+    // Close modal button
+    if (closeModal) {
+        closeModal.addEventListener('click', () => {
+            document.getElementById('add-recipe-form').classList.add('hidden');
+        });
+    }
 
-    closeModal.addEventListener('click', () => {
-        document.getElementById('add-recipe-form').classList.add('hidden');
-    });
+    // Save recipe button
+    if (saveRecipeBtn) {
+        saveRecipeBtn.addEventListener('click', saveRecipe);
+    }
 
-    saveRecipeBtn.addEventListener('click', saveRecipe);
-    addRecipeIngredientBtn.addEventListener('click', addRecipeIngredientRow);
+    // Add ingredient row button
+    if (addRecipeIngredientBtn) {
+        addRecipeIngredientBtn.addEventListener('click', addRecipeIngredientRow);
+    }
 
+    // Status filter buttons (All, Ready to Cook, Expiring Soon, Missing Items, Favorites)
     filterButtons.forEach(btn => {
         btn.addEventListener('click', () => {
             currentRecipeFilter = btn.dataset.filter;
@@ -1100,6 +1108,7 @@ function initRecipes() {
         });
     });
 
+    // Category filter buttons
     categoryButtons.forEach(btn => {
         btn.addEventListener('click', () => {
             currentRecipeCategory = btn.dataset.category;
@@ -1109,16 +1118,23 @@ function initRecipes() {
         });
     });
 
-    searchInput.addEventListener('input', (e) => {
-        recipeSearchQuery = e.target.value.toLowerCase();
-        renderRecipes();
-    });
+    // Search input
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            recipeSearchQuery = e.target.value.toLowerCase();
+            renderRecipes();
+        });
+    }
 
-    document.getElementById('add-recipe-form').addEventListener('click', (e) => {
-        if (e.target.id === 'add-recipe-form') {
-            document.getElementById('add-recipe-form').classList.add('hidden');
-        }
-    });
+    // Close modal when clicking outside
+    const recipeForm = document.getElementById('add-recipe-form');
+    if (recipeForm) {
+        recipeForm.addEventListener('click', (e) => {
+            if (e.target.id === 'add-recipe-form') {
+                recipeForm.classList.add('hidden');
+            }
+        });
+    }
 
     // Don't render recipes on page load - only when navigating to recipes section
     // renderRecipes() is called in initNavigation() when user clicks Recipes tab
@@ -1759,9 +1775,25 @@ function renderRecipes() {
 
     let filteredRecipes = recipes;
 
+    // Helper function to check if recipe has expiring ingredients
+    function hasExpiringIngredients(recipe) {
+        const allIngredients = [...ingredients.pantry, ...ingredients.fridge, ...ingredients.freezer];
+        return recipe.ingredients.some(recipeIng => {
+            const ingredient = allIngredients.find(inv =>
+                inv.name.toLowerCase() === recipeIng.name.toLowerCase()
+            );
+            if (!ingredient || !ingredient.expiration) return false;
+            const expStatus = getExpirationStatus(ingredient.expiration);
+            return expStatus === 'expiring-soon' || expStatus === 'expired';
+        });
+    }
+
     // Filter by status
     if (currentRecipeFilter === 'ready') {
         filteredRecipes = filteredRecipes.filter(recipe => checkRecipeStatus(recipe).isReady);
+    } else if (currentRecipeFilter === 'expiring') {
+        // Show recipes with expiring ingredients
+        filteredRecipes = filteredRecipes.filter(recipe => hasExpiringIngredients(recipe));
     } else if (currentRecipeFilter === 'missing') {
         filteredRecipes = filteredRecipes.filter(recipe => !checkRecipeStatus(recipe).isReady);
     } else if (currentRecipeFilter === 'favorites') {
@@ -1784,19 +1816,6 @@ function renderRecipes() {
     if (filteredRecipes.length === 0) {
         recipeList.innerHTML = '<div class="empty-state"><p>No recipes match your filters</p></div>';
         return;
-    }
-
-    // Helper function to check if recipe has expiring ingredients
-    function hasExpiringIngredients(recipe) {
-        const allIngredients = [...ingredients.pantry, ...ingredients.fridge, ...ingredients.freezer];
-        return recipe.ingredients.some(recipeIng => {
-            const ingredient = allIngredients.find(inv =>
-                inv.name.toLowerCase() === recipeIng.name.toLowerCase()
-            );
-            if (!ingredient || !ingredient.expiration) return false;
-            const expStatus = getExpirationStatus(ingredient.expiration);
-            return expStatus === 'expiring-soon' || expStatus === 'expired';
-        });
     }
 
     // Categorize recipes into three groups
