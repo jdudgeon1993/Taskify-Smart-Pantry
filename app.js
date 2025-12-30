@@ -636,14 +636,18 @@ function updateDashboardStats() {
         return status === 'expiring-soon' || status === 'expired';
     }).length;
 
-    document.getElementById('dashboard-ingredients-count').textContent =
-        `${totalIngredients} ${totalIngredients === 1 ? 'item' : 'items'}`;
+    const ingredientsCount = document.getElementById('dashboard-ingredients-count');
+    if (ingredientsCount) {
+        ingredientsCount.textContent = `${totalIngredients} ${totalIngredients === 1 ? 'item' : 'items'}`;
+    }
 
     const ingredientsSecondary = document.getElementById('dashboard-ingredients-secondary');
-    if (expiringCount > 0) {
-        ingredientsSecondary.innerHTML = `<span style="color: #D97706;">⚠️ ${expiringCount} expiring soon</span>`;
-    } else {
-        ingredientsSecondary.textContent = 'All items fresh';
+    if (ingredientsSecondary) {
+        if (expiringCount > 0) {
+            ingredientsSecondary.innerHTML = `<span style="color: #D97706;">⚠️ ${expiringCount} expiring soon</span>`;
+        } else {
+            ingredientsSecondary.textContent = 'All items fresh';
+        }
     }
 
     // === RECIPES STATS ===
@@ -655,30 +659,38 @@ function updateDashboardStats() {
         return status.isReady;
     }).length;
 
-    document.getElementById('dashboard-recipes-count').textContent =
-        `${totalRecipes} ${totalRecipes === 1 ? 'recipe' : 'recipes'}`;
+    const recipesCount = document.getElementById('dashboard-recipes-count');
+    if (recipesCount) {
+        recipesCount.textContent = `${totalRecipes} ${totalRecipes === 1 ? 'recipe' : 'recipes'}`;
+    }
 
     const recipesSecondary = document.getElementById('dashboard-recipes-secondary');
-    if (readyToCook > 0) {
-        recipesSecondary.innerHTML = `<span style="color: #48BB78;">✓ ${readyToCook} ready to cook</span>`;
-    } else {
-        recipesSecondary.textContent = 'Add ingredients to cook';
+    if (recipesSecondary) {
+        if (readyToCook > 0) {
+            recipesSecondary.innerHTML = `<span style="color: #48BB78;">✓ ${readyToCook} ready to cook</span>`;
+        } else {
+            recipesSecondary.textContent = 'Add ingredients to cook';
+        }
     }
 
     // === SHOPPING LIST STATS ===
     const totalShoppingItems = shoppingList.length;
     const uncheckedItems = shoppingList.filter(item => !item.checked).length;
 
-    document.getElementById('dashboard-shopping-count').textContent =
-        `${totalShoppingItems} ${totalShoppingItems === 1 ? 'item' : 'items'}`;
+    const shoppingCount = document.getElementById('dashboard-shopping-count');
+    if (shoppingCount) {
+        shoppingCount.textContent = `${totalShoppingItems} ${totalShoppingItems === 1 ? 'item' : 'items'}`;
+    }
 
     const shoppingSecondary = document.getElementById('dashboard-shopping-secondary');
-    if (uncheckedItems > 0) {
-        shoppingSecondary.innerHTML = `<span style="color: #4299E1;">${uncheckedItems} items to buy</span>`;
-    } else if (totalShoppingItems > 0) {
-        shoppingSecondary.innerHTML = `<span style="color: #48BB78;">✓ All items purchased</span>`;
-    } else {
-        shoppingSecondary.textContent = 'List is empty';
+    if (shoppingSecondary) {
+        if (uncheckedItems > 0) {
+            shoppingSecondary.innerHTML = `<span style="color: #4299E1;">${uncheckedItems} items to buy</span>`;
+        } else if (totalShoppingItems > 0) {
+            shoppingSecondary.innerHTML = `<span style="color: #48BB78;">✓ All items purchased</span>`;
+        } else {
+            shoppingSecondary.textContent = 'List is empty';
+        }
     }
 
     // === MEAL PLAN STATS ===
@@ -688,12 +700,14 @@ function updateDashboardStats() {
     const mealsCount = document.getElementById('dashboard-meals-count');
     const mealsSecondary = document.getElementById('dashboard-meals-secondary');
 
-    if (todayMealsCount > 0) {
-        mealsCount.innerHTML = `${todayMealsCount} ${todayMealsCount === 1 ? 'meal' : 'meals'} today`;
-        mealsSecondary.textContent = `${weekTotalMeals} meals planned this week`;
-    } else {
-        mealsCount.textContent = 'Plan your week';
-        mealsSecondary.textContent = `${weekTotalMeals} meals planned this week`;
+    if (mealsCount && mealsSecondary) {
+        if (todayMealsCount > 0) {
+            mealsCount.innerHTML = `${todayMealsCount} ${todayMealsCount === 1 ? 'meal' : 'meals'} today`;
+            mealsSecondary.textContent = `${weekTotalMeals} meals planned this week`;
+        } else {
+            mealsCount.textContent = 'Plan your week';
+            mealsSecondary.textContent = `${weekTotalMeals} meals planned this week`;
+        }
     }
 
     // Check for expiring items
@@ -747,6 +761,9 @@ function updateTodaysMeals() {
 
     const container = document.getElementById('today-meal-plan');
     const content = document.getElementById('today-meals-content');
+
+    // Return early if elements don't exist
+    if (!container || !content) return;
 
     // Check if we have week1 and today's meals
     if (!mealPlan.week1 || !mealPlan.week1[today]) {
@@ -818,6 +835,9 @@ function checkExpiringItems() {
 
     const alert = document.getElementById('expiring-alert');
     const alertText = document.getElementById('expiring-alert-text');
+
+    // Return early if elements don't exist
+    if (!alert || !alertText) return;
 
     if (expired.length > 0 || expiring.length > 0) {
         let message = '';
@@ -4364,34 +4384,37 @@ function updateStats() {
     }).length;
 
     const statsDisplay = document.getElementById('stats-display');
-    statsDisplay.innerHTML = `
-        <div class="stat-item">
-            <span class="stat-value">${totalIngredients}</span>
-            <span class="stat-label">Total Ingredients</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-value">${totalRecipes}</span>
-            <span class="stat-label">Recipes</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-value">${readyRecipes}</span>
-            <span class="stat-label">Ready to Cook</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-value">${mealCount}</span>
-            <span class="stat-label">Meals Planned</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-value">${shoppingItems}</span>
-            <span class="stat-label">Shopping Items</span>
-        </div>
-        ${expiringCount > 0 ? `
-        <div class="stat-item">
-            <span class="stat-value" style="color: #e53e3e;">${expiringCount}</span>
-            <span class="stat-label">Expiring Items</span>
-        </div>
-        ` : ''}
-    `;
+    // Only update if the stats display element exists (removed from settings redesign)
+    if (statsDisplay) {
+        statsDisplay.innerHTML = `
+            <div class="stat-item">
+                <span class="stat-value">${totalIngredients}</span>
+                <span class="stat-label">Total Ingredients</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">${totalRecipes}</span>
+                <span class="stat-label">Recipes</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">${readyRecipes}</span>
+                <span class="stat-label">Ready to Cook</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">${mealCount}</span>
+                <span class="stat-label">Meals Planned</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">${shoppingItems}</span>
+                <span class="stat-label">Shopping Items</span>
+            </div>
+            ${expiringCount > 0 ? `
+            <div class="stat-item">
+                <span class="stat-value" style="color: #e53e3e;">${expiringCount}</span>
+                <span class="stat-label">Expiring Items</span>
+            </div>
+            ` : ''}
+        `;
+    }
 }
 
 // ==============================================
