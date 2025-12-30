@@ -1380,8 +1380,21 @@ function renderIngredients() {
             ? `<span class="category-badge">${item.itemCategory}</span>`
             : '';
 
+        // Location badge with icon
+        const locationIcons = {
+            'pantry': '📦',
+            'fridge': '❄️',
+            'freezer': '🧊'
+        };
+        const locationIcon = locationIcons[item.location.toLowerCase()] || '📍';
+        const locationName = item.location.charAt(0).toUpperCase() + item.location.slice(1);
+
         return `
             <div class="${cardClass}">
+                <div class="ingredient-location-badge">
+                    <span class="location-icon">${locationIcon}</span>
+                    <span class="location-name">${locationName}</span>
+                </div>
                 <div class="ingredient-card-header">
                     <h4 class="ingredient-card-name">${item.name}</h4>
                     <div class="ingredient-card-badges">
@@ -1447,6 +1460,7 @@ function initRecipes() {
         floatingAddBtn.addEventListener('click', () => {
             document.getElementById('recipe-modal-title').textContent = 'Add New Recipe';
             addRecipeForm.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
             clearRecipeForm();
         });
     }
@@ -1455,6 +1469,7 @@ function initRecipes() {
     if (closeModal) {
         closeModal.addEventListener('click', () => {
             addRecipeForm.classList.add('hidden');
+            document.body.style.overflow = ''; // Restore scrolling
             clearRecipeForm();
         });
     }
@@ -1464,6 +1479,7 @@ function initRecipes() {
         addRecipeForm.addEventListener('click', (e) => {
             if (e.target === addRecipeForm) {
                 addRecipeForm.classList.add('hidden');
+                document.body.style.overflow = ''; // Restore scrolling
                 clearRecipeForm();
             }
         });
@@ -1618,6 +1634,7 @@ async function saveRecipe() {
         updateDataLists();
 
         document.getElementById('add-recipe-form').classList.add('hidden');
+        document.body.style.overflow = ''; // Restore scrolling
         editingRecipeId = null;
     } catch (error) {
         console.error('Error saving recipe:', error);
@@ -1654,7 +1671,9 @@ function editRecipe(id) {
     });
 
     updateDataLists(); // Refresh autocomplete options
-    document.getElementById('add-recipe-form').classList.remove('hidden');
+    const modal = document.getElementById('add-recipe-form');
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden'; // Prevent background scrolling
 }
 
 async function deleteRecipe(id) {
@@ -1906,8 +1925,13 @@ async function cookFromModal() {
 
 function editFromModal() {
     if (!currentModalRecipeId) return;
+    const recipeId = currentModalRecipeId; // Store the ID before closing modal
     closeRecipeDetailModal();
-    editRecipe(currentModalRecipeId);
+
+    // Use setTimeout to ensure detail modal fully closes before opening edit form
+    setTimeout(() => {
+        editRecipe(recipeId);
+    }, 100);
 }
 
 async function toggleFavoriteFromModal() {
@@ -1960,6 +1984,231 @@ function scaleRecipe(recipeId, multiplier) {
     });
 }
 
+// Global variable to store deduction selections
+let pendingDeductions = null;
+
+// Helper: Get location icon
+function getLocationIcon(location) {
+    const icons = {
+        'pantry': '📦',
+        'fridge': '❄️',
+        'freezer': '🧊'
+    };
+    return icons[location.toLowerCase()] || '📍';
+}
+
+// Analyze ingredients and find which exist in multiple locations
+function analyzeIngredientLocations(recipe) {
+    const duplicates = [];
+
+    recipe.ingredients.forEach(reqIng => {
+        // Get all ingredients from all locations
+        const matchingItems = [];
+
+        Object.keys(ingredients).forEach(location => {
+            const locationItems = ingredients[location] || [];
+            locationItems.forEach(item => {
+                if (item.name.toLowerCase() === reqIng.name.toLowerCase() &&
+                    item.unit.toLowerCase() === reqIng.unit.toLowerCase()) {
+                    matchingItems.push({
+                        ...item,
+                        location: location
+                    });
+                }
+            });
+        });
+
+        // If ingredient exists in multiple locations, add to duplicates
+        if (matchingItems.length > 1) {
+            duplicates.push({
+                name: reqIng.name,
+                unit: reqIng.unit,
+                needed: reqIng.quantity,
+                locations: matchingItems
+            });
+        }
+    });
+
+    return duplicates;
+}
+
+// Show deduction selection modal
+function showDeductionModal(recipe, duplicates) {
+    const modal = document.getElementById('deduction-selection-modal');
+    const container = document.getElementById('deduction-choices-container');
+
+    // Build HTML for each ingredient with multiple locations
+    const choicesHTML = duplicates.map((dup, index) => {
+        const locationsHTML = dup.locations.map((loc, locIndex) => {
+            const expiration = loc.expiration ?
+                `<span>Expires: ${new Date(loc.expiration).toLocaleDateString()}</span>` :
+                '<span>No expiration</span>';
+
+            return `
+                <label class="deduction-location-option" onclick="selectDeductionOption('${dup.name}', '${loc.id}')">
+                    <input type="radio"
+                           name="deduction-${index}"
+                           value="${loc.id}"
+                           ${locIndex === 0 ? 'checked' : ''}>
+                    <div class="deduction-location-info">
+                        <div class="deduction-location-name-container">
+                            <span class="deduction-location-icon">${getLocationIcon(loc.location)}</span>
+                            <span class="deduction-location-name">${loc.location.charAt(0).toUpperCase() + loc.location.slice(1)}</span>
+                        </div>
+                        <div class="deduction-location-details">
+                            <span>${loc.quantity} ${loc.unit} available</span>
+                            ${expiration}
+                        </div>
+                    </div>
+                </label>
+            `;
+        }).join('');
+
+        return `
+            <div class="deduction-ingredient-group">
+                <div class="deduction-ingredient-name">${dup.name}</div>
+                <div class="deduction-ingredient-needed">Need: ${dup.needed} ${dup.unit}</div>
+                <div class="deduction-location-options">
+                    ${locationsHTML}
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    container.innerHTML = choicesHTML;
+
+    // Initialize pending deductions with first option selected by default
+    pendingDeductions = {
+        recipe: recipe,
+        selections: {}
+    };
+
+    duplicates.forEach((dup, index) => {
+        const firstLocation = dup.locations[0];
+        pendingDeductions.selections[dup.name] = {
+            ingredientId: firstLocation.id,
+            quantity: dup.needed
+        };
+    });
+
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+// Close deduction modal
+function closeDeductionModal() {
+    const modal = document.getElementById('deduction-selection-modal');
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+    pendingDeductions = null;
+}
+
+// Handle location selection
+function selectDeductionOption(ingredientName, ingredientId) {
+    if (pendingDeductions) {
+        // Find the ingredient in pending deductions
+        const selection = pendingDeductions.selections[ingredientName];
+        if (selection) {
+            selection.ingredientId = ingredientId;
+        }
+    }
+}
+
+// Confirm and execute deductions
+async function confirmDeductions() {
+    if (!pendingDeductions) return;
+
+    const recipe = pendingDeductions.recipe;
+    const selections = pendingDeductions.selections;
+
+    closeDeductionModal();
+
+    try {
+        let deductedCount = 0;
+
+        // Get all ingredients
+        let allIngredients = [];
+        Object.keys(ingredients).forEach(location => {
+            allIngredients = allIngredients.concat(ingredients[location] || []);
+        });
+
+        // Deduct each required ingredient
+        for (const reqIng of recipe.ingredients) {
+            let remaining = reqIng.quantity;
+
+            // Check if user made a selection for this ingredient
+            const userSelection = selections[reqIng.name];
+
+            if (userSelection) {
+                // User selected a specific location - use that one first
+                const selectedItem = allIngredients.find(ing => ing.id === userSelection.ingredientId);
+
+                if (selectedItem && remaining > 0) {
+                    if (selectedItem.quantity >= remaining) {
+                        const newQty = selectedItem.quantity - remaining;
+                        if (newQty <= 0) {
+                            await deletePantryItem(selectedItem.id);
+                        } else {
+                            await updatePantryItem(selectedItem.id, { quantity: newQty });
+                        }
+                        deductedCount++;
+                        remaining = 0;
+                    } else {
+                        await deletePantryItem(selectedItem.id);
+                        remaining -= selectedItem.quantity;
+                        deductedCount++;
+                    }
+                }
+            }
+
+            // If still need more, deduct from other matching ingredients
+            if (remaining > 0) {
+                const matches = allIngredients.filter(ing =>
+                    ing.name.toLowerCase() === reqIng.name.toLowerCase() &&
+                    ing.unit.toLowerCase() === reqIng.unit.toLowerCase() &&
+                    ing.id !== (userSelection ? userSelection.ingredientId : null)
+                );
+
+                for (const match of matches) {
+                    if (remaining <= 0) break;
+
+                    if (match.quantity >= remaining) {
+                        const newQty = match.quantity - remaining;
+                        if (newQty <= 0) {
+                            await deletePantryItem(match.id);
+                        } else {
+                            await updatePantryItem(match.id, { quantity: newQty });
+                        }
+                        deductedCount++;
+                        remaining = 0;
+                    } else {
+                        await deletePantryItem(match.id);
+                        remaining -= match.quantity;
+                        deductedCount++;
+                    }
+                }
+            }
+        }
+
+        // Reload and update
+        ingredients = await loadPantryItems();
+        renderIngredients();
+        renderRecipes();
+
+        showToast('Recipe Cooked!', `${recipe.name} - ${deductedCount} ingredients deducted. Enjoy! 🍽️`, 'success');
+
+    } catch (error) {
+        console.error('Error cooking recipe:', error);
+        showToast('Error', 'Failed to cook recipe: ' + error.message, 'error');
+    }
+}
+
+// Expose functions to window
+window.closeDeductionModal = closeDeductionModal;
+window.confirmDeductions = confirmDeductions;
+window.selectDeductionOption = selectDeductionOption;
+
+// Main cook recipe function
 async function cookRecipe(id) {
     const recipe = recipes.find(r => r.id === id);
     if (!recipe) return;
@@ -1974,57 +2223,57 @@ async function cookRecipe(id) {
         return;
     }
 
-    try {
-        let deductedCount = 0;
-        // Get all ingredients from all locations (including custom ones)
-        let allIngredients = [];
-        Object.keys(ingredients).forEach(location => {
-            allIngredients = allIngredients.concat(ingredients[location] || []);
-        });
+    // Check for ingredients in multiple locations
+    const duplicates = analyzeIngredientLocations(recipe);
 
-        // Deduct each required ingredient
-        for (const reqIng of recipe.ingredients) {
-            let remaining = reqIng.quantity;
+    if (duplicates.length > 0) {
+        // Show modal for user to choose
+        showDeductionModal(recipe, duplicates);
+    } else {
+        // No duplicates, proceed with automatic deduction
+        try {
+            let deductedCount = 0;
+            let allIngredients = [];
+            Object.keys(ingredients).forEach(location => {
+                allIngredients = allIngredients.concat(ingredients[location] || []);
+            });
 
-            // Find matching ingredients across all locations
-            const matches = allIngredients.filter(ing =>
-                ing.name.toLowerCase() === reqIng.name.toLowerCase() &&
-                ing.unit.toLowerCase() === reqIng.unit.toLowerCase()
-            );
+            for (const reqIng of recipe.ingredients) {
+                let remaining = reqIng.quantity;
+                const matches = allIngredients.filter(ing =>
+                    ing.name.toLowerCase() === reqIng.name.toLowerCase() &&
+                    ing.unit.toLowerCase() === reqIng.unit.toLowerCase()
+                );
 
-            for (const match of matches) {
-                if (remaining <= 0) break;
+                for (const match of matches) {
+                    if (remaining <= 0) break;
 
-                if (match.quantity >= remaining) {
-                    // Deduct from this ingredient
-                    const newQty = match.quantity - remaining;
-                    if (newQty <= 0) {
-                        // Delete ingredient
-                        await deletePantryItem(match.id);
+                    if (match.quantity >= remaining) {
+                        const newQty = match.quantity - remaining;
+                        if (newQty <= 0) {
+                            await deletePantryItem(match.id);
+                        } else {
+                            await updatePantryItem(match.id, { quantity: newQty });
+                        }
+                        deductedCount++;
+                        remaining = 0;
                     } else {
-                        // Update quantity
-                        await updatePantryItem(match.id, { quantity: newQty });
+                        await deletePantryItem(match.id);
+                        remaining -= match.quantity;
+                        deductedCount++;
                     }
-                    deductedCount++;
-                    remaining = 0;
-                } else {
-                    // Use all from this ingredient
-                    await deletePantryItem(match.id);
-                    remaining -= match.quantity;
-                    deductedCount++;
                 }
             }
+
+            ingredients = await loadPantryItems();
+            renderIngredients();
+            renderRecipes();
+
+            showToast('Recipe Cooked!', `${recipe.name} - ${deductedCount} ingredients deducted. Enjoy! 🍽️`, 'success');
+        } catch (error) {
+            console.error('Error cooking recipe:', error);
+            showToast('Error', 'Failed to cook recipe: ' + error.message, 'error');
         }
-
-        // Reload ingredients from Supabase
-        ingredients = await loadPantryItems();
-        renderIngredients();
-        renderRecipes();
-
-        alert(`✅ Cooked "${recipe.name}"!\n\n${deductedCount} ingredient types deducted from your pantry.\n\nEnjoy your meal! 🍽️`);
-    } catch (error) {
-        console.error('Error cooking recipe:', error);
-        alert('Failed to cook recipe: ' + error.message);
     }
 }
 
