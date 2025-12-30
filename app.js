@@ -751,6 +751,7 @@ async function initIngredients() {
     const addIngredientBtn = document.getElementById('add-ingredient-btn');
     const floatingAddBtn = document.getElementById('floating-add-ingredient');
     const cancelAddIngredientBtn = document.getElementById('cancel-add-ingredient');
+    const closeModalBtn = document.getElementById('close-ingredient-modal');
     const formContainer = document.getElementById('add-ingredient-form-container');
     const searchInput = document.getElementById('ingredient-search');
 
@@ -768,10 +769,10 @@ async function initIngredients() {
         });
     }
 
-    // Floating + button - show form
+    // Floating + button - show modal
     if (floatingAddBtn) {
         floatingAddBtn.addEventListener('click', () => {
-            // Show form
+            // Show modal
             formContainer.classList.remove('hidden');
             // Refresh autocomplete
             updateDataLists();
@@ -782,11 +783,29 @@ async function initIngredients() {
         });
     }
 
-    // Cancel button - hide form
+    // Close modal button (×)
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', () => {
+            formContainer.classList.add('hidden');
+            clearIngredientForm();
+        });
+    }
+
+    // Cancel button - hide modal
     if (cancelAddIngredientBtn) {
         cancelAddIngredientBtn.addEventListener('click', () => {
             formContainer.classList.add('hidden');
             clearIngredientForm();
+        });
+    }
+
+    // Click outside modal to close
+    if (formContainer) {
+        formContainer.addEventListener('click', (e) => {
+            if (e.target === formContainer) {
+                formContainer.classList.add('hidden');
+                clearIngredientForm();
+            }
         });
     }
 
@@ -894,6 +913,11 @@ function clearIngredientForm() {
     if (categorySelect) {
         categorySelect.selectedIndex = 0; // "-- Select Category --"
     }
+    // Reset modal title and button text
+    document.getElementById('ingredient-form-title').textContent = 'Add New Ingredient';
+    document.getElementById('add-ingredient-btn').textContent = 'Save Ingredient';
+    // Clear editing mode
+    editingIngredientData = null;
 }
 
 async function addIngredient() {
@@ -922,39 +946,55 @@ async function addIngredient() {
     }
 
     try {
-        // Check if ingredient already exists in the selected location
-        const locationIngredients = ingredients[location] || [];
-        const existingIngredient = locationIngredients.find(
-            ing => ing.name.toLowerCase() === name.toLowerCase() &&
-                   ing.unit.toLowerCase() === unit.toLowerCase()
-        );
-
-        if (existingIngredient) {
-            // Update existing ingredient quantity
-            const newQuantity = existingIngredient.quantity + quantity;
-            const newExpiration = expiration && (!existingIngredient.expiration || new Date(expiration) < new Date(existingIngredient.expiration))
-                ? expiration
-                : existingIngredient.expiration;
-
-            await updatePantryItem(existingIngredient.id, {
-                quantity: newQuantity,
-                expiration: newExpiration,
-                itemCategory: itemCategory // Update category if provided
-            });
-
-            showToast('Ingredient Updated!', `${name} quantity increased to ${newQuantity} ${unit}`, 'success');
-        } else {
-            // Add new ingredient to Supabase
-            await addPantryItem({
+        // Check if we're in editing mode
+        if (editingIngredientData) {
+            // Update existing ingredient
+            await updatePantryItem(editingIngredientData.id, {
                 name,
                 quantity,
                 unit,
-                category: location, // This is the storage location (legacy field name)
-                itemCategory: itemCategory, // This is the item category (Produce, Dairy, etc.)
-                expiration
+                category: location,
+                itemCategory: itemCategory,
+                expiration: expiration
             });
 
-            showToast('Ingredient Added!', `${name} has been added to your ${location}`, 'success');
+            showToast('Ingredient Updated!', `${name} has been updated`, 'success');
+            editingIngredientData = null; // Clear editing mode
+        } else {
+            // Check if ingredient already exists in the selected location
+            const locationIngredients = ingredients[location] || [];
+            const existingIngredient = locationIngredients.find(
+                ing => ing.name.toLowerCase() === name.toLowerCase() &&
+                       ing.unit.toLowerCase() === unit.toLowerCase()
+            );
+
+            if (existingIngredient) {
+                // Update existing ingredient quantity
+                const newQuantity = existingIngredient.quantity + quantity;
+                const newExpiration = expiration && (!existingIngredient.expiration || new Date(expiration) < new Date(existingIngredient.expiration))
+                    ? expiration
+                    : existingIngredient.expiration;
+
+                await updatePantryItem(existingIngredient.id, {
+                    quantity: newQuantity,
+                    expiration: newExpiration,
+                    itemCategory: itemCategory // Update category if provided
+                });
+
+                showToast('Ingredient Updated!', `${name} quantity increased to ${newQuantity} ${unit}`, 'success');
+            } else {
+                // Add new ingredient to Supabase
+                await addPantryItem({
+                    name,
+                    quantity,
+                    unit,
+                    category: location, // This is the storage location (legacy field name)
+                    itemCategory: itemCategory, // This is the item category (Produce, Dairy, etc.)
+                    expiration
+                });
+
+                showToast('Ingredient Added!', `${name} has been added to your ${location}`, 'success');
+            }
         }
 
         // Reload ingredients from database
@@ -970,8 +1010,8 @@ async function addIngredient() {
         }
         clearIngredientForm();
     } catch (error) {
-        console.error('Error adding ingredient:', error);
-        showToast('Error', 'Failed to add ingredient: ' + error.message, 'error');
+        console.error('Error saving ingredient:', error);
+        showToast('Error', 'Failed to save ingredient: ' + error.message, 'error');
     }
 }
 
@@ -979,15 +1019,26 @@ function editIngredient(location, id) {
     const ingredient = ingredients[location].find(ing => ing.id === id);
     if (!ingredient) return;
 
+    // Set editing mode
     editingIngredientData = { location, id };
 
-    document.getElementById('edit-ing-name').value = ingredient.name;
-    document.getElementById('edit-ing-quantity').value = ingredient.quantity;
-    document.getElementById('edit-ing-unit').value = ingredient.unit;
-    document.getElementById('edit-ing-category').value = location;
-    document.getElementById('edit-ing-expiration').value = ingredient.expiration || '';
+    // Update modal title
+    document.getElementById('ingredient-form-title').textContent = 'Edit Ingredient';
 
-    document.getElementById('edit-ingredient-modal').classList.remove('hidden');
+    // Populate form with current values
+    document.getElementById('ingredient-name').value = ingredient.name;
+    document.getElementById('ingredient-quantity').value = ingredient.quantity;
+    document.getElementById('ingredient-unit').value = ingredient.unit;
+    document.getElementById('ingredient-location').value = ingredient.location || location;
+    document.getElementById('ingredient-item-category').value = ingredient.itemCategory || '';
+    document.getElementById('ingredient-expiration').value = ingredient.expiration || '';
+
+    // Update button text
+    document.getElementById('add-ingredient-btn').textContent = 'Update Ingredient';
+
+    // Show modal
+    document.getElementById('add-ingredient-form-container').classList.remove('hidden');
+    document.getElementById('ingredient-name').focus();
 }
 
 async function saveIngredientEdit() {
@@ -3375,46 +3426,42 @@ async function addRecipeToMeal(week, day, recipeId) {
         mealPlan[week][day].push(recipeId);
 
         try {
-            // Save to Supabase
-            await addMealPlanItem({
-                week,
-                day,
-                recipe_id: recipeId
-            });
+            // Save to Supabase - use saveMealPlanEntry with the full array
+            await saveMealPlanEntry(week, day, mealPlan[week][day]);
 
-            // Reload from Supabase
+            // Reload from Supabase to ensure consistency
             mealPlan = await loadMealPlan();
             renderMealPlan();
-            renderIngredients();
+            updateDashboardStats();
             showToast('Meal Added', 'Recipe added to meal plan', 'success');
         } catch (error) {
             console.error('Error adding meal:', error);
-            alert('Failed to add meal: ' + error.message);
+            // Revert the local change
+            mealPlan[week][day] = mealPlan[week][day].filter(id => id !== recipeId);
+            showToast('Error', 'Failed to add meal: ' + error.message, 'error');
         }
     }
 }
 
 async function removeRecipeFromMeal(week, day, recipeId) {
     if (Array.isArray(mealPlan[week][day])) {
+        recipeId = parseInt(recipeId);
+
+        // Remove recipe from the array
+        const updatedRecipes = mealPlan[week][day].filter(id => id !== recipeId);
+
         try {
-            // Delete from Supabase
-            const { error } = await supabase
-                .from('meal_plans')
-                .delete()
-                .eq('week', week)
-                .eq('day', day)
-                .eq('recipe_id', parseInt(recipeId));
+            // Save updated array to Supabase
+            await saveMealPlanEntry(week, day, updatedRecipes);
 
-            if (error) throw error;
-
-            // Reload from Supabase
+            // Reload from Supabase to ensure consistency
             mealPlan = await loadMealPlan();
             renderMealPlan();
-            renderIngredients();
+            updateDashboardStats();
             showToast('Meal Removed', 'Recipe removed from plan', 'success');
         } catch (error) {
             console.error('Error removing meal:', error);
-            alert('Failed to remove meal: ' + error.message);
+            showToast('Error', 'Failed to remove meal: ' + error.message, 'error');
         }
     }
 }
@@ -3807,6 +3854,9 @@ async function showAddCategoryPrompt() {
         await addCategory(name.trim());
         showToast('Success', `Added category: ${name}`, 'success');
         await loadAndDisplayCategories();
+        // Refresh dropdowns in forms
+        await populateIngredientsDropdowns();
+        await populateShoppingCategoryDropdown();
     } catch (error) {
         console.error('Error adding category:', error);
         showToast('Error', 'Failed to add category. It may already exist.', 'error');
@@ -3822,6 +3872,9 @@ async function showAddLocationPrompt() {
         await addLocation(name.trim());
         showToast('Success', `Added location: ${name}`, 'success');
         await loadAndDisplayLocations();
+        // Refresh dropdowns in forms and recreate location tabs
+        await populateIngredientsDropdowns();
+        await createLocationTabs();
     } catch (error) {
         console.error('Error adding location:', error);
         showToast('Error', 'Failed to add location. It may already exist.', 'error');
