@@ -601,10 +601,14 @@ function initDashboard() {
 
 function updateDashboardStats() {
     // === PANTRY STATS ===
-    const totalIngredients = ingredients.pantry.length + ingredients.fridge.length + ingredients.freezer.length;
-
-    // Count expiring items
-    const allIngredients = [...ingredients.pantry, ...ingredients.fridge, ...ingredients.freezer];
+    // Dynamically count all locations (including custom ones)
+    let totalIngredients = 0;
+    let allIngredients = [];
+    Object.keys(ingredients).forEach(location => {
+        const locationItems = ingredients[location] || [];
+        totalIngredients += locationItems.length;
+        allIngredients = allIngredients.concat(locationItems);
+    });
     const expiringCount = allIngredients.filter(item => {
         if (!item.expiration) return false;
         const status = getExpirationStatus(item.expiration);
@@ -772,7 +776,11 @@ function updateTodaysMeals() {
 }
 
 function checkExpiringItems() {
-    const allIngredients = [...ingredients.pantry, ...ingredients.fridge, ...ingredients.freezer];
+    // Get all ingredients from all locations (including custom ones)
+    let allIngredients = [];
+    Object.keys(ingredients).forEach(location => {
+        allIngredients = allIngredients.concat(ingredients[location] || []);
+    });
     const expiring = [];
     const expired = [];
 
@@ -1229,8 +1237,11 @@ function getReservedQuantities() {
 
 // Update ingredient summary boxes
 function updateIngredientSummary() {
-    // Get all ingredients
-    const allIngredients = [...ingredients.pantry, ...ingredients.fridge, ...ingredients.freezer];
+    // Get all ingredients (dynamically from all locations)
+    let allIngredients = [];
+    Object.keys(ingredients).forEach(location => {
+        allIngredients = allIngredients.concat(ingredients[location] || []);
+    });
 
     // Calculate totals
     let totalAvailable = 0;
@@ -1950,7 +1961,11 @@ async function cookRecipe(id) {
 
     try {
         let deductedCount = 0;
-        const allIngredients = [...ingredients.pantry, ...ingredients.fridge, ...ingredients.freezer];
+        // Get all ingredients from all locations (including custom ones)
+        let allIngredients = [];
+        Object.keys(ingredients).forEach(location => {
+            allIngredients = allIngredients.concat(ingredients[location] || []);
+        });
 
         // Deduct each required ingredient
         for (const reqIng of recipe.ingredients) {
@@ -1999,11 +2014,11 @@ async function cookRecipe(id) {
 }
 
 function checkRecipeStatus(recipe) {
-    const allIngredients = [
-        ...ingredients.pantry,
-        ...ingredients.fridge,
-        ...ingredients.freezer
-    ];
+    // Get all ingredients from all locations (including custom ones)
+    let allIngredients = [];
+    Object.keys(ingredients).forEach(location => {
+        allIngredients = allIngredients.concat(ingredients[location] || []);
+    });
 
     const missing = [];
     const have = [];
@@ -2066,7 +2081,11 @@ function updateMealSuggestions() {
     const suggestionsDiv = document.getElementById('meal-suggestions');
     if (!suggestionsDiv) return;
 
-    const allIngredients = [...ingredients.pantry, ...ingredients.fridge, ...ingredients.freezer];
+    // Get all ingredients from all locations (including custom ones)
+    let allIngredients = [];
+    Object.keys(ingredients).forEach(location => {
+        allIngredients = allIngredients.concat(ingredients[location] || []);
+    });
     const suggestions = [];
 
     recipes.forEach(recipe => {
@@ -2157,7 +2176,11 @@ function renderRecipes() {
 
     // Helper function to check if recipe has expiring ingredients
     function hasExpiringIngredients(recipe) {
-        const allIngredients = [...ingredients.pantry, ...ingredients.fridge, ...ingredients.freezer];
+        // Get all ingredients from all locations (including custom ones)
+        let allIngredients = [];
+        Object.keys(ingredients).forEach(location => {
+            allIngredients = allIngredients.concat(ingredients[location] || []);
+        });
         return recipe.ingredients.some(recipeIng => {
             const ingredient = allIngredients.find(inv =>
                 inv.name.toLowerCase() === recipeIng.name.toLowerCase()
@@ -2784,7 +2807,11 @@ async function generateFromMealPlan() {
     }
 
     // Check what's missing from ingredients
-    const allIngredients = [...ingredients.pantry, ...ingredients.fridge, ...ingredients.freezer];
+    // Get all ingredients from all locations (including custom ones)
+    let allIngredients = [];
+    Object.keys(ingredients).forEach(location => {
+        allIngredients = allIngredients.concat(ingredients[location] || []);
+    });
     const missing = [];
 
     requiredIngredients.forEach(reqIng => {
@@ -3938,7 +3965,11 @@ function clearAllData() {
 }
 
 function updateStats() {
-    const totalIngredients = ingredients.pantry.length + ingredients.fridge.length + ingredients.freezer.length;
+    // Dynamically count all locations (including custom ones)
+    let totalIngredients = 0;
+    Object.keys(ingredients).forEach(location => {
+        totalIngredients += (ingredients[location] || []).length;
+    });
     const totalRecipes = recipes.length;
     const readyRecipes = recipes.filter(r => checkRecipeStatus(r).isReady).length;
     const shoppingItems = shoppingList.length;
