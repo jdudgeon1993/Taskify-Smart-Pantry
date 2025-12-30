@@ -1602,18 +1602,31 @@ async function setRecipeColor(id, color) {
 // Global variable to track current recipe in modal
 let currentModalRecipeId = null;
 
-function openRecipeDetailModal(id) {
+async function openRecipeDetailModal(id) {
     // Convert to number if it's a string (from onclick handler)
     const recipeId = typeof id === 'string' ? parseInt(id) : id;
 
     console.log('🔍 openRecipeDetailModal called with id:', recipeId);
     console.log('📚 Available recipes:', recipes);
 
-    const recipe = recipes.find(r => r.id === recipeId);
+    let recipe = recipes.find(r => r.id === recipeId);
     console.log('📖 Found recipe:', recipe);
+
+    // If recipe not found, try reloading recipes (might be out of sync)
+    if (!recipe) {
+        console.warn('⚠️ Recipe not found in current array, reloading recipes...');
+        showToast('Loading Recipe...', 'Refreshing recipe data', 'info');
+        try {
+            recipes = await loadRecipes();
+            recipe = recipes.find(r => r.id === recipeId);
+        } catch (error) {
+            console.error('❌ Error reloading recipes:', error);
+        }
+    }
 
     if (!recipe) {
         console.error('❌ Recipe not found with id:', recipeId);
+        showToast('Recipe Not Found', 'This recipe may have been deleted. Try refreshing the page.', 'error');
         return;
     }
 
@@ -1781,8 +1794,8 @@ function addMissingFromModal() {
 }
 
 // Keep for backward compatibility but unused in new design
-function toggleRecipeCard(event, id) {
-    openRecipeDetailModal(id);
+async function toggleRecipeCard(event, id) {
+    await openRecipeDetailModal(id);
 }
 
 function scaleRecipe(recipeId, multiplier) {
@@ -3456,9 +3469,14 @@ function collapseAllMealDays() {
 }
 
 async function addRecipeToMeal(week, day, recipeId) {
-    if (!recipeId) return;
+    console.log('🍽️ addRecipeToMeal called:', { week, day, recipeId });
+    if (!recipeId) {
+        console.log('⚠️ No recipeId provided');
+        return;
+    }
 
     recipeId = parseInt(recipeId);
+    console.log('📝 Parsed recipeId:', recipeId);
 
     // Ensure mealPlan[week][day] is an array
     if (!Array.isArray(mealPlan[week][day])) {
@@ -3468,10 +3486,12 @@ async function addRecipeToMeal(week, day, recipeId) {
     // Add recipe if not already there
     if (!mealPlan[week][day].includes(recipeId)) {
         mealPlan[week][day].push(recipeId);
+        console.log('✅ Recipe added to local meal plan');
 
         try {
             // Save to Supabase - use saveMealPlanEntry with the full array
             await saveMealPlanEntry(week, day, mealPlan[week][day]);
+            console.log('✅ Saved to Supabase');
 
             // Reload from Supabase to ensure consistency
             mealPlan = await loadMealPlan();
@@ -3479,13 +3499,18 @@ async function addRecipeToMeal(week, day, recipeId) {
             updateDashboardStats();
             showToast('Meal Added', 'Recipe added to meal plan', 'success');
         } catch (error) {
-            console.error('Error adding meal:', error);
+            console.error('❌ Error adding meal:', error);
             // Revert the local change
             mealPlan[week][day] = mealPlan[week][day].filter(id => id !== recipeId);
             showToast('Error', 'Failed to add meal: ' + error.message, 'error');
         }
+    } else {
+        console.log('ℹ️ Recipe already in meal plan for this day');
     }
 }
+
+// Expose to window for inline handlers
+window.addRecipeToMeal = addRecipeToMeal;
 
 async function removeRecipeFromMeal(week, day, recipeId) {
     if (Array.isArray(mealPlan[week][day])) {
@@ -3509,6 +3534,9 @@ async function removeRecipeFromMeal(week, day, recipeId) {
         }
     }
 }
+
+// Expose to window for inline handlers
+window.removeRecipeFromMeal = removeRecipeFromMeal;
 
 function cookNowAndDeduct(recipeId, week, day) {
     const recipe = recipes.find(r => r.id === recipeId);
@@ -3601,6 +3629,9 @@ function cookNowAndDeduct(recipeId, week, day) {
         }
     }
 }
+
+// Expose to window for inline handlers
+window.cookNowAndDeduct = cookNowAndDeduct;
 
 // Settings Section
 function initSettings() {
