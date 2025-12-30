@@ -587,6 +587,23 @@
     <!-- Toast Notification Container -->
     <div id="toast-container" class="toast-container"></div>
 
+    <!-- Ingredient Deduction Selection Modal -->
+    <div id="deduction-selection-modal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeDeductionModal()"></div>
+        <div class="deduction-modal-content">
+            <div class="deduction-modal-header">
+                <h2>Choose Ingredient Locations</h2>
+                <button class="close-modal-btn" onclick="closeDeductionModal()">&times;</button>
+            </div>
+            <p class="deduction-modal-subtitle">Some ingredients are available in multiple locations. Choose where to deduct from:</p>
+            <div id="deduction-choices-container" class="deduction-choices"></div>
+            <div class="deduction-modal-actions">
+                <button class="btn-secondary" onclick="closeDeductionModal()">Cancel</button>
+                <button class="btn-primary" onclick="confirmDeductions()">Confirm & Cook</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Recipe Detail Modal (Traditional Recipe Card) -->
     <div id="recipe-detail-modal" class="modal hidden">
         <div class="modal-overlay" onclick="closeRecipeDetailModal()"></div>
