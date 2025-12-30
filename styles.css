@@ -1113,3 +1113,223 @@ table tr:hover {
         padding: var(--spacing-sm);
     }
 }
+
+/* ==========================================
+   NEW: GREETING BANNER
+   ========================================== */
+.greeting-banner {
+    background: linear-gradient(135deg, var(--bg-secondary), var(--white));
+    padding: var(--spacing-md) var(--spacing-xl);
+    margin-bottom: var(--spacing-lg);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+}
+
+#greeting-text {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-family: var(--font-display);
+}
+
+#current-datetime {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+}
+
+/* ==========================================
+   NEW: INGREDIENTS GRID (3 COLUMNS)
+   ========================================== */
+.ingredients-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-lg);
+    margin-top: var(--spacing-lg);
+}
+
+.ingredient-card {
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    transition: all 0.3s ease;
+    position: relative;
+    box-shadow: var(--shadow-sm);
+}
+
+.ingredient-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+    border-color: var(--accent);
+}
+
+.ingredient-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--spacing-md);
+}
+
+.ingredient-card-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.ingredient-card-category {
+    font-size: 0.8rem;
+    color: var(--text-tertiary);
+    background: var(--bg-secondary);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+}
+
+.ingredient-card-quantities {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-sm);
+    margin: var(--spacing-md) 0;
+    padding: var(--spacing-md);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+}
+
+.quantity-item {
+    text-align: center;
+}
+
+.quantity-label {
+    font-size: 0.7rem;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.quantity-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.quantity-value.reserved {
+    color: var(--warning);
+}
+
+.quantity-value.available {
+    color: var(--accent);
+}
+
+.ingredient-card-expiration {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin: var(--spacing-sm) 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.expiration-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: 0.75rem;
+}
+
+.expiration-badge.expiring-soon {
+    background: #FFF3CD;
+    color: #856404;
+}
+
+.expiration-badge.expired {
+    background: #F8D7DA;
+    color: #721C24;
+}
+
+.ingredient-card-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-md);
+}
+
+.ingredient-card-actions button {
+    flex: 1;
+    padding: var(--spacing-sm);
+    font-size: 0.85rem;
+}
+
+/* ==========================================
+   NEW: FLOATING ADD BUTTON
+   ========================================== */
+.floating-add-btn {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: var(--white);
+    border: none;
+    box-shadow: var(--shadow-xl);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: 300;
+    line-height: 1;
+}
+
+.floating-add-btn:hover {
+    transform: scale(1.1) rotate(90deg);
+    box-shadow: 0 8px 32px rgba(124, 106, 92, 0.4);
+}
+
+.floating-add-btn:active {
+    transform: scale(0.95) rotate(90deg);
+}
+
+.floating-add-btn span {
+    display: block;
+    margin-top: -4px;
+}
+
+/* ==========================================
+   RESPONSIVE: INGREDIENTS GRID
+   ========================================== */
+@media (max-width: 1024px) {
+    .ingredients-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .ingredients-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .greeting-banner {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .floating-add-btn {
+        bottom: 1rem;
+        right: 1rem;
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
+    }
+}

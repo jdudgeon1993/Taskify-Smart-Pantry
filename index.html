@@ -114,6 +114,12 @@
                 </button>
             </header>
 
+            <!-- Greeting Banner -->
+            <div class="greeting-banner" id="greeting-banner">
+                <span id="greeting-text">Good Evening</span>
+                <span id="current-datetime">Monday, 12:00 PM, December 30th, 2024</span>
+            </div>
+
             <!-- Slide-out Navigation -->
             <nav class="main-nav" id="main-nav">
                 <div class="nav-header">
@@ -205,13 +211,13 @@
             <!-- Ingredients Section -->
             <section id="ingredients" class="section">
                 <div class="section-header">
-                    <h2>My Pantry</h2>
-                    <button class="btn-primary" id="toggle-add-ingredient">Add Ingredient</button>
+                    <h2>My Ingredients</h2>
                 </div>
 
+                <!-- Add/Edit Ingredient Form (Modal style) -->
                 <div class="add-ingredient-form hidden" id="add-ingredient-form-container">
                     <div class="form-card">
-                        <h3>Add New Ingredient</h3>
+                        <h3 id="ingredient-form-title">Add New Ingredient</h3>
                         <div class="form-group">
                             <label>Ingredient Name</label>
                             <input type="text" id="ingredient-name" placeholder="e.g., Flour, Milk, Tomatoes" list="ingredient-names-list" />
@@ -227,12 +233,19 @@
                                 <input type="text" id="ingredient-unit" placeholder="cups, lbs, etc." list="units-list" />
                                 <datalist id="units-list"></datalist>
                             </div>
+                        </div>
+                        <div class="form-row">
                             <div class="form-group">
-                                <label>Category</label>
-                                <select id="ingredient-category">
-                                    <option value="pantry">Pantry</option>
-                                    <option value="fridge">Fridge</option>
-                                    <option value="freezer">Freezer</option>
+                                <label>Storage Location</label>
+                                <select id="ingredient-location">
+                                    <!-- Will be populated from database -->
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Item Category</label>
+                                <select id="ingredient-item-category">
+                                    <option value="">-- Select Category --</option>
+                                    <!-- Will be populated from database -->
                                 </select>
                             </div>
                             <div class="form-group">
@@ -247,30 +260,25 @@
                     </div>
                 </div>
 
+                <!-- Search Bar -->
                 <div class="ingredient-search-bar">
                     <input type="text" id="ingredient-search" placeholder="Search ingredients..." />
                 </div>
 
-                <div class="location-tabs">
-                    <button class="location-btn active" data-location="pantry">Pantry</button>
-                    <button class="location-btn" data-location="fridge">Fridge</button>
-                    <button class="location-btn" data-location="freezer">Freezer</button>
+                <!-- Location Tabs (Dynamic from database) -->
+                <div class="location-tabs" id="location-tabs">
+                    <!-- Will be populated dynamically -->
                 </div>
 
-                <div class="ingredient-lists">
-                    <div id="pantry-list" class="ingredient-list active">
-                        <h3>Pantry Items</h3>
-                        <ul id="pantry-items"></ul>
-                    </div>
-                    <div id="fridge-list" class="ingredient-list">
-                        <h3>Fridge Items</h3>
-                        <ul id="fridge-items"></ul>
-                    </div>
-                    <div id="freezer-list" class="ingredient-list">
-                        <h3>Freezer Items</h3>
-                        <ul id="freezer-items"></ul>
-                    </div>
+                <!-- Ingredients Grid (3 columns) -->
+                <div class="ingredients-grid" id="ingredients-grid">
+                    <!-- Will be populated dynamically -->
                 </div>
+
+                <!-- Floating Add Button -->
+                <button class="floating-add-btn" id="floating-add-ingredient" title="Add Ingredient">
+                    <span>+</span>
+                </button>
             </section>
 
             <!-- Recipes Section -->
@@ -658,15 +666,15 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <!-- Supabase Configuration - Initialize client -->
-    <script src="supabase-config.js?v=1767061553"></script>
+    <script src="supabase-config.js?v=1767062000"></script>
 
     <!-- Authentication Functions -->
-    <script src="auth.js?v=1767061553"></script>
+    <script src="auth.js?v=1767062000"></script>
 
     <!-- Database Functions -->
-    <script src="db.js?v=1767061553"></script>
+    <script src="db.js?v=1767062000"></script>
 
     <!-- Main Application -->
-    <script src="app.js?v=1767061553"></script>
+    <script src="app.js?v=1767062000"></script>
 </body>
 </html>
