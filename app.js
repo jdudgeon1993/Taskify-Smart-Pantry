@@ -1299,7 +1299,8 @@ function renderIngredients() {
 
 function initRecipes() {
     const saveRecipeBtn = document.getElementById('save-recipe-btn');
-    const closeModal = document.querySelector('.close-modal');
+    const addRecipeForm = document.getElementById('add-recipe-form');
+    const closeModal = addRecipeForm ? addRecipeForm.querySelector('.close-modal') : null;
     const addRecipeIngredientBtn = document.getElementById('add-recipe-ingredient-btn');
     const filterButtons = document.querySelectorAll('.filter-btn');
     const categoryButtons = document.querySelectorAll('.category-filter-btn');
@@ -1310,15 +1311,26 @@ function initRecipes() {
     if (floatingAddBtn) {
         floatingAddBtn.addEventListener('click', () => {
             document.getElementById('recipe-modal-title').textContent = 'Add New Recipe';
-            document.getElementById('add-recipe-form').classList.remove('hidden');
+            addRecipeForm.classList.remove('hidden');
             clearRecipeForm();
         });
     }
 
-    // Close modal button
+    // Close modal button - specific to add recipe form
     if (closeModal) {
         closeModal.addEventListener('click', () => {
-            document.getElementById('add-recipe-form').classList.add('hidden');
+            addRecipeForm.classList.add('hidden');
+            clearRecipeForm();
+        });
+    }
+
+    // Click outside modal to close
+    if (addRecipeForm) {
+        addRecipeForm.addEventListener('click', (e) => {
+            if (e.target === addRecipeForm) {
+                addRecipeForm.classList.add('hidden');
+                clearRecipeForm();
+            }
         });
     }
 
