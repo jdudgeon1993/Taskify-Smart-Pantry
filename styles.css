@@ -243,8 +243,7 @@ header {
 /* Sections */
 .section {
     display: none;
-    padding: var(--spacing-2xl) var(--spacing-xl);
-    padding-top: calc(60px + var(--spacing-xl));
+    padding: var(--spacing-xl);
     min-height: 100vh;
 }
 
@@ -1252,6 +1251,7 @@ table tr:hover {
 .greeting-banner {
     background: linear-gradient(135deg, var(--bg-secondary), var(--white));
     padding: var(--spacing-md) var(--spacing-xl);
+    margin-top: calc(60px + var(--spacing-md)); /* Account for fixed header */
     margin-bottom: var(--spacing-lg);
     border-radius: var(--radius-md);
     border: 1px solid var(--border-light);

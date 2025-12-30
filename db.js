@@ -148,7 +148,7 @@ async function loadPantryItems() {
     return { pantry: [], fridge: [], freezer: [] };
   }
 
-  // Group by category
+  // Group by category (dynamically support custom locations)
   const grouped = {
     pantry: [],
     fridge: [],
@@ -157,22 +157,26 @@ async function loadPantryItems() {
 
   data.forEach(item => {
     const location = item.category || 'pantry'; // 'category' field is actually location
-    if (grouped[location]) {
-      const reserved = item.reserved_quantity || 0;
-      const available = (item.quantity || 0) - reserved;
 
-      grouped[location].push({
-        id: item.id,
-        name: item.name,
-        quantity: item.quantity,
-        reserved: reserved,
-        available: available,
-        unit: item.unit,
-        location: location,
-        itemCategory: item.item_category || null, // NEW: Meat, Produce, etc.
-        expiration: item.expiration_date
-      });
+    // Create location array if it doesn't exist (for custom locations)
+    if (!grouped[location]) {
+      grouped[location] = [];
     }
+
+    const reserved = item.reserved_quantity || 0;
+    const available = (item.quantity || 0) - reserved;
+
+    grouped[location].push({
+      id: item.id,
+      name: item.name,
+      quantity: item.quantity,
+      reserved: reserved,
+      available: available,
+      unit: item.unit,
+      location: location,
+      itemCategory: item.item_category || null, // NEW: Meat, Produce, etc.
+      expiration: item.expiration_date
+    });
   });
 
   return grouped;
