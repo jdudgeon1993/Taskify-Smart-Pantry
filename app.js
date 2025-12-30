@@ -430,17 +430,28 @@ if (window.supabaseClient) {
             console.log('✅ [APP.JS] User signed in:', session.user.email);
             console.log('📱 [APP.JS] Calling initializeApp()...');
             try {
-                // Add timeout to initialization
-                await withTimeout(initializeApp(), 30000, 'App initialization');
+                // Increased timeout to 60 seconds for better reliability
+                await withTimeout(initializeApp(), 60000, 'App initialization');
                 console.log('✅ [APP.JS] initializeApp() completed');
             } catch (error) {
                 console.error('❌ [APP.JS] Error in initializeApp:', error);
                 window.isLoading = false;
                 window.isInitialized = false;
-                showToast('Error', 'Failed to initialize: ' + error.message, 'error');
-                // Show a helpful error message
+
+                // Show a more helpful error message
                 if (error.message.includes('timed out')) {
-                    alert('The app is taking too long to load. This might be a network issue. Please refresh the page and try again.');
+                    showToast('Loading...', 'App is still loading, please wait...', 'info');
+                    // Retry initialization once
+                    console.log('🔄 Retrying initialization...');
+                    try {
+                        await initializeApp();
+                        console.log('✅ [APP.JS] Retry successful');
+                    } catch (retryError) {
+                        console.error('❌ [APP.JS] Retry failed:', retryError);
+                        showToast('Error', 'Failed to load. Please refresh the page.', 'error');
+                    }
+                } else {
+                    showToast('Error', 'Failed to initialize: ' + error.message, 'error');
                 }
             }
         } else if (event === 'SIGNED_OUT') {
@@ -494,24 +505,28 @@ async function loadAllDataFromSupabase() {
         console.log('⏳ Ensuring default categories and locations...');
         await ensureDefaultCategoriesAndLocations();
 
-        console.log('⏳ Loading pantry items...');
-        ingredients = await loadPantryItems();
+        // Load all data in parallel for better performance
+        console.log('⏳ Loading all data in parallel...');
+        const [loadedIngredients, loadedRecipes, loadedShoppingList, loadedMealPlan] = await Promise.all([
+            loadPantryItems(),
+            loadRecipes(),
+            loadShoppingList(),
+            loadMealPlan()
+        ]);
+
+        // Assign loaded data
+        ingredients = loadedIngredients;
+        recipes = loadedRecipes;
+        shoppingList = loadedShoppingList;
+        mealPlan = loadedMealPlan;
+
+        // Log results
         const totalItems = (ingredients.pantry?.length || 0) + (ingredients.fridge?.length || 0) + (ingredients.freezer?.length || 0);
         console.log('✅ Pantry items loaded:', totalItems, 'items');
-
-        console.log('⏳ Loading recipes...');
-        recipes = await loadRecipes();
         console.log('✅ Recipes loaded:', recipes.length, 'recipes');
-
-        console.log('⏳ Loading shopping list...');
-        shoppingList = await loadShoppingList();
         console.log('✅ Shopping list loaded:', shoppingList.length, 'items');
-
-        console.log('⏳ Loading meal plan...');
-        mealPlan = await loadMealPlan();
         console.log('✅ Meal plan loaded');
-
-        console.log('✅ All data loaded from Supabase');
+        console.log('✅ All data loaded from Supabase (parallel loading)');
     } catch (error) {
         console.error('❌ Error loading data:', error);
         throw error;
