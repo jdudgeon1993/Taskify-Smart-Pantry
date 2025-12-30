@@ -831,7 +831,7 @@ async function initIngredients() {
 
             const action = button.dataset.action;
             const location = button.dataset.location;
-            const id = parseInt(button.dataset.id);
+            const id = button.dataset.id; // Keep as string (UUID)
 
             if (action === 'edit') {
                 editIngredient(location, id);
@@ -1603,8 +1603,8 @@ async function setRecipeColor(id, color) {
 let currentModalRecipeId = null;
 
 async function openRecipeDetailModal(id) {
-    // Convert to number if it's a string (from onclick handler)
-    const recipeId = typeof id === 'string' ? parseInt(id) : id;
+    // ID is a UUID string, keep it as-is
+    const recipeId = id;
 
     console.log('🔍 openRecipeDetailModal called with id:', recipeId);
     console.log('📚 Available recipes:', recipes);
@@ -2516,7 +2516,7 @@ async function deleteShoppingItem(id) {
     }
 }
 
-function addMissingToShopping(recipeId, servingsMultiplier = 1) {
+async function addMissingToShopping(recipeId, servingsMultiplier = 1) {
     const recipe = recipes.find(r => r.id === recipeId);
     if (!recipe) return;
 
@@ -2526,45 +2526,50 @@ function addMissingToShopping(recipeId, servingsMultiplier = 1) {
         return;
     }
 
-    let addedCount = 0;
-    status.missing.forEach(ing => {
-        const scaledQuantity = ing.quantity * servingsMultiplier;
+    try {
+        let addedCount = 0;
+        for (const ing of status.missing) {
+            const scaledQuantity = ing.quantity * servingsMultiplier;
 
-        // Check if already in shopping list
-        const existing = shoppingList.find(item =>
-            item.name.toLowerCase() === ing.name.toLowerCase() &&
-            item.unit.toLowerCase() === ing.unit.toLowerCase()
-        );
+            // Check if already in shopping list
+            const existing = shoppingList.find(item =>
+                item.name.toLowerCase() === ing.name.toLowerCase() &&
+                item.unit.toLowerCase() === ing.unit.toLowerCase()
+            );
 
-        if (existing) {
-            // Add to existing quantity
-            existing.quantity += scaledQuantity;
-            addedCount++;
-        } else {
-            // Add new item
-            const category = autoCategorizeShopping(ing.name);
-            shoppingList.push({
-                id: Date.now() + Math.random(),
-                name: ing.name,
-                quantity: scaledQuantity,
-                unit: ing.unit,
-                category: category,
-                checked: false,
-                purchasedQuantity: null,
-                targetLocation: getSuggestedLocation(category)
-            });
-            addedCount++;
+            if (existing) {
+                // Update existing quantity in database
+                await updateShoppingItem(existing.id, {
+                    quantity: existing.quantity + scaledQuantity
+                });
+                addedCount++;
+            } else {
+                // Add new item to database
+                const category = autoCategorizeShopping(ing.name);
+                await addShoppingItem({
+                    name: ing.name,
+                    quantity: scaledQuantity,
+                    unit: ing.unit,
+                    category: category
+                });
+                addedCount++;
+            }
         }
-    });
 
-    renderShoppingList();
-    updateDashboardStats();
+        // Reload shopping list from database
+        shoppingList = await loadShoppingList();
+        renderShoppingList();
+        updateDashboardStats();
 
-    const multiplierText = servingsMultiplier !== 1 ? ` (×${servingsMultiplier})` : '';
-    showToast('Added to Shopping List', `${addedCount} ingredient${addedCount > 1 ? 's' : ''} from ${recipe.name}${multiplierText}`, 'success');
+        const multiplierText = servingsMultiplier !== 1 ? ` (×${servingsMultiplier})` : '';
+        showToast('Added to Shopping List', `${addedCount} ingredient${addedCount > 1 ? 's' : ''} from ${recipe.name}${multiplierText}`, 'success');
+    } catch (error) {
+        console.error('Error adding to shopping list:', error);
+        showToast('Error', 'Failed to add items to shopping list', 'error');
+    }
 }
 
-function autoGenerateShoppingList() {
+async function autoGenerateShoppingList() {
     const missingIngredients = [];
 
     recipes.forEach(recipe => {
@@ -2584,34 +2589,37 @@ function autoGenerateShoppingList() {
         return;
     }
 
-    let addedCount = 0;
-    missingIngredients.forEach(ing => {
-        const alreadyInList = shoppingList.find(item =>
-            item.name.toLowerCase() === ing.name.toLowerCase() &&
-            item.unit.toLowerCase() === ing.unit.toLowerCase()
-        );
-        if (!alreadyInList) {
-            const category = autoCategorizeShopping(ing.name);
-            shoppingList.push({
-                id: Date.now() + Math.random(),
-                name: ing.name,
-                quantity: ing.quantity,
-                unit: ing.unit,
-                category: category,
-                checked: false,
-                purchasedQuantity: null,
-                targetLocation: getSuggestedLocation(category)
-            });
-            addedCount++;
+    try {
+        let addedCount = 0;
+        for (const ing of missingIngredients) {
+            const alreadyInList = shoppingList.find(item =>
+                item.name.toLowerCase() === ing.name.toLowerCase() &&
+                item.unit.toLowerCase() === ing.unit.toLowerCase()
+            );
+            if (!alreadyInList) {
+                const category = autoCategorizeShopping(ing.name);
+                await addShoppingItem({
+                    name: ing.name,
+                    quantity: ing.quantity,
+                    unit: ing.unit,
+                    category: category
+                });
+                addedCount++;
+            }
         }
-    });
 
-    renderShoppingList();
-    updateDashboardStats();
-    showToast('Added to Shopping List', `${addedCount} missing ingredient${addedCount > 1 ? 's' : ''} from recipes`, 'success');
+        // Reload shopping list from database
+        shoppingList = await loadShoppingList();
+        renderShoppingList();
+        updateDashboardStats();
+        showToast('Added to Shopping List', `${addedCount} missing ingredient${addedCount > 1 ? 's' : ''} from recipes`, 'success');
+    } catch (error) {
+        console.error('Error auto-generating shopping list:', error);
+        showToast('Error', 'Failed to generate shopping list', 'error');
+    }
 }
 
-function generateFromMealPlan() {
+async function generateFromMealPlan() {
     const requiredIngredients = [];
 
     Object.keys(mealPlan).forEach(day => {
@@ -2683,31 +2691,34 @@ function generateFromMealPlan() {
         return;
     }
 
-    let addedCount = 0;
-    missing.forEach(ing => {
-        const alreadyInList = shoppingList.find(item =>
-            item.name.toLowerCase() === ing.name.toLowerCase() &&
-            item.unit.toLowerCase() === ing.unit.toLowerCase()
-        );
-        if (!alreadyInList) {
-            const category = autoCategorizeShopping(ing.name);
-            shoppingList.push({
-                id: Date.now() + Math.random(),
-                name: ing.name,
-                quantity: ing.quantity,
-                unit: ing.unit,
-                category: category,
-                checked: false,
-                purchasedQuantity: null,
-                targetLocation: getSuggestedLocation(category)
-            });
-            addedCount++;
+    try {
+        let addedCount = 0;
+        for (const ing of missing) {
+            const alreadyInList = shoppingList.find(item =>
+                item.name.toLowerCase() === ing.name.toLowerCase() &&
+                item.unit.toLowerCase() === ing.unit.toLowerCase()
+            );
+            if (!alreadyInList) {
+                const category = autoCategorizeShopping(ing.name);
+                await addShoppingItem({
+                    name: ing.name,
+                    quantity: ing.quantity,
+                    unit: ing.unit,
+                    category: category
+                });
+                addedCount++;
+            }
         }
-    });
 
-    renderShoppingList();
-    updateDashboardStats();
-    showToast('Added to Shopping List', `${addedCount} ingredient${addedCount > 1 ? 's' : ''} from meal plan`, 'success');
+        // Reload shopping list from database
+        shoppingList = await loadShoppingList();
+        renderShoppingList();
+        updateDashboardStats();
+        showToast('Added to Shopping List', `${addedCount} ingredient${addedCount > 1 ? 's' : ''} from meal plan`, 'success');
+    } catch (error) {
+        console.error('Error generating from meal plan:', error);
+        showToast('Error', 'Failed to generate shopping list from meal plan', 'error');
+    }
 }
 
 function clearShoppingList() {
@@ -3067,30 +3078,35 @@ function getSuggestedLocation(category) {
     return 'pantry';
 }
 
-function quickAddItem(itemName) {
-    // Check if already in shopping list
-    const existing = shoppingList.find(item => item.name.toLowerCase() === itemName.toLowerCase());
+async function quickAddItem(itemName) {
+    try {
+        // Check if already in shopping list
+        const existing = shoppingList.find(item => item.name.toLowerCase() === itemName.toLowerCase());
 
-    if (existing) {
-        existing.quantity += 1;
-        showToast('Quantity Updated', `${itemName} quantity increased to ${existing.quantity}`, 'info');
-    } else {
-        const category = autoCategorizeShopping(itemName);
-        shoppingList.push({
-            id: Date.now() + Math.random(),
-            name: itemName,
-            quantity: 1,
-            unit: 'unit',
-            category: category,
-            checked: false,
-            purchasedQuantity: null,
-            targetLocation: getSuggestedLocation(category)
-        });
-        showToast('Added to Shopping List', `${itemName} added`, 'success');
+        if (existing) {
+            await updateShoppingItem(existing.id, {
+                quantity: existing.quantity + 1
+            });
+            showToast('Quantity Updated', `${itemName} quantity increased to ${existing.quantity + 1}`, 'info');
+        } else {
+            const category = autoCategorizeShopping(itemName);
+            await addShoppingItem({
+                name: itemName,
+                quantity: 1,
+                unit: 'unit',
+                category: category
+            });
+            showToast('Added to Shopping List', `${itemName} added`, 'success');
+        }
+
+        // Reload shopping list from database
+        shoppingList = await loadShoppingList();
+        renderShoppingList();
+        updateDashboardStats();
+    } catch (error) {
+        console.error('Error quick-adding item:', error);
+        showToast('Error', 'Failed to add item to shopping list', 'error');
     }
-
-    renderShoppingList();
-    updateDashboardStats();
 }
 
 function copyShoppingListToClipboard() {
@@ -3253,87 +3269,81 @@ function initMealPlan() {
     renderMealPlan();
 }
 
-function clearMealPlan() {
+async function clearMealPlan() {
     const options = ['Clear Current Week (Week 1)', 'Clear Next Week (Week 2)', 'Clear Both Weeks', 'Cancel'];
     const choice = prompt(`Choose an option:\n1. ${options[0]}\n2. ${options[1]}\n3. ${options[2]}\n4. ${options[3]}\n\nEnter 1, 2, 3, or 4:`);
 
     const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
-    if (choice === '1') {
-        days.forEach(day => {
-            mealPlan.week1[day] = [];
-        });
-        renderMealPlan();
-        renderIngredients();
-        showToast('Week 1 Cleared', 'Current week meals removed', 'success');
-    } else if (choice === '2') {
-        days.forEach(day => {
-            mealPlan.week2[day] = [];
-        });
-        renderMealPlan();
-        renderIngredients();
-        showToast('Week 2 Cleared', 'Next week meals removed', 'success');
-    } else if (choice === '3') {
-        if (confirm('Are you sure you want to clear BOTH weeks?')) {
-            days.forEach(day => {
-                mealPlan.week1[day] = [];
-                mealPlan.week2[day] = [];
-            });
+    try {
+        if (choice === '1') {
+            for (const day of days) {
+                await saveMealPlanEntry('week1', day, []);
+            }
+            mealPlan = await loadMealPlan();
             renderMealPlan();
             renderIngredients();
-            showToast('Both Weeks Cleared', 'All meals removed from plan', 'success');
+            updateDashboardStats();
+            showToast('Week 1 Cleared', 'Current week meals removed', 'success');
+        } else if (choice === '2') {
+            for (const day of days) {
+                await saveMealPlanEntry('week2', day, []);
+            }
+            mealPlan = await loadMealPlan();
+            renderMealPlan();
+            renderIngredients();
+            updateDashboardStats();
+            showToast('Week 2 Cleared', 'Next week meals removed', 'success');
+        } else if (choice === '3') {
+            if (confirm('Are you sure you want to clear BOTH weeks?')) {
+                for (const day of days) {
+                    await saveMealPlanEntry('week1', day, []);
+                    await saveMealPlanEntry('week2', day, []);
+                }
+                mealPlan = await loadMealPlan();
+                renderMealPlan();
+                renderIngredients();
+                updateDashboardStats();
+                showToast('Both Weeks Cleared', 'All meals removed from plan', 'success');
+            }
         }
+    } catch (error) {
+        console.error('Error clearing meal plan:', error);
+        showToast('Error', 'Failed to clear meal plan', 'error');
     }
 }
 
-function duplicateWeek() {
-    // Check if there's anything to duplicate
+async function duplicateWeek() {
+    // Duplicate Week 1 to Week 2
     const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-    const hasMeals = days.some(day => {
-        const dayPlan = mealPlan[day];
-        return ['breakfast', 'lunch', 'dinner'].some(meal => {
-            const mealSlot = dayPlan[meal];
-            return (mealSlot.personA && mealSlot.personA.length > 0) ||
-                   (mealSlot.personB && mealSlot.personB.length > 0) ||
-                   (mealSlot.joint && mealSlot.joint.length > 0);
-        });
-    });
+
+    // Check if Week 1 has any meals
+    const hasMeals = days.some(day => mealPlan.week1[day] && mealPlan.week1[day].length > 0);
 
     if (!hasMeals) {
-        showToast('Nothing to Duplicate', 'Current meal plan is empty', 'info');
+        showToast('Nothing to Duplicate', 'Week 1 is empty', 'info');
         return;
     }
 
-    // Create a deep copy of the current meal plan
-    const mealPlanCopy = JSON.stringify(mealPlan);
-
-    // Store in clipboard-like temporary storage
-    localStorage.setItem('mealPlanClipboard', mealPlanCopy);
-
-    showToast('Week Copied!', 'Use "Paste Week" to apply this plan to a different week', 'success');
-
-    // Show paste option
-    const confirmPaste = confirm('Meal plan copied! Do you want to paste it now to replace the current week?');
-    if (confirmPaste) {
-        pasteWeek();
-    }
-}
-
-function pasteWeek() {
-    const clipboard = localStorage.getItem('mealPlanClipboard');
-    if (!clipboard) {
-        showToast('Nothing to Paste', 'No meal plan has been copied yet', 'info');
+    if (!confirm('This will copy Week 1 to Week 2, replacing any existing Week 2 meals. Continue?')) {
         return;
     }
 
     try {
-        const copiedPlan = JSON.parse(clipboard);
-        mealPlan = copiedPlan;
+        // Copy Week 1 to Week 2
+        for (const day of days) {
+            const week1Recipes = mealPlan.week1[day] || [];
+            await saveMealPlanEntry('week2', day, [...week1Recipes]);
+        }
+
+        // Reload meal plan from database
+        mealPlan = await loadMealPlan();
         renderMealPlan();
-        renderIngredients();
-        showToast('Week Pasted!', 'Meal plan has been applied', 'success');
-    } catch (e) {
-        showToast('Error', 'Failed to paste meal plan', 'error');
+        updateDashboardStats();
+        showToast('Week Duplicated!', 'Week 1 copied to Week 2', 'success');
+    } catch (error) {
+        console.error('Error duplicating week:', error);
+        showToast('Error', 'Failed to duplicate week', 'error');
     }
 }
 
@@ -3420,10 +3430,10 @@ function renderMealPlan() {
                                 ${recipe.servings ? `<span class="meal-servings">${recipe.servings} servings</span>` : ''}
                             </div>
                             <div class="meal-item-actions">
-                                <button class="meal-action-btn cook-btn" onclick="cookNowAndDeduct(${recipe.id}, '${weekKey}', '${day}')" title="Cook this recipe now">
+                                <button class="meal-action-btn cook-btn" onclick="cookNowAndDeduct('${recipe.id}', '${weekKey}', '${day}')" title="Cook this recipe now">
                                     🍳
                                 </button>
-                                <button class="meal-action-btn remove-btn" onclick="removeRecipeFromMeal('${weekKey}', '${day}', ${recipe.id})" title="Remove from plan">
+                                <button class="meal-action-btn remove-btn" onclick="removeRecipeFromMeal('${weekKey}', '${day}', '${recipe.id}')" title="Remove from plan">
                                     ✕
                                 </button>
                             </div>
@@ -3475,8 +3485,8 @@ async function addRecipeToMeal(week, day, recipeId) {
         return;
     }
 
-    recipeId = parseInt(recipeId);
-    console.log('📝 Parsed recipeId:', recipeId);
+    // recipeId is a UUID string, keep as-is
+    console.log('📝 RecipeId:', recipeId);
 
     // Ensure mealPlan[week][day] is an array
     if (!Array.isArray(mealPlan[week][day])) {
@@ -3514,7 +3524,7 @@ window.addRecipeToMeal = addRecipeToMeal;
 
 async function removeRecipeFromMeal(week, day, recipeId) {
     if (Array.isArray(mealPlan[week][day])) {
-        recipeId = parseInt(recipeId);
+        // recipeId is a UUID string, keep as-is
 
         // Remove recipe from the array
         const updatedRecipes = mealPlan[week][day].filter(id => id !== recipeId);
@@ -3552,27 +3562,33 @@ function cookNowAndDeduct(recipeId, week, day) {
         ).join('\n');
 
         if (confirm(`You're missing some ingredients:\n\n${missingList}\n\nAdd them to shopping list?`)) {
-            let addedCount = 0;
-            status.missing.forEach(ing => {
-                const existingItem = shoppingList.find(
-                    item => item.name.toLowerCase() === ing.name.toLowerCase()
-                );
+            try {
+                let addedCount = 0;
+                for (const ing of status.missing) {
+                    const existingItem = shoppingList.find(
+                        item => item.name.toLowerCase() === ing.name.toLowerCase()
+                    );
 
-                if (!existingItem) {
-                    const category = autoCategorizeShopping(ing.name);
-                    shoppingList.push({
-                        id: Date.now() + Math.random(),
-                        name: ing.name,
-                        quantity: ing.quantity,
-                        unit: ing.unit,
-                        category: category,
-                        checked: false
-                    });
-                    addedCount++;
+                    if (!existingItem) {
+                        const category = autoCategorizeShopping(ing.name);
+                        await addShoppingItem({
+                            name: ing.name,
+                            quantity: ing.quantity,
+                            unit: ing.unit,
+                            category: category
+                        });
+                        addedCount++;
+                    }
                 }
-            });
-            renderShoppingList();
-            showToast('Added to Shopping List', `${addedCount} missing ingredient${addedCount > 1 ? 's' : ''} for ${recipe.name}`, 'success');
+
+                // Reload shopping list from database
+                shoppingList = await loadShoppingList();
+                renderShoppingList();
+                showToast('Added to Shopping List', `${addedCount} missing ingredient${addedCount > 1 ? 's' : ''} for ${recipe.name}`, 'success');
+            } catch (error) {
+                console.error('Error adding missing ingredients to shopping list:', error);
+                showToast('Error', 'Failed to add ingredients to shopping list', 'error');
+            }
         }
     } else {
         // All ingredients available - show recipe and confirm cooking
