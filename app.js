@@ -4364,34 +4364,37 @@ function updateStats() {
     }).length;
 
     const statsDisplay = document.getElementById('stats-display');
-    statsDisplay.innerHTML = `
-        <div class="stat-item">
-            <span class="stat-value">${totalIngredients}</span>
-            <span class="stat-label">Total Ingredients</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-value">${totalRecipes}</span>
-            <span class="stat-label">Recipes</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-value">${readyRecipes}</span>
-            <span class="stat-label">Ready to Cook</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-value">${mealCount}</span>
-            <span class="stat-label">Meals Planned</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-value">${shoppingItems}</span>
-            <span class="stat-label">Shopping Items</span>
-        </div>
-        ${expiringCount > 0 ? `
-        <div class="stat-item">
-            <span class="stat-value" style="color: #e53e3e;">${expiringCount}</span>
-            <span class="stat-label">Expiring Items</span>
-        </div>
-        ` : ''}
-    `;
+    // Only update if the stats display element exists (removed from settings redesign)
+    if (statsDisplay) {
+        statsDisplay.innerHTML = `
+            <div class="stat-item">
+                <span class="stat-value">${totalIngredients}</span>
+                <span class="stat-label">Total Ingredients</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">${totalRecipes}</span>
+                <span class="stat-label">Recipes</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">${readyRecipes}</span>
+                <span class="stat-label">Ready to Cook</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">${mealCount}</span>
+                <span class="stat-label">Meals Planned</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">${shoppingItems}</span>
+                <span class="stat-label">Shopping Items</span>
+            </div>
+            ${expiringCount > 0 ? `
+            <div class="stat-item">
+                <span class="stat-value" style="color: #e53e3e;">${expiringCount}</span>
+                <span class="stat-label">Expiring Items</span>
+            </div>
+            ` : ''}
+        `;
+    }
 }
 
 // ==============================================
