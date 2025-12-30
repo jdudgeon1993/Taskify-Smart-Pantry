@@ -1447,6 +1447,7 @@ function initRecipes() {
         floatingAddBtn.addEventListener('click', () => {
             document.getElementById('recipe-modal-title').textContent = 'Add New Recipe';
             addRecipeForm.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
             clearRecipeForm();
         });
     }
@@ -1455,6 +1456,7 @@ function initRecipes() {
     if (closeModal) {
         closeModal.addEventListener('click', () => {
             addRecipeForm.classList.add('hidden');
+            document.body.style.overflow = ''; // Restore scrolling
             clearRecipeForm();
         });
     }
@@ -1464,6 +1466,7 @@ function initRecipes() {
         addRecipeForm.addEventListener('click', (e) => {
             if (e.target === addRecipeForm) {
                 addRecipeForm.classList.add('hidden');
+                document.body.style.overflow = ''; // Restore scrolling
                 clearRecipeForm();
             }
         });
@@ -1618,6 +1621,7 @@ async function saveRecipe() {
         updateDataLists();
 
         document.getElementById('add-recipe-form').classList.add('hidden');
+        document.body.style.overflow = ''; // Restore scrolling
         editingRecipeId = null;
     } catch (error) {
         console.error('Error saving recipe:', error);
@@ -1654,7 +1658,9 @@ function editRecipe(id) {
     });
 
     updateDataLists(); // Refresh autocomplete options
-    document.getElementById('add-recipe-form').classList.remove('hidden');
+    const modal = document.getElementById('add-recipe-form');
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden'; // Prevent background scrolling
 }
 
 async function deleteRecipe(id) {
@@ -1906,8 +1912,13 @@ async function cookFromModal() {
 
 function editFromModal() {
     if (!currentModalRecipeId) return;
+    const recipeId = currentModalRecipeId; // Store the ID before closing modal
     closeRecipeDetailModal();
-    editRecipe(currentModalRecipeId);
+
+    // Use setTimeout to ensure detail modal fully closes before opening edit form
+    setTimeout(() => {
+        editRecipe(recipeId);
+    }, 100);
 }
 
 async function toggleFavoriteFromModal() {
