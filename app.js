@@ -2966,26 +2966,16 @@ async function autoGenerateShoppingList() {
 async function generateFromMealPlan() {
     const requiredIngredients = [];
 
-    Object.keys(mealPlan).forEach(day => {
-        Object.keys(mealPlan[day]).forEach(meal => {
-            const mealSlot = mealPlan[day][meal];
+    // Current structure uses week1 and week2
+    ['week1', 'week2'].forEach(weekKey => {
+        if (!mealPlan[weekKey]) return;
 
-            // Handle both old format (single recipeId) and new format (personA/personB/joint)
-            let recipeIds = [];
-            if (typeof mealSlot === 'number') {
-                // Old format - single recipe ID
-                recipeIds = [mealSlot];
-            } else if (mealSlot && typeof mealSlot === 'object') {
-                // New format - personA/personB/joint arrays
-                recipeIds = [
-                    ...(mealSlot.personA || []),
-                    ...(mealSlot.personB || []),
-                    ...(mealSlot.joint || [])
-                ];
-            }
+        const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        days.forEach(day => {
+            const dayRecipes = mealPlan[weekKey][day];
+            if (!Array.isArray(dayRecipes)) return;
 
-            // Process all recipes in this meal slot
-            recipeIds.forEach(recipeId => {
+            dayRecipes.forEach(recipeId => {
                 const recipe = recipes.find(r => r.id === recipeId);
                 if (recipe && recipe.ingredients) {
                     recipe.ingredients.forEach(ing => {
