@@ -1931,6 +1931,7 @@ async function cookFromModal() {
 }
 
 // Expose modal functions to window for inline handlers
+window.openRecipeDetailModal = openRecipeDetailModal;
 window.editFromModal = editFromModal;
 window.toggleFavoriteFromModal = toggleFavoriteFromModal;
 window.addMissingFromModal = addMissingFromModal;
