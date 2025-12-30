@@ -113,7 +113,6 @@ function checkAndRolloverWeeks() {
         };
 
         localStorage.setItem('smartPantry_lastRollover', currentDate);
-        saveToLocalStorage();
         showToast('Week Rolled Over', 'Next week is now your current week!', 'info');
     }
 }
@@ -361,11 +360,6 @@ function setupRealtimeSubscriptions() {
 
 // Supabase Data Sync (replaces localStorage)
 // Note: Individual CRUD operations now directly call Supabase functions in db.js
-// saveToLocalStorage() is now a no-op since Supabase handles persistence
-function saveToLocalStorage() {
-    // No-op: Data is saved directly to Supabase in individual functions
-    console.log('Data persisted to Supabase');
-}
 
 // Navigation
 function initNavigation() {
@@ -1991,7 +1985,6 @@ function addMissingToShopping(recipeId, servingsMultiplier = 1) {
         }
     });
 
-    saveToLocalStorage();
     renderShoppingList();
     updateDashboardStats();
 
@@ -2041,7 +2034,6 @@ function autoGenerateShoppingList() {
         }
     });
 
-    saveToLocalStorage();
     renderShoppingList();
     updateDashboardStats();
     showToast('Added to Shopping List', `${addedCount} missing ingredient${addedCount > 1 ? 's' : ''} from recipes`, 'success');
@@ -2141,7 +2133,6 @@ function generateFromMealPlan() {
         }
     });
 
-    saveToLocalStorage();
     renderShoppingList();
     updateDashboardStats();
     showToast('Added to Shopping List', `${addedCount} ingredient${addedCount > 1 ? 's' : ''} from meal plan`, 'success');
@@ -2150,7 +2141,6 @@ function generateFromMealPlan() {
 function clearShoppingList() {
     if (confirm('Are you sure you want to clear the shopping list?')) {
         shoppingList = [];
-        saveToLocalStorage();
         renderShoppingList();
     }
 }
@@ -2386,7 +2376,6 @@ function updatePurchasedQuantity(id, value) {
     const item = shoppingList.find(item => item.id === id);
     if (item) {
         item.purchasedQuantity = parseFloat(value) || 0;
-        saveToLocalStorage();
     }
 }
 
@@ -2394,7 +2383,6 @@ function updateTargetLocation(id, value) {
     const item = shoppingList.find(item => item.id === id);
     if (item) {
         item.targetLocation = value;
-        saveToLocalStorage();
     }
 }
 
@@ -2440,7 +2428,6 @@ function moveCheckedToInventory() {
     // Remove checked items from shopping list
     shoppingList = shoppingList.filter(item => !item.checked);
 
-    saveToLocalStorage();
     renderShoppingList();
     renderIngredients();
     updateDashboardStats();
@@ -2457,7 +2444,6 @@ function moveCheckedToInventory() {
 
 function checkAllShoppingItems() {
     shoppingList.forEach(item => item.checked = true);
-    saveToLocalStorage();
     renderShoppingList();
     showToast('All Checked', `${shoppingList.length} item${shoppingList.length > 1 ? 's' : ''} checked`, 'success');
 }
@@ -2467,7 +2453,6 @@ function uncheckAllShoppingItems() {
         item.checked = false;
         item.purchasedQuantity = null; // Reset purchased quantity
     });
-    saveToLocalStorage();
     renderShoppingList();
     showToast('All Unchecked', 'Shopping list items unchecked', 'info');
 }
@@ -2481,7 +2466,6 @@ function clearCheckedShoppingItems() {
 
     if (confirm(`Remove ${checkedCount} checked item${checkedCount > 1 ? 's' : ''} from shopping list?`)) {
         shoppingList = shoppingList.filter(item => !item.checked);
-        saveToLocalStorage();
         renderShoppingList();
         updateDashboardStats();
         showToast('Items Removed', `${checkedCount} item${checkedCount > 1 ? 's' : ''} removed`, 'success');
@@ -2496,7 +2480,6 @@ function editShoppingItem(id) {
     if (newName && newName.trim()) {
         item.name = newName.trim();
         item.category = autoCategorizeShopping(item.name);
-        saveToLocalStorage();
         renderShoppingList();
         showToast('Item Updated', `${item.name} updated`, 'success');
     }
@@ -2510,7 +2493,6 @@ function updateShoppingItemQuantity(id, quantity, unit) {
     if (unit && unit.trim()) {
         item.unit = unit.trim();
     }
-    saveToLocalStorage();
     renderShoppingList();
 }
 
@@ -2545,7 +2527,6 @@ function quickAddItem(itemName) {
         showToast('Added to Shopping List', `${itemName} added`, 'success');
     }
 
-    saveToLocalStorage();
     renderShoppingList();
     updateDashboardStats();
 }
@@ -2612,7 +2593,6 @@ function clearMealPlan() {
         days.forEach(day => {
             mealPlan.week1[day] = [];
         });
-        saveToLocalStorage();
         renderMealPlan();
         renderIngredients();
         showToast('Week 1 Cleared', 'Current week meals removed', 'success');
@@ -2620,7 +2600,6 @@ function clearMealPlan() {
         days.forEach(day => {
             mealPlan.week2[day] = [];
         });
-        saveToLocalStorage();
         renderMealPlan();
         renderIngredients();
         showToast('Week 2 Cleared', 'Next week meals removed', 'success');
@@ -2630,7 +2609,6 @@ function clearMealPlan() {
                 mealPlan.week1[day] = [];
                 mealPlan.week2[day] = [];
             });
-            saveToLocalStorage();
             renderMealPlan();
             renderIngredients();
             showToast('Both Weeks Cleared', 'All meals removed from plan', 'success');
@@ -2681,7 +2659,6 @@ function pasteWeek() {
     try {
         const copiedPlan = JSON.parse(clipboard);
         mealPlan = copiedPlan;
-        saveToLocalStorage();
         renderMealPlan();
         renderIngredients();
         showToast('Week Pasted!', 'Meal plan has been applied', 'success');
@@ -2718,7 +2695,6 @@ function renderMealPlan() {
                 sunday: []
             }
         };
-        saveToLocalStorage();
     }
 
     if (recipes.length === 0) {
@@ -2919,7 +2895,6 @@ function cookNowAndDeduct(recipeId, week, day) {
                     addedCount++;
                 }
             });
-            saveToLocalStorage();
             renderShoppingList();
             showToast('Added to Shopping List', `${addedCount} missing ingredient${addedCount > 1 ? 's' : ''} for ${recipe.name}`, 'success');
         }
@@ -2971,7 +2946,6 @@ function cookNowAndDeduct(recipeId, week, day) {
             // Remove meal from plan
             removeRecipeFromMeal(week, day, recipeId);
 
-            saveToLocalStorage();
             renderIngredients();
             renderRecipes();
 
@@ -3083,7 +3057,6 @@ function importData(event) {
                     sunday: { breakfast: null, lunch: null, dinner: null }
                 };
 
-                saveToLocalStorage();
 
                 renderIngredients();
                 renderRecipes();
@@ -3117,7 +3090,6 @@ function clearAllData() {
                 sunday: { breakfast: null, lunch: null, dinner: null }
             };
 
-            saveToLocalStorage();
 
             renderIngredients();
             renderRecipes();
@@ -3390,7 +3362,6 @@ async function syncFromServer() {
                 console.warn('❌ No pantry task found with type === smartpantry');
             }
 
-            saveToLocalStorage();
             renderIngredients();
             renderRecipes();
             renderShoppingList();
@@ -3441,7 +3412,6 @@ function copyToken() {
 }
 
 function saveToLocalStorageAndSync() {
-    saveToLocalStorage();
 
     if (userToken && !isSyncing) {
         clearTimeout(window.syncTimeout);
