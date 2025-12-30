@@ -626,7 +626,16 @@ function updateDashboardStats() {
 // Helper: Get count of today's meals
 function getTodaysMealCount() {
     const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-    const today = days[new Date().getDay()];
+    const now = new Date();
+    const todayIndex = now.getDay();
+    const today = days[todayIndex];
+
+    console.log('📅 Getting today\'s meals:', {
+        date: now.toLocaleDateString(),
+        dayIndex: todayIndex,
+        dayName: today,
+        mealsPlanned: mealPlan.week1?.[today]?.length || 0
+    });
 
     // Check Week 1 for today's meals
     if (mealPlan.week1 && mealPlan.week1[today]) {
@@ -3313,6 +3322,9 @@ async function clearMealPlan() {
     }
 }
 
+// Expose to window for inline handlers
+window.clearMealPlan = clearMealPlan;
+
 async function duplicateWeek() {
     // Duplicate Week 1 to Week 2
     const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
@@ -3346,6 +3358,9 @@ async function duplicateWeek() {
         showToast('Error', 'Failed to duplicate week', 'error');
     }
 }
+
+// Expose to window for inline handlers
+window.duplicateWeek = duplicateWeek;
 
 function renderMealPlan() {
     const week1Container = document.getElementById('week1-days');
