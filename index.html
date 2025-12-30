@@ -422,15 +422,30 @@
                     <h2>Shopping List</h2>
                 </div>
 
-                <!-- Category Filters -->
-                <div class="shopping-category-filters">
-                    <button class="category-filter-btn active" data-category="all" onclick="filterShoppingByCategory('all')">All</button>
-                    <button class="category-filter-btn" data-category="Produce" onclick="filterShoppingByCategory('Produce')">Produce</button>
-                    <button class="category-filter-btn" data-category="Dairy" onclick="filterShoppingByCategory('Dairy')">Dairy</button>
-                    <button class="category-filter-btn" data-category="Meat" onclick="filterShoppingByCategory('Meat')">Meat</button>
-                    <button class="category-filter-btn" data-category="Pantry" onclick="filterShoppingByCategory('Pantry')">Pantry</button>
-                    <button class="category-filter-btn" data-category="Frozen" onclick="filterShoppingByCategory('Frozen')">Frozen</button>
-                    <button class="category-filter-btn" data-category="Bakery" onclick="filterShoppingByCategory('Bakery')">Bakery</button>
+                <!-- Filter Toggle Button -->
+                <div class="shopping-header-bar">
+                    <button class="filter-toggle-btn" id="shopping-filter-toggle" onclick="toggleShoppingFilters()">
+                        <span class="filter-icon">⚙️</span>
+                        <span class="filter-text">Category Filters</span>
+                    </button>
+                </div>
+
+                <!-- Collapsible Category Filter Panel -->
+                <div class="filter-panel" id="shopping-filter-panel" style="display: none;">
+                    <div class="filter-panel-content">
+                        <div class="filter-group">
+                            <label class="filter-label">Category</label>
+                            <div class="filter-buttons">
+                                <button class="filter-chip active" data-category="all" onclick="filterShoppingByCategory('all')">All</button>
+                                <button class="filter-chip" data-category="Produce" onclick="filterShoppingByCategory('Produce')">Produce</button>
+                                <button class="filter-chip" data-category="Dairy" onclick="filterShoppingByCategory('Dairy')">Dairy</button>
+                                <button class="filter-chip" data-category="Meat" onclick="filterShoppingByCategory('Meat')">Meat</button>
+                                <button class="filter-chip" data-category="Pantry" onclick="filterShoppingByCategory('Pantry')">Pantry</button>
+                                <button class="filter-chip" data-category="Frozen" onclick="filterShoppingByCategory('Frozen')">Frozen</button>
+                                <button class="filter-chip" data-category="Bakery" onclick="filterShoppingByCategory('Bakery')">Bakery</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Quick Actions Row -->

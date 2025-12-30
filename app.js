@@ -3626,17 +3626,32 @@ async function confirmSendToPantry() {
     }
 }
 
+// Toggle shopping filters panel
+function toggleShoppingFilters() {
+    const panel = document.getElementById('shopping-filter-panel');
+    const toggleBtn = document.getElementById('shopping-filter-toggle');
+
+    if (panel.style.display === 'none') {
+        panel.style.display = 'block';
+        toggleBtn.classList.add('active');
+    } else {
+        panel.style.display = 'none';
+        toggleBtn.classList.remove('active');
+    }
+}
+
 // Category filtering for shopping list
 function filterShoppingByCategory(category) {
     currentShoppingCategory = category;
 
-    // Update active button
-    const filterButtons = document.querySelectorAll('.category-filter-btn');
-    filterButtons.forEach(btn => {
-        if (btn.dataset.category === category) {
-            btn.classList.add('active');
+    // Update active filter chip
+    const filterPanel = document.getElementById('shopping-filter-panel');
+    const filterChips = filterPanel.querySelectorAll('.filter-chip');
+    filterChips.forEach(chip => {
+        if (chip.dataset.category === category) {
+            chip.classList.add('active');
         } else {
-            btn.classList.remove('active');
+            chip.classList.remove('active');
         }
     });
 
