@@ -12,6 +12,8 @@
     --secondary: #C4A892;         /* Warm sand */
     --warning: #D4A574;           /* Gentle amber */
     --error: #C4998B;             /* Soft terracotta */
+    --success: #48BB78;           /* Success green */
+    --danger: #E53E3E;            /* Danger red */
 
     /* Neutral Foundations */
     --white: #FFFFFF;
@@ -39,6 +41,7 @@
     --radius-md: 8px;
     --radius-lg: 12px;
     --radius-xl: 16px;
+    --radius-full: 999px;
 
     /* Elegant Shadows */
     --shadow-sm: 0 1px 3px rgba(58, 51, 48, 0.08);
@@ -55,6 +58,11 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+}
+
+/* Smooth scrolling for better UX */
+html {
+    scroll-behavior: smooth;
 }
 
 body {
@@ -1111,5 +1119,1272 @@ table tr:hover {
     table th,
     table td {
         padding: var(--spacing-sm);
+    }
+}
+
+/* ==========================================
+   NEW: GREETING BANNER
+   ========================================== */
+.greeting-banner {
+    background: linear-gradient(135deg, var(--bg-secondary), var(--white));
+    padding: var(--spacing-md) var(--spacing-xl);
+    margin-bottom: var(--spacing-lg);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+}
+
+#greeting-text {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-family: var(--font-display);
+}
+
+#current-datetime {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+}
+
+/* ==========================================
+   NEW: LOCATION TABS
+   ========================================== */
+.location-tabs {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin: var(--spacing-lg) 0;
+    flex-wrap: wrap;
+}
+
+.location-tab {
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border: 2px solid var(--border);
+    background: var(--white);
+    color: var(--text-primary);
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.location-tab:hover {
+    background: var(--bg-secondary);
+    border-color: var(--accent);
+}
+
+.location-tab.active {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: var(--white);
+    border-color: var(--primary);
+}
+
+/* ==========================================
+   NEW: INGREDIENTS GRID (3 COLUMNS)
+   ========================================== */
+.ingredients-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-lg);
+    margin-top: var(--spacing-lg);
+}
+
+.ingredient-card {
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    transition: all 0.3s ease;
+    position: relative;
+    box-shadow: var(--shadow-sm);
+}
+
+.ingredient-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+    border-color: var(--accent);
+}
+
+.ingredient-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--spacing-md);
+}
+
+.ingredient-card-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.ingredient-card-badges {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    align-items: flex-end;
+}
+
+.category-badge {
+    font-size: 0.7rem;
+    color: var(--white);
+    background: linear-gradient(135deg, var(--accent), var(--primary));
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.exp-badge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.exp-badge.expiring {
+    background: #FFF3CD;
+    color: #856404;
+}
+
+.exp-badge.expired {
+    background: #F8D7DA;
+    color: #721C24;
+}
+
+.ingredient-card-category {
+    font-size: 0.8rem;
+    color: var(--text-tertiary);
+    background: var(--bg-secondary);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+}
+
+.ingredient-card-quantities {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-sm);
+    margin: var(--spacing-md) 0;
+    padding: var(--spacing-md);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+}
+
+.quantity-item {
+    text-align: center;
+}
+
+.quantity-label {
+    font-size: 0.7rem;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.quantity-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.quantity-value.reserved {
+    color: var(--warning);
+}
+
+.quantity-value.available {
+    color: var(--accent);
+}
+
+/* Quantity Boxes (new naming) */
+.qty-box {
+    text-align: center;
+    padding: var(--spacing-xs);
+}
+
+.qty-label {
+    font-size: 0.7rem;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.qty-value {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.ingredient-card-expiration {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin: var(--spacing-sm) 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.expiration-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: 0.75rem;
+}
+
+.expiration-badge.expiring-soon {
+    background: #FFF3CD;
+    color: #856404;
+}
+
+.expiration-badge.expired {
+    background: #F8D7DA;
+    color: #721C24;
+}
+
+.ingredient-card-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-md);
+}
+
+.ingredient-card-actions button {
+    flex: 1;
+    padding: var(--spacing-sm);
+    font-size: 0.85rem;
+}
+
+/* ==========================================
+   NEW: FLOATING ADD BUTTON
+   ========================================== */
+.floating-add-btn {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: var(--white);
+    border: none;
+    box-shadow: var(--shadow-xl);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: 300;
+    line-height: 1;
+}
+
+.floating-add-btn:hover {
+    transform: scale(1.1) rotate(90deg);
+    box-shadow: 0 8px 32px rgba(124, 106, 92, 0.4);
+}
+
+.floating-add-btn:active {
+    transform: scale(0.95) rotate(90deg);
+}
+
+.floating-add-btn span {
+    display: block;
+    margin-top: -4px;
+}
+
+/* ==========================================
+   RESPONSIVE: INGREDIENTS GRID
+   ========================================== */
+@media (max-width: 1024px) {
+    .ingredients-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .ingredients-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .greeting-banner {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .floating-add-btn {
+        bottom: 1rem;
+        right: 1rem;
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
+    }
+}
+}
+
+/* ==========================================
+   SHOPPING LIST SECTION
+   ========================================== */
+.shopping-actions-bar {
+    display: flex;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+    margin-bottom: var(--spacing-lg);
+}
+
+.shopping-actions-bar button {
+    flex: 1;
+    min-width: 140px;
+}
+
+/* Recent Purchases Section */
+.recent-purchases-section {
+    margin-bottom: var(--spacing-lg);
+}
+
+.recent-purchases-card {
+    background: linear-gradient(135deg, var(--bg-secondary), var(--white));
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-lg);
+    border: 2px solid var(--border);
+}
+
+.recent-purchases-card h4 {
+    margin: 0 0 var(--spacing-md) 0;
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.recent-purchases-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: var(--spacing-sm);
+}
+
+.recent-purchase-btn {
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--white);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.recent-purchase-btn:hover {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: var(--white);
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Send to Pantry Modal Items */
+.send-to-pantry-item {
+    transition: all 0.2s ease;
+}
+
+.send-to-pantry-item:hover {
+    transform: translateX(4px);
+}
+
+@media (max-width: 640px) {
+    .recent-purchases-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .shopping-actions-bar {
+        flex-direction: column;
+    }
+
+    .shopping-actions-bar button {
+        width: 100%;
+    }
+}
+
+/* ==========================================
+   MEAL PLAN: 2-WEEK SIDE-BY-SIDE LAYOUT
+   ========================================== */
+.two-week-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-xl);
+    margin-top: var(--spacing-lg);
+}
+
+.week-column {
+    min-width: 0; /* Prevents grid blowout */
+}
+
+.week-column-header {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: var(--white);
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    margin-bottom: var(--spacing-md);
+}
+
+.week-column-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.week-days-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+/* Meal Day Cards */
+.meal-day-card {
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-md);
+    transition: all 0.3s ease;
+}
+
+.meal-day-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--accent);
+}
+
+/* TODAY highlighting */
+.meal-day-card.today-day {
+    border: 3px solid var(--accent);
+    background: linear-gradient(135deg, #FFF9E6 0%, var(--bg-card) 100%);
+    box-shadow: 0 4px 12px rgba(124, 106, 92, 0.15);
+}
+
+.meal-day-card.today-day .meal-day-header {
+    border-bottom: 2px solid var(--accent);
+}
+
+/* Past days (faded) */
+.meal-day-card.past-day {
+    opacity: 0.6;
+    background: var(--bg-secondary);
+}
+
+.meal-day-card.past-day:hover {
+    opacity: 0.8;
+}
+
+/* Day Header */
+.meal-day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+    border-bottom: 2px solid var(--border);
+}
+
+.meal-day-title {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.meal-day-title h4 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.today-badge {
+    background: linear-gradient(135deg, var(--accent), var(--primary));
+    color: var(--white);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.meal-count {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* Meal List */
+.meal-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.meal-item {
+    background: var(--bg-secondary);
+    padding: var(--spacing-sm);
+    border-radius: var(--radius-md);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.meal-item:hover {
+    background: var(--white);
+    transform: translateX(4px);
+}
+
+.meal-item-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.meal-recipe-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    display: block;
+}
+
+.meal-servings {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    display: block;
+    margin-top: 0.125rem;
+}
+
+.meal-item-actions {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.meal-action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.meal-action-btn.cook-btn {
+    background: var(--success);
+    color: var(--white);
+}
+
+.meal-action-btn.cook-btn:hover {
+    background: #38a169;
+    transform: scale(1.1);
+}
+
+.meal-action-btn.remove-btn {
+    background: var(--danger);
+    color: var(--white);
+}
+
+.meal-action-btn.remove-btn:hover {
+    background: #c53030;
+    transform: scale(1.1);
+}
+
+.empty-day-message {
+    text-align: center;
+    color: var(--text-tertiary);
+    font-size: 0.85rem;
+    font-style: italic;
+    margin: var(--spacing-sm) 0;
+}
+
+.add-meal-section {
+    margin-top: var(--spacing-sm);
+}
+
+.add-meal-select {
+    width: 100%;
+    padding: var(--spacing-sm);
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-md);
+    background: var(--white);
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.add-meal-select:hover {
+    border-color: var(--accent);
+    background: var(--bg-secondary);
+}
+
+.add-meal-select:focus {
+    outline: none;
+    border-color: var(--primary);
+    border-style: solid;
+}
+
+/* Responsive: Stack weeks on mobile */
+@media (max-width: 1024px) {
+    .two-week-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .meal-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-sm);
+    }
+
+    .meal-item-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .week-column-header h3 {
+        font-size: 1rem;
+    }
+}
+
+/* ==============================================
+   DASHBOARD SECTION - Cottage Style
+   ============================================== */
+
+.dashboard-welcome {
+    margin-bottom: var(--spacing-xl);
+    text-align: center;
+}
+
+.dashboard-welcome h2 {
+    font-size: 2.5rem;
+    color: var(--primary);
+    margin-bottom: var(--spacing-sm);
+    font-weight: 700;
+}
+
+.dashboard-subtitle {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    font-weight: 400;
+}
+
+/* Dashboard Alert (Expiring Items) */
+.dashboard-alert {
+    background: linear-gradient(135deg, #FFF3CD 0%, #FFF9E6 100%);
+    border: 2px solid #FFEAA7;
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+    box-shadow: 0 2px 8px rgba(255, 193, 7, 0.15);
+}
+
+.alert-content h3 {
+    color: #D97706;
+    font-size: 1.2rem;
+    margin-bottom: var(--spacing-sm);
+    font-weight: 700;
+}
+
+.alert-content p {
+    color: #92400E;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+/* Today's Meal Plan Section */
+.today-meals-section {
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--white) 100%);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+.today-meals-section h3 {
+    color: var(--primary);
+    font-size: 1.3rem;
+    margin-bottom: var(--spacing-md);
+    font-weight: 700;
+}
+
+/* Dashboard Grid */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--spacing-lg);
+    margin-top: var(--spacing-xl);
+}
+
+/* Dashboard Cards - Cottage Style */
+.dashboard-card {
+    background: linear-gradient(135deg, var(--white) 0%, var(--bg-secondary) 100%);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Decorative corner accent */
+.dashboard-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, transparent 50%, rgba(124, 106, 92, 0.05) 50%);
+    border-radius: 0 var(--radius-lg) 0 100%;
+    transition: all 0.3s ease;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: var(--shadow-xl);
+    border-color: var(--primary);
+}
+
+.dashboard-card:hover::before {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, transparent 50%, rgba(124, 106, 92, 0.1) 50%);
+}
+
+/* Card Icon Container */
+.dashboard-card h3 {
+    color: var(--primary);
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: var(--spacing-md);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.card-icon {
+    font-size: 2rem;
+    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+/* Card Statistics */
+.card-stat {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: var(--spacing-md) 0;
+    line-height: 1.2;
+}
+
+.card-stat-secondary {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-top: var(--spacing-xs);
+    font-weight: 500;
+}
+
+.card-description {
+    color: var(--text-tertiary);
+    font-size: 0.9rem;
+    font-style: italic;
+    margin-top: var(--spacing-sm);
+}
+
+/* Specific Card Colors */
+.dashboard-card[data-navigate="ingredients"]:hover {
+    background: linear-gradient(135deg, #FFF9E6 0%, #FFFBF0 100%);
+    border-color: #D4A574;
+}
+
+.dashboard-card[data-navigate="recipes"]:hover {
+    background: linear-gradient(135deg, #F0FFF4 0%, #F7FAFC 100%);
+    border-color: #48BB78;
+}
+
+.dashboard-card[data-navigate="shopping"]:hover {
+    background: linear-gradient(135deg, #EBF8FF 0%, #F7FAFC 100%);
+    border-color: #4299E1;
+}
+
+.dashboard-card[data-navigate="meal-plan"]:hover {
+    background: linear-gradient(135deg, #FAF5FF 0%, #F7FAFC 100%);
+    border-color: #9F7AEA;
+}
+
+/* Badge for status indicators */
+.card-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background: linear-gradient(135deg, var(--success), #38A169);
+    color: var(--white);
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-left: var(--spacing-sm);
+}
+
+.card-badge.warning {
+    background: linear-gradient(135deg, #F59E0B, #D97706);
+}
+
+.card-badge.danger {
+    background: linear-gradient(135deg, var(--danger), #C53030);
+}
+
+/* Responsive Dashboard */
+@media (max-width: 768px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-welcome h2 {
+        font-size: 2rem;
+    }
+
+    .card-stat {
+        font-size: 1.75rem;
+    }
+}
+
+/* ==============================================
+   ACCESSIBILITY IMPROVEMENTS
+   ============================================== */
+
+/* Focus states for keyboard navigation */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 3px solid var(--primary);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+}
+
+/* Remove default focus outline (we're using custom) */
+button:focus,
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+}
+
+/* High contrast focus for better visibility */
+.dashboard-card:focus-visible,
+.ingredient-card:focus-visible,
+.recipe-card:focus-visible {
+    outline: 3px solid var(--primary);
+    outline-offset: 3px;
+}
+
+/* Skip to main content link (for screen readers) */
+.skip-to-main {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--primary);
+    color: var(--white);
+    padding: var(--spacing-sm) var(--spacing-md);
+    z-index: 10000;
+    text-decoration: none;
+    border-radius: var(--radius-md);
+}
+
+.skip-to-main:focus {
+    top: var(--spacing-md);
+    outline: 3px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* Screen reader only content */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* Reduced motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    :root {
+        --border: #000000;
+        --border-light: #333333;
+    }
+
+    button,
+    .dashboard-card,
+    .ingredient-card,
+    .recipe-card {
+        border-width: 2px;
+    }
+}
+
+/* ==============================================
+   MOBILE RESPONSIVE & POLISH - FINAL PHASE
+   ============================================== */
+
+/* Mobile-First: Touch-Friendly Buttons */
+@media (max-width: 768px) {
+    /* Ensure all buttons are touch-friendly (minimum 44x44px) */
+    button, .btn-primary, .btn-secondary, .btn-danger, .icon-btn {
+        min-height: 44px;
+        min-width: 44px;
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-size: 1rem;
+    }
+
+    /* Touch-friendly icon buttons */
+    .icon-btn {
+        width: 44px;
+        height: 44px;
+        font-size: 1.2rem;
+    }
+
+    /* Larger floating action button on mobile for easy reach */
+    .floating-add-btn {
+        width: 64px;
+        height: 64px;
+        bottom: 1.5rem;
+        right: 1.5rem;
+        font-size: 2rem;
+    }
+
+    /* Navigation menu items - larger touch targets */
+    .nav-item {
+        padding: var(--spacing-md) var(--spacing-lg);
+        font-size: 1rem;
+        min-height: 48px;
+    }
+
+    /* Section header improvements */
+    .section-header {
+        flex-direction: column;
+        gap: var(--spacing-md);
+        align-items: flex-start;
+    }
+
+    .section-header h2 {
+        font-size: 1.75rem;
+    }
+
+    /* Form improvements for mobile */
+    input, select, textarea {
+        min-height: 48px;
+        font-size: 16px; /* Prevents zoom on iOS */
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+
+    textarea {
+        min-height: 120px;
+    }
+
+    /* Form rows stack on mobile */
+    .form-row {
+        flex-direction: column;
+        gap: var(--spacing-md);
+    }
+
+    .form-row .form-group {
+        width: 100%;
+    }
+
+    /* Modal improvements */
+    .modal-content {
+        width: 95%;
+        max-width: 95%;
+        max-height: 90vh;
+        margin: 2rem auto;
+        padding: var(--spacing-lg);
+    }
+
+    .form-card {
+        padding: var(--spacing-lg);
+    }
+
+    /* Shopping actions bar - stack on mobile */
+    .shopping-actions-bar {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+
+    .shopping-actions-bar button {
+        width: 100%;
+    }
+
+    /* Recent purchases - 2 columns on mobile */
+    .recent-purchases-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* Quick actions section */
+    .quick-actions {
+        margin-top: var(--spacing-xl);
+    }
+
+    .quick-action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+
+    .quick-action-buttons button {
+        width: 100%;
+    }
+
+    /* Filter buttons wrap better on mobile */
+    .recipe-filters, .filter-group {
+        flex-wrap: wrap;
+        gap: var(--spacing-xs);
+    }
+
+    .filter-btn, .category-filter-btn {
+        min-height: 44px;
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-size: 0.9rem;
+    }
+
+    /* Location tabs wrap on mobile */
+    .location-tabs {
+        flex-wrap: wrap;
+        gap: var(--spacing-xs);
+    }
+
+    .location-tab {
+        min-height: 44px;
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+
+    /* Ingredient card improvements */
+    .ingredient-card {
+        padding: var(--spacing-md);
+    }
+
+    .ingredient-card-actions {
+        gap: var(--spacing-sm);
+    }
+
+    /* Recipe card improvements */
+    .recipe-card {
+        padding: var(--spacing-md);
+    }
+
+    .recipe-card-actions {
+        flex-wrap: wrap;
+        gap: var(--spacing-sm);
+    }
+
+    /* Shopping item improvements */
+    .shopping-item {
+        padding: var(--spacing-md);
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-sm);
+    }
+
+    .shopping-item-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    /* Meal day cards */
+    .meal-day-card {
+        padding: var(--spacing-md);
+    }
+
+    /* Header adjustments */
+    .header-actions {
+        gap: var(--spacing-sm);
+    }
+
+    /* Settings section */
+    .settings-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Add ingredient form - full width on mobile */
+    .add-ingredient-form {
+        width: 100%;
+        max-width: 100%;
+        border-radius: 0;
+    }
+
+    /* Hide form on mobile initially to save space */
+    .add-ingredient-form-container.hidden {
+        display: none;
+    }
+
+    /* Expiring alert */
+    .dashboard-alert {
+        padding: var(--spacing-md);
+    }
+
+    /* Today's meals section */
+    .today-meals-section {
+        padding: var(--spacing-md);
+    }
+}
+
+/* Extra small devices (phones in portrait, less than 375px) */
+@media (max-width: 375px) {
+    /* Even more compact spacing */
+    .dashboard-welcome h2 {
+        font-size: 1.75rem;
+    }
+
+    .card-stat {
+        font-size: 1.5rem;
+    }
+
+    /* Tighter spacing */
+    .dashboard-grid {
+        gap: var(--spacing-md);
+    }
+
+    .ingredients-grid,
+    .recipe-grid,
+    .shopping-list {
+        gap: var(--spacing-md);
+    }
+
+    /* Smaller floating button */
+    .floating-add-btn {
+        width: 56px;
+        height: 56px;
+        bottom: 1rem;
+        right: 1rem;
+    }
+
+    /* Single column for recent purchases */
+    .recent-purchases-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Compact filter buttons */
+    .filter-btn, .category-filter-btn, .location-tab {
+        font-size: 0.85rem;
+        padding: 0.5rem 0.75rem;
+    }
+}
+
+/* Landscape mode optimizations */
+@media (max-width: 768px) and (orientation: landscape) {
+    /* Reduce vertical spacing in landscape */
+    .section {
+        padding-top: var(--spacing-lg);
+    }
+
+    .modal-content {
+        max-height: 85vh;
+        overflow-y: auto;
+    }
+
+    .floating-add-btn {
+        bottom: 1rem;
+        right: 1rem;
+        width: 52px;
+        height: 52px;
+    }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+    /* Remove hover effects on touch devices */
+    .dashboard-card:hover,
+    .ingredient-card:hover,
+    .recipe-card:hover {
+        transform: none;
+    }
+
+    /* Increase touch target sizes slightly */
+    .icon-btn {
+        min-width: 48px;
+        min-height: 48px;
+    }
+
+    /* Make dropdowns easier to tap */
+    select {
+        min-height: 48px;
+        font-size: 16px;
+    }
+}
+
+/* Print styles */
+@media print {
+    /* Hide navigation and interactive elements */
+    header, .nav-overlay, .nav-menu, .floating-add-btn, .hamburger-menu {
+        display: none !important;
+    }
+
+    /* Hide buttons and forms */
+    button, .btn-primary, .btn-secondary, .btn-danger, .icon-btn {
+        display: none !important;
+    }
+
+    /* Optimize for printing */
+    body {
+        background: white;
+        color: black;
+    }
+
+    .section {
+        page-break-inside: avoid;
+    }
+
+    /* Shopping list print optimization */
+    #shopping .shopping-item {
+        border: 1px solid #333;
+        margin-bottom: 0.5rem;
+        padding: 0.5rem;
+    }
+
+    .shopping-item-actions {
+        display: none !important;
+    }
+
+    /* Show only the active section or print all */
+    .section {
+        display: block !important;
+        page-break-after: always;
     }
 }

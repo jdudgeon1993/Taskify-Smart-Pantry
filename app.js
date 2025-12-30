@@ -113,7 +113,6 @@ function checkAndRolloverWeeks() {
         };
 
         localStorage.setItem('smartPantry_lastRollover', currentDate);
-        saveToLocalStorage();
         showToast('Week Rolled Over', 'Next week is now your current week!', 'info');
     }
 }
@@ -187,6 +186,63 @@ function updateDataLists() {
         const names = getAllIngredientNames();
         namesList.innerHTML = names.map(name => `<option value="${name}">`).join('');
     }
+}
+
+// ==============================================
+// GREETING BANNER
+// ==============================================
+
+function updateGreeting() {
+    const greetingText = document.getElementById('greeting-text');
+    const datetimeText = document.getElementById('current-datetime');
+
+    if (!greetingText || !datetimeText) return;
+
+    const now = new Date();
+    const hour = now.getHours();
+
+    // Determine greeting based on time
+    let greeting = 'Good Evening';
+    if (hour < 12) greeting = 'Good Morning';
+    else if (hour < 17) greeting = 'Good Afternoon';
+
+    // Format date and time
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+    const dayName = days[now.getDay()];
+    const monthName = months[now.getMonth()];
+    const date = now.getDate();
+    const year = now.getFullYear();
+
+    // Add ordinal suffix
+    const ordinal = (date) => {
+        if (date > 3 && date < 21) return 'th';
+        switch (date % 10) {
+            case 1: return 'st';
+            case 2: return 'nd';
+            case 3: return 'rd';
+            default: return 'th';
+        }
+    };
+
+    // Format time
+    let hours = now.getHours();
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12 || 12;
+
+    greetingText.textContent = greeting;
+    datetimeText.textContent = `${dayName}, ${hours}:${minutes} ${ampm}, ${monthName} ${date}${ordinal(date)}, ${year}`;
+}
+
+// Update greeting every minute
+setInterval(updateGreeting, 60000);
+// Update immediately on load
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', updateGreeting);
+} else {
+    updateGreeting();
 }
 
 // Initialize App - Wait for auth before loading data
@@ -361,11 +417,6 @@ function setupRealtimeSubscriptions() {
 
 // Supabase Data Sync (replaces localStorage)
 // Note: Individual CRUD operations now directly call Supabase functions in db.js
-// saveToLocalStorage() is now a no-op since Supabase handles persistence
-function saveToLocalStorage() {
-    // No-op: Data is saved directly to Supabase in individual functions
-    console.log('Data persisted to Supabase');
-}
 
 // Navigation
 function initNavigation() {
@@ -421,16 +472,76 @@ function initDashboard() {
 }
 
 function updateDashboardStats() {
+    // === PANTRY STATS ===
     const totalIngredients = ingredients.pantry.length + ingredients.fridge.length + ingredients.freezer.length;
-    const totalRecipes = recipes.length;
-    const totalShoppingItems = shoppingList.length;
+
+    // Count expiring items
+    const allIngredients = [...ingredients.pantry, ...ingredients.fridge, ...ingredients.freezer];
+    const expiringCount = allIngredients.filter(item => {
+        if (!item.expiration) return false;
+        const status = getExpirationStatus(item.expiration);
+        return status === 'expiring-soon' || status === 'expired';
+    }).length;
 
     document.getElementById('dashboard-ingredients-count').textContent =
         `${totalIngredients} ${totalIngredients === 1 ? 'item' : 'items'}`;
+
+    const ingredientsSecondary = document.getElementById('dashboard-ingredients-secondary');
+    if (expiringCount > 0) {
+        ingredientsSecondary.innerHTML = `<span style="color: #D97706;">⚠️ ${expiringCount} expiring soon</span>`;
+    } else {
+        ingredientsSecondary.textContent = 'All items fresh';
+    }
+
+    // === RECIPES STATS ===
+    const totalRecipes = recipes.length;
+
+    // Count ready-to-cook recipes
+    const readyToCook = recipes.filter(recipe => {
+        const status = checkRecipeStatus(recipe);
+        return status.isReady;
+    }).length;
+
     document.getElementById('dashboard-recipes-count').textContent =
         `${totalRecipes} ${totalRecipes === 1 ? 'recipe' : 'recipes'}`;
+
+    const recipesSecondary = document.getElementById('dashboard-recipes-secondary');
+    if (readyToCook > 0) {
+        recipesSecondary.innerHTML = `<span style="color: #48BB78;">✓ ${readyToCook} ready to cook</span>`;
+    } else {
+        recipesSecondary.textContent = 'Add ingredients to cook';
+    }
+
+    // === SHOPPING LIST STATS ===
+    const totalShoppingItems = shoppingList.length;
+    const uncheckedItems = shoppingList.filter(item => !item.checked).length;
+
     document.getElementById('dashboard-shopping-count').textContent =
         `${totalShoppingItems} ${totalShoppingItems === 1 ? 'item' : 'items'}`;
+
+    const shoppingSecondary = document.getElementById('dashboard-shopping-secondary');
+    if (uncheckedItems > 0) {
+        shoppingSecondary.innerHTML = `<span style="color: #4299E1;">${uncheckedItems} items to buy</span>`;
+    } else if (totalShoppingItems > 0) {
+        shoppingSecondary.innerHTML = `<span style="color: #48BB78;">✓ All items purchased</span>`;
+    } else {
+        shoppingSecondary.textContent = 'List is empty';
+    }
+
+    // === MEAL PLAN STATS ===
+    const todayMealsCount = getTodaysMealCount();
+    const weekTotalMeals = getWeekTotalMeals();
+
+    const mealsCount = document.getElementById('dashboard-meals-count');
+    const mealsSecondary = document.getElementById('dashboard-meals-secondary');
+
+    if (todayMealsCount > 0) {
+        mealsCount.innerHTML = `${todayMealsCount} ${todayMealsCount === 1 ? 'meal' : 'meals'} today`;
+        mealsSecondary.textContent = `${weekTotalMeals} meals planned this week`;
+    } else {
+        mealsCount.textContent = 'Plan your week';
+        mealsSecondary.textContent = `${weekTotalMeals} meals planned this week`;
+    }
 
     // Check for expiring items
     checkExpiringItems();
@@ -439,67 +550,88 @@ function updateDashboardStats() {
     updateTodaysMeals();
 }
 
+// Helper: Get count of today's meals
+function getTodaysMealCount() {
+    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const today = days[new Date().getDay()];
+
+    // Check Week 1 for today's meals
+    if (mealPlan.week1 && mealPlan.week1[today]) {
+        return mealPlan.week1[today].length;
+    }
+
+    return 0;
+}
+
+// Helper: Get total meals planned for Week 1
+function getWeekTotalMeals() {
+    if (!mealPlan.week1) return 0;
+
+    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    let total = 0;
+
+    days.forEach(day => {
+        if (mealPlan.week1[day]) {
+            total += mealPlan.week1[day].length;
+        }
+    });
+
+    return total;
+}
+
 function updateTodaysMeals() {
     const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
     const today = days[new Date().getDay()];
-    const todayMeals = mealPlan[today];
 
     const container = document.getElementById('today-meal-plan');
     const content = document.getElementById('today-meals-content');
 
-    if (!todayMeals) {
+    // Check if we have week1 and today's meals
+    if (!mealPlan.week1 || !mealPlan.week1[today]) {
         container.style.display = 'none';
         return;
     }
 
-    // Check if there are any meals planned for today
-    const hasMeals = ['breakfast', 'lunch', 'dinner'].some(meal => {
-        const mealSlot = todayMeals[meal];
-        if (typeof mealSlot === 'object' && mealSlot !== null) {
-            return (mealSlot.personA && mealSlot.personA.length > 0) ||
-                   (mealSlot.personB && mealSlot.personB.length > 0) ||
-                   (mealSlot.joint && mealSlot.joint.length > 0);
-        }
-        return false;
-    });
+    const todayRecipeIds = mealPlan.week1[today];
 
-    if (!hasMeals) {
+    // If no meals planned for today
+    if (!todayRecipeIds || todayRecipeIds.length === 0) {
         container.style.display = 'none';
         return;
     }
 
     container.style.display = 'block';
 
-    const mealsHtml = ['breakfast', 'lunch', 'dinner'].map(meal => {
-        const mealSlot = todayMeals[meal];
-        if (!mealSlot || typeof mealSlot !== 'object') return '';
+    // Build the today's meals display
+    const mealsHtml = todayRecipeIds.map(recipeId => {
+        const recipe = recipes.find(r => r.id === recipeId);
+        if (!recipe) return '';
 
-        const allRecipes = [
-            ...(mealSlot.personA || []),
-            ...(mealSlot.personB || []),
-            ...(mealSlot.joint || [])
-        ].filter((id, index, self) => self.indexOf(id) === index); // Unique IDs
-
-        if (allRecipes.length === 0) return '';
-
-        const recipeNames = allRecipes.map(id => {
-            const recipe = recipes.find(r => r.id === id);
-            return recipe ? recipe.name : 'Unknown Recipe';
-        }).join(', ');
-
-        const mealIcon = meal === 'breakfast' ? '🌅' : meal === 'lunch' ? '☀️' : '🌙';
+        const status = checkRecipeStatus(recipe);
+        const statusIcon = status.isReady ? '✅' : '⚠️';
+        const statusText = status.isReady ? 'Ready to cook' : 'Missing ingredients';
+        const statusColor = status.isReady ? '#48BB78' : '#ED8936';
 
         return `
-            <div style="padding: 12px; background: #f7fafc; border-radius: 8px; margin-bottom: 10px;">
-                <div style="font-weight: 700; color: #667eea; margin-bottom: 5px;">
-                    ${mealIcon} ${meal.charAt(0).toUpperCase() + meal.slice(1)}
+            <div style="padding: 14px; background: linear-gradient(135deg, #F7FAFC 0%, #FFFFFF 100%); border-radius: var(--radius-md); margin-bottom: var(--spacing-sm); border: 2px solid var(--border); transition: all 0.2s ease;"
+                 onmouseover="this.style.transform='translateX(5px)'; this.style.borderColor='var(--primary)';"
+                 onmouseout="this.style.transform='translateX(0)'; this.style.borderColor='var(--border)';">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-weight: 700; color: var(--primary); font-size: 1rem; margin-bottom: 4px;">
+                            🍽️ ${recipe.name}
+                        </div>
+                        <div style="font-size: 0.85rem; color: ${statusColor}; font-weight: 500;">
+                            ${statusIcon} ${statusText}
+                        </div>
+                    </div>
+                    ${recipe.servings ? `<div style="color: var(--text-secondary); font-size: 0.9rem;">${recipe.servings} servings</div>` : ''}
                 </div>
-                <div style="color: #4a5568;">${recipeNames}</div>
             </div>
         `;
     }).filter(html => html).join('');
 
-    content.innerHTML = mealsHtml;
+    content.innerHTML = mealsHtml || '<p style="color: var(--text-tertiary); font-style: italic;">No meals planned for today</p>';
 }
 
 function checkExpiringItems() {
@@ -536,14 +668,24 @@ function checkExpiringItems() {
     }
 }
 
-// Ingredients Section
-function initIngredients() {
-    const locationButtons = document.querySelectorAll('.location-btn');
+// ==============================================
+// INGREDIENTS SECTION
+// ==============================================
+
+let currentLocationFilter = 'all'; // Track active location tab
+
+async function initIngredients() {
     const addIngredientBtn = document.getElementById('add-ingredient-btn');
-    const toggleAddIngredientBtn = document.getElementById('toggle-add-ingredient');
+    const floatingAddBtn = document.getElementById('floating-add-ingredient');
     const cancelAddIngredientBtn = document.getElementById('cancel-add-ingredient');
     const formContainer = document.getElementById('add-ingredient-form-container');
     const searchInput = document.getElementById('ingredient-search');
+
+    // Load categories and locations, then populate dropdowns
+    await populateIngredientsDropdowns();
+
+    // Create dynamic location tabs
+    await createLocationTabs();
 
     // Ingredient search
     if (searchInput) {
@@ -553,18 +695,21 @@ function initIngredients() {
         });
     }
 
-    // Toggle add ingredient form
-    if (toggleAddIngredientBtn) {
-        toggleAddIngredientBtn.addEventListener('click', () => {
-            formContainer.classList.toggle('hidden');
-            if (!formContainer.classList.contains('hidden')) {
-                updateDataLists(); // Refresh autocomplete options
-                document.getElementById('ingredient-name').focus();
-            }
+    // Floating + button - show form
+    if (floatingAddBtn) {
+        floatingAddBtn.addEventListener('click', () => {
+            // Show form
+            formContainer.classList.remove('hidden');
+            // Refresh autocomplete
+            updateDataLists();
+            // Focus on name input
+            document.getElementById('ingredient-name').focus();
+            // Clear form
+            clearIngredientForm();
         });
     }
 
-    // Cancel button
+    // Cancel button - hide form
     if (cancelAddIngredientBtn) {
         cancelAddIngredientBtn.addEventListener('click', () => {
             formContainer.classList.add('hidden');
@@ -572,36 +717,93 @@ function initIngredients() {
         });
     }
 
-    locationButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            currentLocation = btn.dataset.location;
+    // Save ingredient button
+    if (addIngredientBtn) {
+        addIngredientBtn.addEventListener('click', addIngredient);
+    }
 
-            locationButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-
-            document.querySelectorAll('.ingredient-list').forEach(list => {
-                list.classList.remove('active');
-            });
-            document.getElementById(`${currentLocation}-list`).classList.add('active');
-
-            renderIngredients();
+    // Enter key on name input
+    const nameInput = document.getElementById('ingredient-name');
+    if (nameInput) {
+        nameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addIngredient();
         });
-    });
+    }
 
-    addIngredientBtn.addEventListener('click', addIngredient);
-
-    document.getElementById('ingredient-name').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') addIngredient();
-    });
-
-    // Edit ingredient modal
-    document.querySelector('.close-edit-ingredient').addEventListener('click', () => {
-        document.getElementById('edit-ingredient-modal').classList.add('hidden');
-    });
-
-    document.getElementById('save-ingredient-edit-btn').addEventListener('click', saveIngredientEdit);
-
+    // Initial render
     renderIngredients();
+}
+
+// Populate the Storage Location and Item Category dropdowns
+async function populateIngredientsDropdowns() {
+    const locationSelect = document.getElementById('ingredient-location');
+    const categorySelect = document.getElementById('ingredient-item-category');
+
+    if (!locationSelect || !categorySelect) return;
+
+    try {
+        // Load locations from database
+        const locations = await loadLocations();
+        locationSelect.innerHTML = locations.map(loc =>
+            `<option value="${loc.name.toLowerCase()}">${loc.name}</option>`
+        ).join('');
+
+        // Default to first location
+        if (locations.length > 0) {
+            currentLocation = locations[0].name.toLowerCase();
+        }
+
+        // Load categories from database
+        const categories = await loadCategories();
+        categorySelect.innerHTML = `<option value="">-- Select Category --</option>` +
+            categories.map(cat =>
+                `<option value="${cat.name}">${cat.name}</option>`
+            ).join('');
+    } catch (error) {
+        console.error('Error populating ingredient dropdowns:', error);
+    }
+}
+
+// Create dynamic location tabs based on database locations
+async function createLocationTabs() {
+    const tabsContainer = document.getElementById('location-tabs');
+    if (!tabsContainer) return;
+
+    try {
+        const locations = await loadLocations();
+
+        // Add "All" tab first
+        let tabsHTML = `
+            <button class="location-tab active" data-location="all">
+                All Locations
+            </button>
+        `;
+
+        // Add tab for each location
+        tabsHTML += locations.map(loc => `
+            <button class="location-tab" data-location="${loc.name.toLowerCase()}">
+                ${loc.name}
+            </button>
+        `).join('');
+
+        tabsContainer.innerHTML = tabsHTML;
+
+        // Set up tab click handlers
+        const tabs = tabsContainer.querySelectorAll('.location-tab');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Update active state
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                // Update filter and re-render
+                currentLocationFilter = tab.dataset.location;
+                renderIngredients();
+            });
+        });
+    } catch (error) {
+        console.error('Error creating location tabs:', error);
+    }
 }
 
 function clearIngredientForm() {
@@ -609,9 +811,15 @@ function clearIngredientForm() {
     document.getElementById('ingredient-quantity').value = '1';
     document.getElementById('ingredient-unit').value = '';
     document.getElementById('ingredient-expiration').value = '';
-    const categoryInput = document.getElementById('ingredient-category');
-    if (categoryInput) {
-        categoryInput.value = 'pantry';
+    // Reset to first location in dropdown
+    const locationSelect = document.getElementById('ingredient-location');
+    if (locationSelect && locationSelect.options.length > 0) {
+        locationSelect.selectedIndex = 0;
+    }
+    // Reset category to default
+    const categorySelect = document.getElementById('ingredient-item-category');
+    if (categorySelect) {
+        categorySelect.selectedIndex = 0; // "-- Select Category --"
     }
 }
 
@@ -620,61 +828,77 @@ async function addIngredient() {
     const quantityInput = document.getElementById('ingredient-quantity');
     const unitInput = document.getElementById('ingredient-unit');
     const expirationInput = document.getElementById('ingredient-expiration');
-    const categoryInput = document.getElementById('ingredient-category');
+    const locationSelect = document.getElementById('ingredient-location');
+    const categorySelect = document.getElementById('ingredient-item-category');
 
     const name = nameInput.value.trim();
     const quantity = parseFloat(quantityInput.value) || 1;
     const unit = unitInput.value.trim();
     const expiration = expirationInput.value || null;
-    const category = categoryInput ? categoryInput.value : currentLocation;
+    const location = locationSelect ? locationSelect.value : 'pantry'; // Storage location (WHERE)
+    const itemCategory = categorySelect && categorySelect.value ? categorySelect.value : null; // Item category (WHAT)
 
     if (!name) {
         alert('Please enter an ingredient name');
         return;
     }
 
+    if (!unit) {
+        alert('Please enter a unit (e.g., cups, lbs, items)');
+        return;
+    }
+
     try {
-        // Check if ingredient already exists in the selected category
-        const existingIngredient = ingredients[category].find(
-            ing => ing.name.toLowerCase() === name.toLowerCase() && ing.unit.toLowerCase() === unit.toLowerCase()
+        // Check if ingredient already exists in the selected location
+        const locationIngredients = ingredients[location] || [];
+        const existingIngredient = locationIngredients.find(
+            ing => ing.name.toLowerCase() === name.toLowerCase() &&
+                   ing.unit.toLowerCase() === unit.toLowerCase()
         );
 
         if (existingIngredient) {
-            // Update existing ingredient
+            // Update existing ingredient quantity
             const newQuantity = existingIngredient.quantity + quantity;
-            const newExpiration = expiration && (!existingIngredient.expiration || new Date(expiration) < new Date(existingIngredient.expiration)) ? expiration : existingIngredient.expiration;
+            const newExpiration = expiration && (!existingIngredient.expiration || new Date(expiration) < new Date(existingIngredient.expiration))
+                ? expiration
+                : existingIngredient.expiration;
 
             await updatePantryItem(existingIngredient.id, {
                 quantity: newQuantity,
-                expiration: newExpiration
+                expiration: newExpiration,
+                itemCategory: itemCategory // Update category if provided
             });
+
+            showToast('Ingredient Updated!', `${name} quantity increased to ${newQuantity} ${unit}`, 'success');
         } else {
             // Add new ingredient to Supabase
             await addPantryItem({
                 name,
                 quantity,
                 unit,
-                category,
+                category: location, // This is the storage location (legacy field name)
+                itemCategory: itemCategory, // This is the item category (Produce, Dairy, etc.)
                 expiration
             });
+
+            showToast('Ingredient Added!', `${name} has been added to your ${location}`, 'success');
         }
+
+        // Reload ingredients from database
+        ingredients = await loadPantryItems();
+        renderIngredients();
+        updateRecipeStatus();
+        updateDashboardStats();
 
         // Hide form and clear inputs
         const formContainer = document.getElementById('add-ingredient-form-container');
         if (formContainer) {
             formContainer.classList.add('hidden');
         }
-
-        nameInput.value = '';
-        quantityInput.value = '1';
-        unitInput.value = '';
-        expirationInput.value = '';
-
-        // Show success toast
-        showToast('Ingredient Added!', `${name} has been added to your ${category}`, 'success');
+        clearIngredientForm();
     } catch (error) {
         console.error('Error adding ingredient:', error);
-        showToast('Error', 'Failed to add ingredient', 'error');
+        showToast('Error', 'Failed to add ingredient: ' + error.message, 'error');
     }
 }
 
@@ -798,128 +1022,164 @@ function getReservedQuantities() {
 }
 
 function renderIngredients() {
+    const gridContainer = document.getElementById('ingredients-grid');
+    if (!gridContainer) return;
+
     const reservedQty = getReservedQuantities();
 
-    ['pantry', 'fridge', 'freezer'].forEach(location => {
-        const listElement = document.getElementById(`${location}-items`);
-        let items = ingredients[location];
+    // Gather all ingredients from all locations
+    let allItems = [];
+    Object.keys(ingredients).forEach(location => {
+        const locationItems = ingredients[location] || [];
+        locationItems.forEach(item => {
+            allItems.push({
+                ...item,
+                location: location // Add location to each item
+            });
+        });
+    });
 
-        // Filter by search query
-        if (ingredientSearchQuery) {
-            items = items.filter(item =>
-                item.name.toLowerCase().includes(ingredientSearchQuery) ||
-                item.unit.toLowerCase().includes(ingredientSearchQuery)
-            );
+    // Filter by location tab
+    if (currentLocationFilter !== 'all') {
+        allItems = allItems.filter(item => item.location === currentLocationFilter);
+    }
+
+    // Filter by search query
+    if (ingredientSearchQuery) {
+        allItems = allItems.filter(item =>
+            item.name.toLowerCase().includes(ingredientSearchQuery) ||
+            (item.itemCategory && item.itemCategory.toLowerCase().includes(ingredientSearchQuery)) ||
+            item.unit.toLowerCase().includes(ingredientSearchQuery)
+        );
+    }
+
+    // Sort alphabetically by name
+    allItems = allItems.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+
+    // Handle empty state
+    if (allItems.length === 0) {
+        const message = ingredientSearchQuery
+            ? 'No ingredients match your search'
+            : currentLocationFilter === 'all'
+                ? 'No ingredients yet. Click the + button to add your first item!'
+                : `No items in ${currentLocationFilter}`;
+        gridContainer.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--text-muted);">
+                <p style="font-size: 1.1rem;">${message}</p>
+            </div>
+        `;
+        return;
+    }
+
+    // Render ingredient cards
+    gridContainer.innerHTML = allItems.map(item => {
+        const expStatus = getExpirationStatus(item.expiration);
+        let expBadge = '';
+        let cardClass = 'ingredient-card';
+
+        if (expStatus === 'expired') {
+            cardClass += ' expired';
+            expBadge = '<span class="exp-badge expired">EXPIRED</span>';
+        } else if (expStatus === 'expiring-soon') {
+            cardClass += ' expiring-soon';
+            expBadge = '<span class="exp-badge expiring">EXPIRING SOON</span>';
         }
 
-        // Sort alphabetically
-        items = items.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+        // Calculate reserved and available quantities
+        const key = `${item.name.toLowerCase()}|${item.unit.toLowerCase()}`;
+        const reserved = item.reserved || reservedQty[key] || 0;
+        const available = item.available !== undefined ? item.available : (item.quantity - reserved);
 
-        if (items.length === 0) {
-            const message = ingredientSearchQuery ?
-                'No ingredients match your search' :
-                'No items yet';
-            listElement.innerHTML = `<li style="background: none; text-align: center; color: #6c757d;">${message}</li>`;
-            return;
-        }
+        // Determine availability color
+        const availColor = available <= 0
+            ? 'var(--danger)'
+            : (available < item.quantity * 0.3 ? 'var(--warning)' : 'var(--success)');
 
-        listElement.innerHTML = items.map(item => {
-            const expStatus = getExpirationStatus(item.expiration);
-            let classList = '';
-            let expBadge = '';
+        // Category badge (optional)
+        const categoryBadge = item.itemCategory
+            ? `<span class="category-badge">${item.itemCategory}</span>`
+            : '';
 
-            if (expStatus === 'expired') {
-                classList = 'ingredient-expired';
-                expBadge = '<span class="expiration-badge expired-badge">EXPIRED</span>';
-            } else if (expStatus === 'expiring-soon') {
-                classList = 'ingredient-expiring-soon';
-                expBadge = '<span class="expiration-badge expiring-soon-badge">EXPIRING SOON</span>';
-            }
-
-            // Calculate available quantity after meal plan
-            const key = `${item.name.toLowerCase()}|${item.unit.toLowerCase()}`;
-            const reserved = reservedQty[key] || 0;
-            const available = item.quantity - reserved;
-
-            // Build availability display
-            const availColor = available <= 0 ? '#e53e3e' : (available < item.quantity * 0.3 ? '#ed8936' : '#48bb78');
-            let availabilityHTML = `
-                <div class="ingredient-availability">
-                    <div class="availability-item">
-                        <span class="availability-label">On Hand:</span>
-                        <span class="availability-value">${item.quantity} ${item.unit}</span>
-                    </div>
-                    <div class="availability-item">
-                        <span class="availability-label">Available:</span>
-                        <span class="availability-value" style="color: ${availColor}; font-weight: 700;">${available} ${item.unit}</span>
-                    </div>
-                    ${reserved > 0 ? `
-                    <div class="availability-item reserved-info">
-                        <span class="availability-label">Reserved:</span>
-                        <span class="availability-value">${reserved} ${item.unit}</span>
-                    </div>
-                    ` : ''}
-                </div>
-            `;
-
-            return `
-            <li class="${classList}">
-                <div class="ingredient-card-content">
-                    <div class="ingredient-header">
-                        <span class="ingredient-name">${item.name}</span>
+        return `
+            <div class="${cardClass}">
+                <div class="ingredient-card-header">
+                    <h4 class="ingredient-card-name">${item.name}</h4>
+                    <div class="ingredient-card-badges">
+                        ${categoryBadge}
                         ${expBadge}
                     </div>
-                    <div class="ingredient-quantity-display">
-                        <span class="quantity-number">${item.quantity}</span>
-                        <span class="quantity-unit">${item.unit}</span>
-                    </div>
-                    ${availabilityHTML}
                 </div>
-                <div class="ingredient-actions">
-                    <button class="icon-btn edit-btn" onclick="editIngredient('${location}', ${item.id})" title="Edit">
+
+                <div class="ingredient-card-quantities">
+                    <div class="qty-box qty-onhand">
+                        <div class="qty-label">On Hand</div>
+                        <div class="qty-value">${item.quantity} ${item.unit}</div>
+                    </div>
+                    <div class="qty-box qty-reserved">
+                        <div class="qty-label">Reserved</div>
+                        <div class="qty-value">${reserved} ${item.unit}</div>
+                    </div>
+                    <div class="qty-box qty-available">
+                        <div class="qty-label">Available</div>
+                        <div class="qty-value" style="color: ${availColor}; font-weight: 700;">
+                            ${available} ${item.unit}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ingredient-card-actions">
+                    <button class="icon-btn edit-btn" onclick="editIngredient('${item.location}', ${item.id})" title="Edit">
                         ✏️
                     </button>
-                    <button class="icon-btn delete-btn" onclick="deleteIngredient('${location}', ${item.id})" title="Delete">
+                    <button class="icon-btn delete-btn" onclick="deleteIngredient('${item.location}', ${item.id})" title="Delete">
                         🗑️
                     </button>
                 </div>
-            </li>
-        `}).join('');
-    });
+            </div>
+        `;
+    }).join('');
 }
 
-// Recipes Section
+// ==============================================
+// RECIPES SECTION
+// ==============================================
+
 function initRecipes() {
-    const addRecipeBtn = document.getElementById('add-recipe-btn');
     const saveRecipeBtn = document.getElementById('save-recipe-btn');
     const closeModal = document.querySelector('.close-modal');
     const addRecipeIngredientBtn = document.getElementById('add-recipe-ingredient-btn');
     const filterButtons = document.querySelectorAll('.filter-btn');
     const categoryButtons = document.querySelectorAll('.category-filter-btn');
     const searchInput = document.getElementById('recipe-search');
-    const toggleFiltersBtn = document.getElementById('toggle-filters');
-    const filtersContainer = document.getElementById('filters-container');
+    const floatingAddBtn = document.getElementById('floating-add-recipe');
 
-    // Toggle filters
-    if (toggleFiltersBtn) {
-        toggleFiltersBtn.addEventListener('click', () => {
-            filtersContainer.classList.toggle('hidden');
+    // Floating + button - show recipe form
+    if (floatingAddBtn) {
+        floatingAddBtn.addEventListener('click', () => {
+            document.getElementById('recipe-modal-title').textContent = 'Add New Recipe';
+            document.getElementById('add-recipe-form').classList.remove('hidden');
+            clearRecipeForm();
         });
     }
 
-    addRecipeBtn.addEventListener('click', () => {
-        document.getElementById('recipe-modal-title').textContent = 'Add New Recipe';
-        document.getElementById('add-recipe-form').classList.remove('hidden');
-        clearRecipeForm();
-    });
+    // Close modal button
+    if (closeModal) {
+        closeModal.addEventListener('click', () => {
+            document.getElementById('add-recipe-form').classList.add('hidden');
+        });
+    }
 
-    closeModal.addEventListener('click', () => {
-        document.getElementById('add-recipe-form').classList.add('hidden');
-    });
+    // Save recipe button
+    if (saveRecipeBtn) {
+        saveRecipeBtn.addEventListener('click', saveRecipe);
+    }
 
-    saveRecipeBtn.addEventListener('click', saveRecipe);
-    addRecipeIngredientBtn.addEventListener('click', addRecipeIngredientRow);
+    // Add ingredient row button
+    if (addRecipeIngredientBtn) {
+        addRecipeIngredientBtn.addEventListener('click', addRecipeIngredientRow);
+    }
 
+    // Status filter buttons (All, Ready to Cook, Expiring Soon, Missing Items, Favorites)
     filterButtons.forEach(btn => {
         btn.addEventListener('click', () => {
             currentRecipeFilter = btn.dataset.filter;
@@ -929,6 +1189,7 @@ function initRecipes() {
         });
     });
 
+    // Category filter buttons
     categoryButtons.forEach(btn => {
         btn.addEventListener('click', () => {
             currentRecipeCategory = btn.dataset.category;
@@ -938,16 +1199,23 @@ function initRecipes() {
         });
     });
 
-    searchInput.addEventListener('input', (e) => {
-        recipeSearchQuery = e.target.value.toLowerCase();
-        renderRecipes();
-    });
+    // Search input
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            recipeSearchQuery = e.target.value.toLowerCase();
+            renderRecipes();
+        });
+    }
 
-    document.getElementById('add-recipe-form').addEventListener('click', (e) => {
-        if (e.target.id === 'add-recipe-form') {
-            document.getElementById('add-recipe-form').classList.add('hidden');
-        }
-    });
+    // Close modal when clicking outside
+    const recipeForm = document.getElementById('add-recipe-form');
+    if (recipeForm) {
+        recipeForm.addEventListener('click', (e) => {
+            if (e.target.id === 'add-recipe-form') {
+                recipeForm.classList.add('hidden');
+            }
+        });
+    }
 
     // Don't render recipes on page load - only when navigating to recipes section
     // renderRecipes() is called in initNavigation() when user clicks Recipes tab
@@ -1588,9 +1856,25 @@ function renderRecipes() {
 
     let filteredRecipes = recipes;
 
+    // Helper function to check if recipe has expiring ingredients
+    function hasExpiringIngredients(recipe) {
+        const allIngredients = [...ingredients.pantry, ...ingredients.fridge, ...ingredients.freezer];
+        return recipe.ingredients.some(recipeIng => {
+            const ingredient = allIngredients.find(inv =>
+                inv.name.toLowerCase() === recipeIng.name.toLowerCase()
+            );
+            if (!ingredient || !ingredient.expiration) return false;
+            const expStatus = getExpirationStatus(ingredient.expiration);
+            return expStatus === 'expiring-soon' || expStatus === 'expired';
+        });
+    }
+
     // Filter by status
     if (currentRecipeFilter === 'ready') {
         filteredRecipes = filteredRecipes.filter(recipe => checkRecipeStatus(recipe).isReady);
+    } else if (currentRecipeFilter === 'expiring') {
+        // Show recipes with expiring ingredients
+        filteredRecipes = filteredRecipes.filter(recipe => hasExpiringIngredients(recipe));
     } else if (currentRecipeFilter === 'missing') {
         filteredRecipes = filteredRecipes.filter(recipe => !checkRecipeStatus(recipe).isReady);
     } else if (currentRecipeFilter === 'favorites') {
@@ -1613,19 +1897,6 @@ function renderRecipes() {
     if (filteredRecipes.length === 0) {
         recipeList.innerHTML = '<div class="empty-state"><p>No recipes match your filters</p></div>';
         return;
-    }
-
-    // Helper function to check if recipe has expiring ingredients
-    function hasExpiringIngredients(recipe) {
-        const allIngredients = [...ingredients.pantry, ...ingredients.fridge, ...ingredients.freezer];
-        return recipe.ingredients.some(recipeIng => {
-            const ingredient = allIngredients.find(inv =>
-                inv.name.toLowerCase() === recipeIng.name.toLowerCase()
-            );
-            if (!ingredient || !ingredient.expiration) return false;
-            const expStatus = getExpirationStatus(ingredient.expiration);
-            return expStatus === 'expiring-soon' || expStatus === 'expired';
-        });
     }
 
     // Categorize recipes into three groups
@@ -1762,30 +2033,30 @@ function renderRecipes() {
     updateMealSuggestions();
 }
 
-// Shopping List Section
-function initShopping() {
+// ==============================================
+// SHOPPING LIST SECTION
+// ==============================================
+
+async function initShopping() {
     const addShoppingItemBtn = document.getElementById('add-shopping-item-btn');
     const autoGenerateBtn = document.getElementById('auto-generate-list-btn');
     const generateFromMealPlanBtn = document.getElementById('generate-from-meal-plan-btn');
     const clearListBtn = document.getElementById('clear-shopping-list-btn');
-    const categoryButtons = document.querySelectorAll('.shop-cat-btn');
-    const toggleAddShoppingBtn = document.getElementById('toggle-add-shopping');
-    const toggleShoppingActionsBtn = document.getElementById('toggle-shopping-actions');
+    const floatingAddBtn = document.getElementById('floating-add-shopping');
     const cancelAddShoppingBtn = document.getElementById('cancel-add-shopping');
     const shoppingFormContainer = document.getElementById('add-shopping-form-container');
-    const shoppingActionsContainer = document.getElementById('shopping-actions-container');
 
-    // Toggle add shopping form
-    if (toggleAddShoppingBtn) {
-        toggleAddShoppingBtn.addEventListener('click', () => {
-            shoppingFormContainer.classList.toggle('hidden');
-        });
-    }
+    // Populate category dropdown from database
+    await populateShoppingCategoryDropdown();
 
-    // Toggle shopping actions
-    if (toggleShoppingActionsBtn) {
-        toggleShoppingActionsBtn.addEventListener('click', () => {
-            shoppingActionsContainer.classList.toggle('hidden');
+    // Load and display recent purchases
+    await loadAndDisplayRecentPurchases();
+
+    // Floating + button - show form
+    if (floatingAddBtn) {
+        floatingAddBtn.addEventListener('click', () => {
+            shoppingFormContainer.classList.remove('hidden');
+            document.getElementById('shopping-item-name').focus();
         });
     }
 
@@ -1797,30 +2068,96 @@ function initShopping() {
         });
     }
 
-    addShoppingItemBtn.addEventListener('click', addShoppingItem);
-    autoGenerateBtn.addEventListener('click', autoGenerateShoppingList);
-    generateFromMealPlanBtn.addEventListener('click', generateFromMealPlan);
-    clearListBtn.addEventListener('click', clearShoppingList);
+    // Add shopping item button
+    if (addShoppingItemBtn) {
+        addShoppingItemBtn.addEventListener('click', addShoppingItem);
+    }
 
+    // Auto-generate buttons
+    if (autoGenerateBtn) {
+        autoGenerateBtn.addEventListener('click', autoGenerateShoppingList);
+    }
+
+    if (generateFromMealPlanBtn) {
+        generateFromMealPlanBtn.addEventListener('click', generateFromMealPlan);
+    }
+
+    if (clearListBtn) {
+        clearListBtn.addEventListener('click', clearShoppingList);
+    }
+
+    // Print button
     const printListBtn = document.getElementById('print-shopping-list-btn');
     if (printListBtn) {
         printListBtn.addEventListener('click', printShoppingList);
     }
 
-    categoryButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            currentShoppingCategory = btn.dataset.shopCategory;
-            categoryButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            renderShoppingList();
+    // Enter key on name input
+    const nameInput = document.getElementById('shopping-item-name');
+    if (nameInput) {
+        nameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addShoppingItem();
         });
-    });
-
-    document.getElementById('shopping-item-name').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') addShoppingItem();
-    });
+    }
 
     renderShoppingList();
+}
+
+// Populate category dropdown from database
+async function populateShoppingCategoryDropdown() {
+    const categorySelect = document.getElementById('shopping-item-category');
+    if (!categorySelect) return;
+
+    try {
+        const categories = await loadCategories();
+        categorySelect.innerHTML = categories.map(cat =>
+            `<option value="${cat.name}">${cat.name}</option>`
+        ).join('');
+    } catch (error) {
+        console.error('Error populating shopping category dropdown:', error);
+        // Fallback to defaults
+        categorySelect.innerHTML = `
+            <option value="Produce">Produce</option>
+            <option value="Dairy">Dairy</option>
+            <option value="Meat">Meat</option>
+            <option value="Pantry Staples">Pantry Staples</option>
+        `;
+    }
+}
+
+// Load and display top 10 recent purchases
+async function loadAndDisplayRecentPurchases() {
+    const container = document.getElementById('recent-purchases-section');
+    if (!container) return;
+
+    try {
+        const recentItems = await loadRecentPurchases();
+
+        if (recentItems.length === 0) {
+            container.style.display = 'none';
+            return;
+        }
+
+        // Take top 10
+        const top10 = recentItems.slice(0, 10);
+
+        container.innerHTML = `
+            <div class="recent-purchases-card">
+                <h4>Quick Add from Recent Purchases</h4>
+                <div class="recent-purchases-grid">
+                    ${top10.map(item => `
+                        <button class="recent-purchase-btn" onclick="quickAddRecentItem('${item.name}', '${item.unit || ''}')">
+                            + ${item.name}
+                        </button>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+        container.style.display = 'block';
+    } catch (error) {
+        console.error('Error loading recent purchases:', error);
+        container.style.display = 'none';
+    }
 }
 
 function autoCategorizeShopping(itemName) {
@@ -1848,7 +2185,55 @@ function clearShoppingForm() {
     document.getElementById('shopping-item-name').value = '';
     document.getElementById('shopping-item-qty').value = '1';
     document.getElementById('shopping-item-unit').value = '';
-    document.getElementById('shopping-item-category').value = 'produce';
+    const categorySelect = document.getElementById('shopping-item-category');
+    if (categorySelect && categorySelect.options.length > 0) {
+        categorySelect.selectedIndex = 0;
+    }
+}
+
+// Quick add from recent purchases
+async function quickAddRecentItem(itemName, unit) {
+    try {
+        const household = await getUserHousehold();
+        const user = await getCurrentUser();
+
+        // Check if already in shopping list
+        const existing = shoppingList.find(item =>
+            item.name.toLowerCase() === itemName.toLowerCase()
+        );
+
+        if (existing) {
+            showToast('Already in List', `${itemName} is already in your shopping list`, 'info');
+            return;
+        }
+
+        // Auto-categorize
+        const category = autoCategorizeShopping(itemName);
+
+        // Add to database
+        const { error } = await supabase
+            .from('shopping_list')
+            .insert({
+                household_id: household.id,
+                created_by: user.id,
+                name: itemName,
+                quantity: 1,
+                unit: unit || 'unit',
+                category: category,
+                checked: false
+            });
+
+        if (error) throw error;
+
+        // Reload shopping list
+        shoppingList = await loadShoppingList();
+        renderShoppingList();
+
+        showToast('Added!', `${itemName} added to shopping list`, 'success');
+    } catch (error) {
+        console.error('Error quick-adding item:', error);
+        showToast('Error', 'Failed to add item', 'error');
+    }
 }
 
 async function addShoppingItem() {
@@ -1991,7 +2376,6 @@ function addMissingToShopping(recipeId, servingsMultiplier = 1) {
         }
     });
 
-    saveToLocalStorage();
     renderShoppingList();
     updateDashboardStats();
 
@@ -2041,7 +2425,6 @@ function autoGenerateShoppingList() {
         }
     });
 
-    saveToLocalStorage();
     renderShoppingList();
     updateDashboardStats();
     showToast('Added to Shopping List', `${addedCount} missing ingredient${addedCount > 1 ? 's' : ''} from recipes`, 'success');
@@ -2141,7 +2524,6 @@ function generateFromMealPlan() {
         }
     });
 
-    saveToLocalStorage();
     renderShoppingList();
     updateDashboardStats();
     showToast('Added to Shopping List', `${addedCount} ingredient${addedCount > 1 ? 's' : ''} from meal plan`, 'success');
@@ -2150,7 +2532,6 @@ function generateFromMealPlan() {
 function clearShoppingList() {
     if (confirm('Are you sure you want to clear the shopping list?')) {
         shoppingList = [];
-        saveToLocalStorage();
         renderShoppingList();
     }
 }
@@ -2263,26 +2644,16 @@ function renderShoppingList() {
 
     let html = '';
 
-    // Add quick-add common items
-    html += `
-        <div style="background: #f7fafc; padding: 15px; border-radius: 12px; margin-bottom: 15px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <h4 style="margin: 0; font-size: 14px; color: #4a5568;">Quick Add Common Items</h4>
-                ${shoppingList.length > 0 ? `
-                    <button onclick="copyShoppingListToClipboard()" style="padding: 6px 12px; background: #667eea; color: white; border: none; border-radius: 6px; font-size: 12px; cursor: pointer;">
-                        📋 Copy List
-                    </button>
-                ` : ''}
+    // Add copy list button if there are items
+    if (shoppingList.length > 0) {
+        html += `
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
+                <button onclick="copyShoppingListToClipboard()" class="btn-secondary" style="font-size: 14px;">
+                    📋 Copy List
+                </button>
             </div>
-            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                ${['Milk', 'Eggs', 'Bread', 'Butter', 'Chicken', 'Rice', 'Pasta', 'Onions', 'Garlic', 'Tomatoes'].map(item => `
-                    <button onclick="quickAddItem('${item}')" style="padding: 6px 12px; background: white; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 13px; cursor: pointer; transition: all 0.2s;">
-                        + ${item}
-                    </button>
-                `).join('')}
-            </div>
-        </div>
-    `;
+        `;
+    }
 
     // Add bulk action buttons
     if (shoppingList.length > 0) {
@@ -2305,12 +2676,12 @@ function renderShoppingList() {
         `;
     }
 
-    // Add "Move to Inventory" button if there are checked items
+    // Add "Send to Pantry" button if there are checked items
     if (hasCheckedItems) {
         html += `
             <div style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
-                <button onclick="moveCheckedToInventory()" style="background: white; color: #38a169; width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 700; font-size: 16px; cursor: pointer;">
-                    ✅ Move Checked Items to Inventory
+                <button onclick="openSendToPantryModal()" style="background: white; color: #38a169; width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 700; font-size: 16px; cursor: pointer;">
+                    ✅ Send Checked Items to Pantry
                 </button>
             </div>
         `;
@@ -2386,7 +2757,6 @@ function updatePurchasedQuantity(id, value) {
     const item = shoppingList.find(item => item.id === id);
     if (item) {
         item.purchasedQuantity = parseFloat(value) || 0;
-        saveToLocalStorage();
     }
 }
 
@@ -2394,7 +2764,6 @@ function updateTargetLocation(id, value) {
     const item = shoppingList.find(item => item.id === id);
     if (item) {
         item.targetLocation = value;
-        saveToLocalStorage();
     }
 }
 
@@ -2440,7 +2809,6 @@ function moveCheckedToInventory() {
     // Remove checked items from shopping list
     shoppingList = shoppingList.filter(item => !item.checked);
 
-    saveToLocalStorage();
     renderShoppingList();
     renderIngredients();
     updateDashboardStats();
@@ -2457,7 +2825,6 @@ function moveCheckedToInventory() {
 
 function checkAllShoppingItems() {
     shoppingList.forEach(item => item.checked = true);
-    saveToLocalStorage();
     renderShoppingList();
     showToast('All Checked', `${shoppingList.length} item${shoppingList.length > 1 ? 's' : ''} checked`, 'success');
 }
@@ -2467,7 +2834,6 @@ function uncheckAllShoppingItems() {
         item.checked = false;
         item.purchasedQuantity = null; // Reset purchased quantity
     });
-    saveToLocalStorage();
     renderShoppingList();
     showToast('All Unchecked', 'Shopping list items unchecked', 'info');
 }
@@ -2481,7 +2847,6 @@ function clearCheckedShoppingItems() {
 
     if (confirm(`Remove ${checkedCount} checked item${checkedCount > 1 ? 's' : ''} from shopping list?`)) {
         shoppingList = shoppingList.filter(item => !item.checked);
-        saveToLocalStorage();
         renderShoppingList();
         updateDashboardStats();
         showToast('Items Removed', `${checkedCount} item${checkedCount > 1 ? 's' : ''} removed`, 'success');
@@ -2496,7 +2861,6 @@ function editShoppingItem(id) {
     if (newName && newName.trim()) {
         item.name = newName.trim();
         item.category = autoCategorizeShopping(item.name);
-        saveToLocalStorage();
         renderShoppingList();
         showToast('Item Updated', `${item.name} updated`, 'success');
     }
@@ -2510,7 +2874,6 @@ function updateShoppingItemQuantity(id, quantity, unit) {
     if (unit && unit.trim()) {
         item.unit = unit.trim();
     }
-    saveToLocalStorage();
     renderShoppingList();
 }
 
@@ -2545,7 +2908,6 @@ function quickAddItem(itemName) {
         showToast('Added to Shopping List', `${itemName} added`, 'success');
     }
 
-    saveToLocalStorage();
     renderShoppingList();
     updateDashboardStats();
 }
@@ -2585,6 +2947,114 @@ function copyShoppingListToClipboard() {
     });
 }
 
+// ==============================================
+// SEND TO PANTRY MODAL
+// ==============================================
+
+async function openSendToPantryModal() {
+    const checkedItems = shoppingList.filter(item => item.checked);
+
+    if (checkedItems.length === 0) {
+        showToast('No Items', 'No items are checked', 'info');
+        return;
+    }
+
+    const modal = document.getElementById('send-to-pantry-modal');
+    const itemsList = document.getElementById('send-to-pantry-items-list');
+
+    // Load locations and categories
+    const locations = await loadLocations();
+    const categories = await loadCategories();
+
+    // Build form for each checked item
+    itemsList.innerHTML = checkedItems.map((item, index) => `
+        <div class="send-to-pantry-item" style="background: var(--bg-secondary); padding: var(--spacing-md); border-radius: var(--radius-md); margin-bottom: var(--spacing-md);">
+            <h5 style="margin: 0 0 var(--spacing-sm) 0; color: var(--text-primary);">${item.name}</h5>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-sm);">
+                <div>
+                    <label style="font-size: 0.85rem; color: var(--text-secondary); display: block; margin-bottom: 0.25rem;">Storage Location</label>
+                    <select id="pantry-location-${index}" class="pantry-location-select" style="width: 100%; padding: 0.5rem; border: 2px solid var(--border); border-radius: var(--radius-sm);">
+                        ${locations.map(loc => `<option value="${loc.name.toLowerCase()}">${loc.name}</option>`).join('')}
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 0.85rem; color: var(--text-secondary); display: block; margin-bottom: 0.25rem;">Item Category</label>
+                    <select id="pantry-category-${index}" class="pantry-category-select" style="width: 100%; padding: 0.5rem; border: 2px solid var(--border); border-radius: var(--radius-sm);">
+                        <option value="">-- Select --</option>
+                        ${categories.map(cat => `<option value="${cat.name}" ${cat.name === item.category ? 'selected' : ''}>${cat.name}</option>`).join('')}
+                    </select>
+                </div>
+            </div>
+        </div>
+    `).join('');
+
+    modal.classList.remove('hidden');
+
+    // Set up confirm button
+    const confirmBtn = document.getElementById('confirm-send-to-pantry-btn');
+    confirmBtn.onclick = confirmSendToPantry;
+}
+
+function closeSendToPantryModal() {
+    const modal = document.getElementById('send-to-pantry-modal');
+    modal.classList.add('hidden');
+}
+
+async function confirmSendToPantry() {
+    const checkedItems = shoppingList.filter(item => item.checked);
+
+    try {
+        for (let i = 0; i < checkedItems.length; i++) {
+            const item = checkedItems[i];
+            const locationSelect = document.getElementById(`pantry-location-${i}`);
+            const categorySelect = document.getElementById(`pantry-category-${i}`);
+
+            const location = locationSelect ? locationSelect.value : 'pantry';
+            const itemCategory = categorySelect && categorySelect.value ? categorySelect.value : null;
+
+            // Add to pantry
+            await addPantryItem({
+                name: item.name,
+                quantity: item.quantity,
+                unit: item.unit,
+                category: location, // Storage location (WHERE)
+                itemCategory: itemCategory, // Item category (WHAT)
+                expiration: null
+            });
+
+            // Add to recent purchases
+            await addRecentPurchase({
+                name: item.name,
+                unit: item.unit
+            });
+
+            // Delete from shopping list
+            await supabase
+                .from('shopping_list')
+                .delete()
+                .eq('id', item.id);
+        }
+
+        // Reload data
+        ingredients = await loadPantryItems();
+        shoppingList = await loadShoppingList();
+        await loadAndDisplayRecentPurchases(); // Refresh recent purchases
+        renderIngredients();
+        renderShoppingList();
+        updateDashboardStats();
+
+        closeSendToPantryModal();
+        showToast('Success!', `${checkedItems.length} item${checkedItems.length > 1 ? 's' : ''} sent to pantry`, 'success');
+    } catch (error) {
+        console.error('Error sending to pantry:', error);
+        showToast('Error', 'Failed to send items to pantry', 'error');
+    }
+}
+
+// ==============================================
+// MEAL PLAN SECTION
+// ==============================================
+
 // Meal Plan Section
 function initMealPlan() {
     // Wire up Clear Meal Plan button
@@ -2612,7 +3082,6 @@ function clearMealPlan() {
         days.forEach(day => {
             mealPlan.week1[day] = [];
         });
-        saveToLocalStorage();
         renderMealPlan();
         renderIngredients();
         showToast('Week 1 Cleared', 'Current week meals removed', 'success');
@@ -2620,7 +3089,6 @@ function clearMealPlan() {
         days.forEach(day => {
             mealPlan.week2[day] = [];
         });
-        saveToLocalStorage();
         renderMealPlan();
         renderIngredients();
         showToast('Week 2 Cleared', 'Next week meals removed', 'success');
@@ -2630,7 +3098,6 @@ function clearMealPlan() {
                 mealPlan.week1[day] = [];
                 mealPlan.week2[day] = [];
             });
-            saveToLocalStorage();
             renderMealPlan();
             renderIngredients();
             showToast('Both Weeks Cleared', 'All meals removed from plan', 'success');
@@ -2681,7 +3148,6 @@ function pasteWeek() {
     try {
         const copiedPlan = JSON.parse(clipboard);
         mealPlan = copiedPlan;
-        saveToLocalStorage();
         renderMealPlan();
         renderIngredients();
         showToast('Week Pasted!', 'Meal plan has been applied', 'success');
@@ -2691,7 +3157,8 @@ function pasteWeek() {
 }
 
 function renderMealPlan() {
-    const mealPlanGrid = document.getElementById('meal-plan-grid');
+    const week1Container = document.getElementById('week1-days');
+    const week2Container = document.getElementById('week2-days');
     const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
     const today = getTodayDayName();
 
@@ -2718,11 +3185,12 @@ function renderMealPlan() {
                 sunday: []
             }
         };
-        saveToLocalStorage();
     }
 
     if (recipes.length === 0) {
-        mealPlanGrid.innerHTML = '<div class="empty-state"><p>No recipes available. Add some recipes first to create your meal plan!</p></div>';
+        const emptyState = '<div class="empty-state"><p>No recipes available. Add some recipes first to create your meal plan!</p></div>';
+        if (week1Container) week1Container.innerHTML = emptyState;
+        if (week2Container) week2Container.innerHTML = emptyState;
         return;
     }
 
@@ -2731,83 +3199,75 @@ function renderMealPlan() {
         .map(recipe => `<option value="${recipe.id}">${recipe.name}</option>`)
         .join('');
 
-    // Week tabs
-    const weekTabs = `
-        <div class="week-tabs">
-            <button class="week-tab ${currentWeekView === 'week1' ? 'active' : ''}" onclick="switchWeek('week1')">
-                Week 1 (Current)
-            </button>
-            <button class="week-tab ${currentWeekView === 'week2' ? 'active' : ''}" onclick="switchWeek('week2')">
-                Week 2 (Next)
-            </button>
-        </div>
-    `;
+    // Helper function to render a single week's days
+    const renderWeekDays = (weekKey, container) => {
+        const weekData = mealPlan[weekKey];
+        const dayOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        const todayIndex = dayOrder.indexOf(today);
 
-    // Get the appropriate week's data
-    const weekData = mealPlan[currentWeekView];
+        const isPastDay = (day) => {
+            if (weekKey === 'week2') return false; // Week 2 is always future
+            const dayIndex = dayOrder.indexOf(day);
+            return dayIndex < todayIndex;
+        };
 
-    // Helper to check if day is in the past (only for week1)
-    const dayOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-    const todayIndex = dayOrder.indexOf(today);
+        const isToday = (day) => {
+            return weekKey === 'week1' && day === today;
+        };
 
-    const isPastDay = (day) => {
-        if (currentWeekView === 'week2') return false; // Week 2 is always future
-        const dayIndex = dayOrder.indexOf(day);
-        return dayIndex < todayIndex;
-    };
+        const daysHTML = days.map(day => {
+            const dayRecipes = (weekData[day] || []).map(id => recipes.find(r => r.id === id)).filter(Boolean);
+            const dayName = day.charAt(0).toUpperCase() + day.slice(1);
+            const past = isPastDay(day);
+            const todayDay = isToday(day);
 
-    const isToday = (day) => {
-        return currentWeekView === 'week1' && day === today;
-    };
-
-    const daysHTML = days.map(day => {
-        const dayRecipes = (weekData[day] || []).map(id => recipes.find(r => r.id === id)).filter(Boolean);
-        const dayName = day.charAt(0).toUpperCase() + day.slice(1);
-        const past = isPastDay(day);
-        const todayDay = isToday(day);
-
-        return `
-        <div class="meal-day ${past ? 'past-day' : ''} ${todayDay ? 'today-day' : ''}" id="meal-day-${currentWeekView}-${day}">
-            <div class="meal-day-header">
-                <div class="meal-day-title">
-                    <h3>${dayName}</h3>
-                    ${todayDay ? '<span class="today-badge">TODAY</span>' : ''}
-                </div>
-                <span class="meal-count">${dayRecipes.length} meal${dayRecipes.length !== 1 ? 's' : ''}</span>
-            </div>
-
-            <div class="meal-list">
-                ${dayRecipes.map(recipe => `
-                    <div class="meal-item">
-                        <div class="meal-item-content">
-                            <span class="meal-recipe-name">${recipe.name}</span>
-                            ${recipe.servings ? `<span class="meal-servings">${recipe.servings} servings</span>` : ''}
-                        </div>
-                        <div class="meal-item-actions">
-                            <button class="btn-sm btn-primary" onclick="cookNowAndDeduct(${recipe.id}, '${currentWeekView}', '${day}')" title="Cook this recipe now">
-                                Cook Now
-                            </button>
-                            <button class="btn-sm btn-danger" onclick="removeRecipeFromMeal('${currentWeekView}', '${day}', ${recipe.id})" title="Remove from plan">
-                                Remove
-                            </button>
-                        </div>
+            return `
+            <div class="meal-day-card ${past ? 'past-day' : ''} ${todayDay ? 'today-day' : ''}" id="meal-day-${weekKey}-${day}">
+                <div class="meal-day-header">
+                    <div class="meal-day-title">
+                        <h4>${dayName}</h4>
+                        ${todayDay ? '<span class="today-badge">📍 TODAY</span>' : ''}
                     </div>
-                `).join('')}
+                    <span class="meal-count">${dayRecipes.length} ${dayRecipes.length === 1 ? 'meal' : 'meals'}</span>
+                </div>
 
-                ${dayRecipes.length === 0 ? '<p class="empty-day-message">No meals planned for this day</p>' : ''}
+                <div class="meal-list">
+                    ${dayRecipes.map(recipe => `
+                        <div class="meal-item">
+                            <div class="meal-item-content">
+                                <span class="meal-recipe-name">${recipe.name}</span>
+                                ${recipe.servings ? `<span class="meal-servings">${recipe.servings} servings</span>` : ''}
+                            </div>
+                            <div class="meal-item-actions">
+                                <button class="meal-action-btn cook-btn" onclick="cookNowAndDeduct(${recipe.id}, '${weekKey}', '${day}')" title="Cook this recipe now">
+                                    🍳
+                                </button>
+                                <button class="meal-action-btn remove-btn" onclick="removeRecipeFromMeal('${weekKey}', '${day}', ${recipe.id})" title="Remove from plan">
+                                    ✕
+                                </button>
+                            </div>
+                        </div>
+                    `).join('')}
 
-                <div class="add-meal-section">
-                    <select class="add-meal-select" onchange="addRecipeToMeal('${currentWeekView}', '${day}', this.value); this.value='';">
-                        <option value="">+ Add a meal</option>
-                        ${recipeOptions}
-                    </select>
+                    ${dayRecipes.length === 0 ? '<p class="empty-day-message">No meals planned</p>' : ''}
+
+                    <div class="add-meal-section">
+                        <select class="add-meal-select" onchange="addRecipeToMeal('${weekKey}', '${day}', this.value); this.value='';">
+                            <option value="">+ Add meal</option>
+                            ${recipeOptions}
+                        </select>
+                    </div>
                 </div>
             </div>
-        </div>
-        `;
-    }).join('');
+            `;
+        }).join('');
 
-    mealPlanGrid.innerHTML = weekTabs + daysHTML;
+        container.innerHTML = daysHTML;
+    };
+
+    // Render both weeks
+    if (week1Container) renderWeekDays('week1', week1Container);
+    if (week2Container) renderWeekDays('week2', week2Container);
 }
 
 function switchWeek(week) {
@@ -2919,7 +3379,6 @@ function cookNowAndDeduct(recipeId, week, day) {
                     addedCount++;
                 }
             });
-            saveToLocalStorage();
             renderShoppingList();
             showToast('Added to Shopping List', `${addedCount} missing ingredient${addedCount > 1 ? 's' : ''} for ${recipe.name}`, 'success');
         }
@@ -2971,7 +3430,6 @@ function cookNowAndDeduct(recipeId, week, day) {
             // Remove meal from plan
             removeRecipeFromMeal(week, day, recipeId);
 
-            saveToLocalStorage();
             renderIngredients();
             renderRecipes();
 
@@ -3038,6 +3496,22 @@ function initSettings() {
         copyTokenBtn.addEventListener('click', copyToken);
     }
 
+    // NEW: Categories and Locations management
+    const addCategoryBtn = document.getElementById('add-category-btn');
+    const addLocationBtn = document.getElementById('add-location-btn');
+
+    if (addCategoryBtn) {
+        addCategoryBtn.addEventListener('click', showAddCategoryPrompt);
+    }
+
+    if (addLocationBtn) {
+        addLocationBtn.addEventListener('click', showAddLocationPrompt);
+    }
+
+    // Load and display categories and locations
+    loadAndDisplayCategories();
+    loadAndDisplayLocations();
+
     updateStats();
 }
 
@@ -3083,7 +3557,6 @@ function importData(event) {
                     sunday: { breakfast: null, lunch: null, dinner: null }
                 };
 
-                saveToLocalStorage();
 
                 renderIngredients();
                 renderRecipes();
@@ -3117,7 +3590,6 @@ function clearAllData() {
                 sunday: { breakfast: null, lunch: null, dinner: null }
             };
 
-            saveToLocalStorage();
 
             renderIngredients();
             renderRecipes();
@@ -3187,6 +3659,158 @@ function updateStats() {
         </div>
         ` : ''}
     `;
+}
+
+// ==============================================
+// CATEGORIES AND LOCATIONS MANAGEMENT
+// ==============================================
+
+// Load and display categories
+async function loadAndDisplayCategories() {
+    try {
+        const categories = await loadCategories();
+        const categoriesList = document.getElementById('categories-list');
+
+        if (!categoriesList) return;
+
+        if (categories.length === 0) {
+            categoriesList.innerHTML = '<p style="color: #888; font-style: italic;">No categories yet. Add one above!</p>';
+            return;
+        }
+
+        categoriesList.innerHTML = categories.map(cat => `
+            <div class="settings-list-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f7fafc; border-radius: 8px; margin-bottom: 8px;">
+                <span style="font-weight: 500;">${cat.name}${cat.is_default ? ' <span style="color: #888; font-size: 0.85em;">(default)</span>' : ''}</span>
+                <div style="display: flex; gap: 8px;">
+                    ${!cat.is_default ? `
+                        <button onclick="editCategory('${cat.id}', '${cat.name}')" class="btn-secondary" style="padding: 6px 12px; font-size: 0.9em;">Edit</button>
+                        <button onclick="handleDeleteCategory('${cat.id}')" class="btn-danger" style="padding: 6px 12px; font-size: 0.9em;">Delete</button>
+                    ` : ''}
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading categories:', error);
+        showToast('Error', 'Failed to load categories', 'error');
+    }
+}
+
+// Load and display locations
+async function loadAndDisplayLocations() {
+    try {
+        const locations = await loadLocations();
+        const locationsList = document.getElementById('locations-list');
+
+        if (!locationsList) return;
+
+        if (locations.length === 0) {
+            locationsList.innerHTML = '<p style="color: #888; font-style: italic;">No locations yet. Add one above!</p>';
+            return;
+        }
+
+        locationsList.innerHTML = locations.map(loc => `
+            <div class="settings-list-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f7fafc; border-radius: 8px; margin-bottom: 8px;">
+                <span style="font-weight: 500;">${loc.name}${loc.is_default ? ' <span style="color: #888; font-size: 0.85em;">(default)</span>' : ''}</span>
+                <div style="display: flex; gap: 8px;">
+                    ${!loc.is_default ? `
+                        <button onclick="editLocation('${loc.id}', '${loc.name}')" class="btn-secondary" style="padding: 6px 12px; font-size: 0.9em;">Edit</button>
+                        <button onclick="handleDeleteLocation('${loc.id}')" class="btn-danger" style="padding: 6px 12px; font-size: 0.9em;">Delete</button>
+                    ` : ''}
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading locations:', error);
+        showToast('Error', 'Failed to load locations', 'error');
+    }
+}
+
+// Show add category prompt
+async function showAddCategoryPrompt() {
+    const name = prompt('Enter category name (e.g., Spices, Baking, Asian Ingredients):');
+    if (!name || !name.trim()) return;
+
+    try {
+        await addCategory(name.trim());
+        showToast('Success', `Added category: ${name}`, 'success');
+        await loadAndDisplayCategories();
+    } catch (error) {
+        console.error('Error adding category:', error);
+        showToast('Error', 'Failed to add category. It may already exist.', 'error');
+    }
+}
+
+// Show add location prompt
+async function showAddLocationPrompt() {
+    const name = prompt('Enter location name (e.g., Garage Freezer, Wine Fridge, Basement Pantry):');
+    if (!name || !name.trim()) return;
+
+    try {
+        await addLocation(name.trim());
+        showToast('Success', `Added location: ${name}`, 'success');
+        await loadAndDisplayLocations();
+    } catch (error) {
+        console.error('Error adding location:', error);
+        showToast('Error', 'Failed to add location. It may already exist.', 'error');
+    }
+}
+
+// Edit category
+async function editCategory(id, currentName) {
+    const newName = prompt('Edit category name:', currentName);
+    if (!newName || !newName.trim() || newName === currentName) return;
+
+    try {
+        await updateCategory(id, newName.trim());
+        showToast('Success', `Renamed category to: ${newName}`, 'success');
+        await loadAndDisplayCategories();
+    } catch (error) {
+        console.error('Error updating category:', error);
+        showToast('Error', 'Failed to update category', 'error');
+    }
+}
+
+// Edit location
+async function editLocation(id, currentName) {
+    const newName = prompt('Edit location name:', currentName);
+    if (!newName || !newName.trim() || newName === currentName) return;
+
+    try {
+        await updateLocation(id, newName.trim());
+        showToast('Success', `Renamed location to: ${newName}`, 'success');
+        await loadAndDisplayLocations();
+    } catch (error) {
+        console.error('Error updating location:', error);
+        showToast('Error', 'Failed to update location', 'error');
+    }
+}
+
+// Delete category with confirmation
+async function handleDeleteCategory(id) {
+    if (!confirm('Are you sure you want to delete this category? This cannot be undone.')) return;
+
+    try {
+        await deleteCategory(id);
+        showToast('Success', 'Category deleted', 'success');
+        await loadAndDisplayCategories();
+    } catch (error) {
+        console.error('Error deleting category:', error);
+        showToast('Error', 'Failed to delete category. It may be in use.', 'error');
+    }
+}
+
+// Delete location with confirmation
+async function handleDeleteLocation(id) {
+    if (!confirm('Are you sure you want to delete this location? This cannot be undone.')) return;
+
+    try {
+        await deleteLocation(id);
+        showToast('Success', 'Location deleted', 'success');
+        await loadAndDisplayLocations();
+    } catch (error) {
+        console.error('Error deleting location:', error);
+        showToast('Error', 'Failed to delete location. It may be in use.', 'error');
+    }
 }
 
 // ==================== AUTHENTICATION & SYNC ====================
@@ -3390,7 +4014,6 @@ async function syncFromServer() {
                 console.warn('❌ No pantry task found with type === smartpantry');
             }
 
-            saveToLocalStorage();
             renderIngredients();
             renderRecipes();
             renderShoppingList();
@@ -3441,7 +4064,6 @@ function copyToken() {
 }
 
 function saveToLocalStorageAndSync() {
-    saveToLocalStorage();
 
     if (userToken && !isSyncing) {
         clearTimeout(window.syncTimeout);

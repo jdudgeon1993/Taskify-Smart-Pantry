@@ -114,6 +114,12 @@
                 </button>
             </header>
 
+            <!-- Greeting Banner -->
+            <div class="greeting-banner" id="greeting-banner">
+                <span id="greeting-text">Good Evening</span>
+                <span id="current-datetime">Monday, 12:00 PM, December 30th, 2024</span>
+            </div>
+
             <!-- Slide-out Navigation -->
             <nav class="main-nav" id="main-nav">
                 <div class="nav-header">
@@ -168,26 +174,30 @@
 
                 <div class="dashboard-grid">
                     <div class="dashboard-card" data-navigate="ingredients">
-                        <h3>Pantry</h3>
+                        <h3><span class="card-icon">🏺</span> Pantry</h3>
                         <p class="card-stat" id="dashboard-ingredients-count">0 items</p>
+                        <p class="card-stat-secondary" id="dashboard-ingredients-secondary"></p>
                         <p class="card-description">Manage ingredients</p>
                     </div>
 
                     <div class="dashboard-card" data-navigate="recipes">
-                        <h3>Recipes</h3>
+                        <h3><span class="card-icon">📚</span> Recipes</h3>
                         <p class="card-stat" id="dashboard-recipes-count">0 recipes</p>
+                        <p class="card-stat-secondary" id="dashboard-recipes-secondary"></p>
                         <p class="card-description">Browse collection</p>
                     </div>
 
                     <div class="dashboard-card" data-navigate="shopping">
-                        <h3>Shopping</h3>
+                        <h3><span class="card-icon">🛒</span> Shopping</h3>
                         <p class="card-stat" id="dashboard-shopping-count">0 items</p>
+                        <p class="card-stat-secondary" id="dashboard-shopping-secondary"></p>
                         <p class="card-description">Shopping list</p>
                     </div>
 
                     <div class="dashboard-card" data-navigate="meal-plan">
-                        <h3>Meal Plan</h3>
+                        <h3><span class="card-icon">📅</span> Meal Plan</h3>
                         <p class="card-stat" id="dashboard-meals-count">Plan your week</p>
+                        <p class="card-stat-secondary" id="dashboard-meals-secondary"></p>
                         <p class="card-description">Weekly planning</p>
                     </div>
                 </div>
@@ -205,13 +215,13 @@
             <!-- Ingredients Section -->
             <section id="ingredients" class="section">
                 <div class="section-header">
-                    <h2>My Pantry</h2>
-                    <button class="btn-primary" id="toggle-add-ingredient">Add Ingredient</button>
+                    <h2>My Ingredients</h2>
                 </div>
 
+                <!-- Add/Edit Ingredient Form (Modal style) -->
                 <div class="add-ingredient-form hidden" id="add-ingredient-form-container">
                     <div class="form-card">
-                        <h3>Add New Ingredient</h3>
+                        <h3 id="ingredient-form-title">Add New Ingredient</h3>
                         <div class="form-group">
                             <label>Ingredient Name</label>
                             <input type="text" id="ingredient-name" placeholder="e.g., Flour, Milk, Tomatoes" list="ingredient-names-list" />
@@ -227,12 +237,19 @@
                                 <input type="text" id="ingredient-unit" placeholder="cups, lbs, etc." list="units-list" />
                                 <datalist id="units-list"></datalist>
                             </div>
+                        </div>
+                        <div class="form-row">
                             <div class="form-group">
-                                <label>Category</label>
-                                <select id="ingredient-category">
-                                    <option value="pantry">Pantry</option>
-                                    <option value="fridge">Fridge</option>
-                                    <option value="freezer">Freezer</option>
+                                <label>Storage Location</label>
+                                <select id="ingredient-location">
+                                    <!-- Will be populated from database -->
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Item Category</label>
+                                <select id="ingredient-item-category">
+                                    <option value="">-- Select Category --</option>
+                                    <!-- Will be populated from database -->
                                 </select>
                             </div>
                             <div class="form-group">
@@ -247,50 +264,46 @@
                     </div>
                 </div>
 
+                <!-- Search Bar -->
                 <div class="ingredient-search-bar">
                     <input type="text" id="ingredient-search" placeholder="Search ingredients..." />
                 </div>
 
-                <div class="location-tabs">
-                    <button class="location-btn active" data-location="pantry">Pantry</button>
-                    <button class="location-btn" data-location="fridge">Fridge</button>
-                    <button class="location-btn" data-location="freezer">Freezer</button>
+                <!-- Location Tabs (Dynamic from database) -->
+                <div class="location-tabs" id="location-tabs">
+                    <!-- Will be populated dynamically -->
                 </div>
 
-                <div class="ingredient-lists">
-                    <div id="pantry-list" class="ingredient-list active">
-                        <h3>Pantry Items</h3>
-                        <ul id="pantry-items"></ul>
-                    </div>
-                    <div id="fridge-list" class="ingredient-list">
-                        <h3>Fridge Items</h3>
-                        <ul id="fridge-items"></ul>
-                    </div>
-                    <div id="freezer-list" class="ingredient-list">
-                        <h3>Freezer Items</h3>
-                        <ul id="freezer-items"></ul>
-                    </div>
+                <!-- Ingredients Grid (3 columns) -->
+                <div class="ingredients-grid" id="ingredients-grid">
+                    <!-- Will be populated dynamically -->
                 </div>
+
+                <!-- Floating Add Button -->
+                <button class="floating-add-btn" id="floating-add-ingredient" title="Add Ingredient">
+                    <span>+</span>
+                </button>
             </section>
 
             <!-- Recipes Section -->
             <section id="recipes" class="section">
                 <div class="section-header">
                     <h2>My Recipes</h2>
-                    <button class="btn-primary" id="add-recipe-btn">Add Recipe</button>
                 </div>
 
+                <!-- Search Bar -->
                 <div class="recipe-search-container">
                     <input type="text" id="recipe-search" placeholder="Search recipes..." />
-                    <button class="btn-secondary" id="toggle-filters">Filters</button>
                 </div>
 
-                <div class="filters-container hidden" id="filters-container">
+                <!-- Filter Tabs (Always Visible) -->
+                <div class="filters-container" id="filters-container">
                     <div class="filter-group">
                         <label>Status</label>
                         <div class="recipe-filters">
                             <button class="filter-btn active" data-filter="all">All</button>
                             <button class="filter-btn" data-filter="ready">Ready to Cook</button>
+                            <button class="filter-btn" data-filter="expiring">Expiring Soon</button>
                             <button class="filter-btn" data-filter="missing">Missing Items</button>
                             <button class="filter-btn" data-filter="favorites">Favorites</button>
                         </div>
@@ -357,19 +370,21 @@
                 <div id="meal-suggestions" class="meal-suggestions" style="display: none;"></div>
 
                 <div id="recipe-list" class="recipe-grid"></div>
+
+                <!-- Floating Add Button -->
+                <button class="floating-add-btn" id="floating-add-recipe" title="Add Recipe">
+                    <span>+</span>
+                </button>
             </section>
 
             <!-- Shopping List Section -->
             <section id="shopping" class="section">
                 <div class="section-header">
                     <h2>Shopping List</h2>
-                    <div class="header-actions">
-                        <button class="btn-primary" id="toggle-add-shopping">Add Item</button>
-                        <button class="btn-secondary" id="toggle-shopping-actions">Actions</button>
-                    </div>
                 </div>
 
-                <div class="shopping-actions hidden" id="shopping-actions-container">
+                <!-- Actions Bar (Always Visible) -->
+                <div class="shopping-actions-bar">
                     <button id="auto-generate-list-btn" class="btn-secondary">Auto-Generate from Recipes</button>
                     <button id="generate-from-meal-plan-btn" class="btn-secondary">Generate from Meal Plan</button>
                     <button id="print-shopping-list-btn" class="btn-secondary">Print List</button>
@@ -395,13 +410,7 @@
                             <div class="form-group">
                                 <label>Category</label>
                                 <select id="shopping-item-category">
-                                    <option value="produce">Produce</option>
-                                    <option value="dairy">Dairy</option>
-                                    <option value="meat">Meat/Seafood</option>
-                                    <option value="pantry">Pantry</option>
-                                    <option value="frozen">Frozen</option>
-                                    <option value="bakery">Bakery</option>
-                                    <option value="other">Other</option>
+                                    <!-- Will be populated from database -->
                                 </select>
                             </div>
                         </div>
@@ -412,31 +421,48 @@
                     </div>
                 </div>
 
-                <div class="shopping-category-filter">
-                    <button class="shop-cat-btn active" data-shop-category="all">All</button>
-                    <button class="shop-cat-btn" data-shop-category="produce">Produce</button>
-                    <button class="shop-cat-btn" data-shop-category="dairy">Dairy</button>
-                    <button class="shop-cat-btn" data-shop-category="meat">Meat</button>
-                    <button class="shop-cat-btn" data-shop-category="pantry">Pantry</button>
-                    <button class="shop-cat-btn" data-shop-category="frozen">Frozen</button>
-                    <button class="shop-cat-btn" data-shop-category="bakery">Bakery</button>
+                <!-- Quick Add from Recent Purchases -->
+                <div id="recent-purchases-section" class="recent-purchases-section">
+                    <!-- Will be populated dynamically -->
                 </div>
 
                 <div id="shopping-list-by-category"></div>
+
+                <!-- Floating Add Button -->
+                <button class="floating-add-btn" id="floating-add-shopping" title="Add Item">
+                    <span>+</span>
+                </button>
             </section>
 
             <!-- Meal Plan Section -->
             <section id="meal-plan" class="section">
                 <div class="section-header">
-                    <h2>Weekly Meal Plan</h2>
+                    <h2>2-Week Meal Plan</h2>
                     <div class="header-actions">
                         <button class="btn-secondary" id="duplicate-week-btn">Duplicate Week</button>
                         <button class="btn-danger" id="clear-meal-plan">Clear Plan</button>
                     </div>
                 </div>
 
-                <div id="meal-plan-grid" class="meal-plan-grid">
-                    <!-- Days will be generated dynamically -->
+                <!-- 2-Week Side-by-Side Grid -->
+                <div class="two-week-container">
+                    <div class="week-column">
+                        <div class="week-column-header">
+                            <h3>Week 1 (Current)</h3>
+                        </div>
+                        <div id="week1-days" class="week-days-grid">
+                            <!-- Week 1 days will be generated -->
+                        </div>
+                    </div>
+
+                    <div class="week-column">
+                        <div class="week-column-header">
+                            <h3>Week 2 (Next)</h3>
+                        </div>
+                        <div id="week2-days" class="week-days-grid">
+                            <!-- Week 2 days will be generated -->
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -452,6 +478,34 @@
                     <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
                         <button onclick="showInviteModal()" class="btn-primary">Generate Invite Code</button>
                         <button onclick="showJoinModal()" class="btn-secondary">Join Another Household</button>
+                    </div>
+                </div>
+
+                <!-- NEW: Manage Storage Locations -->
+                <div class="settings-card">
+                    <h3>Storage Locations</h3>
+                    <p class="card-description">
+                        Manage where you store your ingredients. Add custom locations like "Garage Freezer" or "Wine Fridge".
+                    </p>
+                    <div style="margin-top: 15px;">
+                        <button class="btn-primary" id="add-location-btn">+ Add Location</button>
+                    </div>
+                    <div id="locations-list" style="margin-top: 15px;">
+                        <!-- Locations will be populated here -->
+                    </div>
+                </div>
+
+                <!-- NEW: Manage Categories -->
+                <div class="settings-card">
+                    <h3>Item Categories</h3>
+                    <p class="card-description">
+                        Organize your ingredients by type. Add custom categories like "Spices", "Baking", or "Asian Ingredients".
+                    </p>
+                    <div style="margin-top: 15px;">
+                        <button class="btn-primary" id="add-category-btn">+ Add Category</button>
+                    </div>
+                    <div id="categories-list" style="margin-top: 15px;">
+                        <!-- Categories will be populated here -->
                     </div>
                 </div>
 
@@ -584,6 +638,26 @@
         </div>
     </div>
 
+    <!-- Send to Pantry Modal -->
+    <div id="send-to-pantry-modal" class="modal hidden">
+        <div class="modal-content" style="max-width: 500px;">
+            <span class="close-modal" onclick="closeSendToPantryModal()">&times;</span>
+            <h3>Send Items to Pantry</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                Set storage location and category for your purchased items
+            </p>
+
+            <div id="send-to-pantry-items-list">
+                <!-- Will be populated with checked items -->
+            </div>
+
+            <div class="form-actions" style="margin-top: 20px;">
+                <button id="confirm-send-to-pantry-btn" class="primary-btn">Send to Pantry</button>
+                <button onclick="closeSendToPantryModal()" class="secondary-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ============================================ -->
     <!-- HOUSEHOLD MODALS (New) -->
     <!-- ============================================ -->
@@ -630,15 +704,15 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <!-- Supabase Configuration - Initialize client -->
-    <script src="supabase-config.js?v=1767050739"></script>
+    <script src="supabase-config.js?v=1767062000"></script>
 
     <!-- Authentication Functions -->
-    <script src="auth.js?v=1767050739"></script>
+    <script src="auth.js?v=1767062000"></script>
 
     <!-- Database Functions -->
-    <script src="db.js?v=1767050739"></script>
+    <script src="db.js?v=1767062000"></script>
 
     <!-- Main Application -->
-    <script src="app.js?v=1767050739"></script>
+    <script src="app.js?v=1767062000"></script>
 </body>
 </html>
