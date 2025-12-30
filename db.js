@@ -156,13 +156,20 @@ async function loadPantryItems() {
   };
 
   data.forEach(item => {
-    const category = item.category || 'pantry';
-    if (grouped[category]) {
-      grouped[category].push({
+    const location = item.category || 'pantry'; // 'category' field is actually location
+    if (grouped[location]) {
+      const reserved = item.reserved_quantity || 0;
+      const available = (item.quantity || 0) - reserved;
+
+      grouped[location].push({
         id: item.id,
         name: item.name,
         quantity: item.quantity,
+        reserved: reserved,
+        available: available,
         unit: item.unit,
+        location: location,
+        itemCategory: item.item_category || null, // NEW: Meat, Produce, etc.
         expiration: item.expiration_date
       });
     }
@@ -182,11 +189,13 @@ async function addPantryItem(item) {
       household_id: household.id,
       created_by: user.id,
       name: item.name,
-      category: item.category || 'pantry',
+      category: item.location || item.category || 'pantry', // location (pantry/fridge/freezer)
+      item_category: item.itemCategory || null, // NEW: category (Meat/Produce/etc.)
       quantity: item.quantity,
       unit: item.unit,
       expiration_date: item.expiration || null,
-      notes: item.notes || null
+      notes: item.notes || null,
+      reserved_quantity: 0 // NEW: start with 0 reserved
     })
     .select()
     .single();
@@ -200,7 +209,11 @@ async function addPantryItem(item) {
     id: data.id,
     name: data.name,
     quantity: data.quantity,
+    reserved: data.reserved_quantity || 0,
+    available: (data.quantity || 0) - (data.reserved_quantity || 0),
     unit: data.unit,
+    location: data.category,
+    itemCategory: data.item_category,
     expiration: data.expiration_date
   };
 }
@@ -214,7 +227,9 @@ async function updatePantryItem(itemId, updates) {
   if (updates.name !== undefined) updateData.name = updates.name;
   if (updates.quantity !== undefined) updateData.quantity = updates.quantity;
   if (updates.unit !== undefined) updateData.unit = updates.unit;
-  if (updates.category !== undefined) updateData.category = updates.category;
+  if (updates.category !== undefined) updateData.category = updates.category; // location
+  if (updates.location !== undefined) updateData.category = updates.location; // NEW: handle location field
+  if (updates.itemCategory !== undefined) updateData.item_category = updates.itemCategory; // NEW: Meat/Produce/etc.
   if (updates.expiration !== undefined) updateData.expiration_date = updates.expiration;
   if (updates.notes !== undefined) updateData.notes = updates.notes;
 
@@ -583,6 +598,206 @@ async function clearMealPlan() {
   if (error) {
     console.error('Error clearing meal plan:', error);
     throw error;
+  }
+}
+
+// ==============================================
+// CATEGORIES MANAGEMENT
+// ==============================================
+
+// Load all categories for household
+async function loadCategories() {
+  const household = await getUserHousehold();
+  if (!household) return [];
+
+  const { data, error} = await supabase
+    .from('categories')
+    .select('*')
+    .eq('household_id', household.id)
+    .order('name');
+
+  if (error) {
+    console.error('Error loading categories:', error);
+    return [];
+  }
+
+  return data;
+}
+
+// Add custom category
+async function addCategory(name) {
+  const household = await getUserHousehold();
+  const user = await getCurrentUser();
+
+  const { data, error } = await supabase
+    .from('categories')
+    .insert({
+      household_id: household.id,
+      name: name,
+      is_default: false
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error adding category:', error);
+    throw error;
+  }
+
+  return data;
+}
+
+// Update category
+async function updateCategory(categoryId, name) {
+  const { data, error } = await supabase
+    .from('categories')
+    .update({ name: name, updated_at: new Date().toISOString() })
+    .eq('id', categoryId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating category:', error);
+    throw error;
+  }
+
+  return data;
+}
+
+// Delete category (only non-default)
+async function deleteCategory(categoryId) {
+  const { error } = await supabase
+    .from('categories')
+    .delete()
+    .eq('id', categoryId)
+    .eq('is_default', false); // Can only delete non-default
+
+  if (error) {
+    console.error('Error deleting category:', error);
+    throw error;
+  }
+}
+
+// ==============================================
+// LOCATIONS MANAGEMENT
+// ==============================================
+
+// Load all locations for household
+async function loadLocations() {
+  const household = await getUserHousehold();
+  if (!household) return [];
+
+  const { data, error } = await supabase
+    .from('locations')
+    .select('*')
+    .eq('household_id', household.id)
+    .order('name');
+
+  if (error) {
+    console.error('Error loading locations:', error);
+    return [];
+  }
+
+  return data;
+}
+
+// Add custom location
+async function addLocation(name) {
+  const household = await getUserHousehold();
+  const user = await getCurrentUser();
+
+  const { data, error } = await supabase
+    .from('locations')
+    .insert({
+      household_id: household.id,
+      name: name,
+      is_default: false
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error adding location:', error);
+    throw error;
+  }
+
+  return data;
+}
+
+// Update location
+async function updateLocation(locationId, name) {
+  const { data, error } = await supabase
+    .from('locations')
+    .update({ name: name, updated_at: new Date().toISOString() })
+    .eq('id', locationId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating location:', error);
+    throw error;
+  }
+
+  return data;
+}
+
+// Delete location (only non-default)
+async function deleteLocation(locationId) {
+  const { error } = await supabase
+    .from('locations')
+    .delete()
+    .eq('id', locationId)
+    .eq('is_default', false); // Can only delete non-default
+
+  if (error) {
+    console.error('Error deleting location:', error);
+    throw error;
+  }
+}
+
+// ==============================================
+// RECENT PURCHASES
+// ==============================================
+
+// Load recent purchases (last 10)
+async function loadRecentPurchases() {
+  const household = await getUserHousehold();
+  if (!household) return [];
+
+  const { data, error } = await supabase
+    .from('recent_purchases')
+    .select('*')
+    .eq('household_id', household.id)
+    .order('purchased_at', { ascending: false })
+    .limit(10);
+
+  if (error) {
+    console.error('Error loading recent purchases:', error);
+    return [];
+  }
+
+  return data;
+}
+
+// Add recent purchase (when sending from shopping list to pantry)
+async function addRecentPurchase(item) {
+  const household = await getUserHousehold();
+  const user = await getCurrentUser();
+
+  const { error } = await supabase
+    .from('recent_purchases')
+    .insert({
+      household_id: household.id,
+      created_by: user.id,
+      item_name: item.name,
+      item_category: item.category || null,
+      quantity: item.quantity || null,
+      unit: item.unit || null
+    });
+
+  if (error) {
+    console.error('Error adding recent purchase:', error);
+    // Don't throw - this is non-critical
   }
 }
 
