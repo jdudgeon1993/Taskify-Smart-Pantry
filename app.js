@@ -1562,18 +1562,21 @@ async function setRecipeColor(id, color) {
 let currentModalRecipeId = null;
 
 function openRecipeDetailModal(id) {
-    console.log('🔍 openRecipeDetailModal called with id:', id);
+    // Convert to number if it's a string (from onclick handler)
+    const recipeId = typeof id === 'string' ? parseInt(id) : id;
+
+    console.log('🔍 openRecipeDetailModal called with id:', recipeId);
     console.log('📚 Available recipes:', recipes);
 
-    const recipe = recipes.find(r => r.id === id);
+    const recipe = recipes.find(r => r.id === recipeId);
     console.log('📖 Found recipe:', recipe);
 
     if (!recipe) {
-        console.error('❌ Recipe not found with id:', id);
+        console.error('❌ Recipe not found with id:', recipeId);
         return;
     }
 
-    currentModalRecipeId = id;
+    currentModalRecipeId = recipeId;
     populateRecipeModal(recipe);
 
     const modal = document.getElementById('recipe-detail-modal');
