@@ -219,8 +219,10 @@
                 </div>
 
                 <!-- Add/Edit Ingredient Form (Modal style) -->
-                <div class="add-ingredient-form hidden" id="add-ingredient-form-container">
-                    <div class="form-card">
+                <!-- Add/Edit Ingredient Modal -->
+                <div class="modal hidden" id="add-ingredient-form-container">
+                    <div class="modal-content">
+                        <span class="close-modal" id="close-ingredient-modal">&times;</span>
                         <h3 id="ingredient-form-title">Add New Ingredient</h3>
                         <div class="form-group">
                             <label>Ingredient Name</label>
@@ -252,10 +254,10 @@
                                     <!-- Will be populated from database -->
                                 </select>
                             </div>
-                            <div class="form-group">
-                                <label>Expiration (optional)</label>
-                                <input type="date" id="ingredient-expiration" />
-                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Expiration (optional)</label>
+                            <input type="date" id="ingredient-expiration" />
                         </div>
                         <div class="form-actions">
                             <button id="add-ingredient-btn" class="primary-btn">Save Ingredient</button>
