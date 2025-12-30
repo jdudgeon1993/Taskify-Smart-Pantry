@@ -1006,6 +1006,7 @@ function clearIngredientForm() {
 }
 
 async function addIngredient() {
+    console.log('🥕 addIngredient called');
     const nameInput = document.getElementById('ingredient-name');
     const quantityInput = document.getElementById('ingredient-quantity');
     const unitInput = document.getElementById('ingredient-unit');
@@ -1019,6 +1020,8 @@ async function addIngredient() {
     const expiration = expirationInput.value || null;
     const location = locationSelect ? locationSelect.value : 'pantry'; // Storage location (WHERE)
     const itemCategory = categorySelect && categorySelect.value ? categorySelect.value : null; // Item category (WHAT)
+
+    console.log('📝 Form values:', { name, quantity, unit, location, itemCategory, expiration });
 
     if (!name) {
         alert('Please enter an ingredient name');
@@ -1069,7 +1072,8 @@ async function addIngredient() {
                 showToast('Ingredient Updated!', `${name} quantity increased to ${newQuantity} ${unit}`, 'success');
             } else {
                 // Add new ingredient to Supabase
-                await addPantryItem({
+                console.log('💾 Saving new ingredient to database...');
+                const result = await addPantryItem({
                     name,
                     quantity,
                     unit,
@@ -1077,16 +1081,21 @@ async function addIngredient() {
                     itemCategory: itemCategory, // This is the item category (Produce, Dairy, etc.)
                     expiration
                 });
+                console.log('✅ Ingredient saved, result:', result);
 
                 showToast('Ingredient Added!', `${name} has been added to your ${location}`, 'success');
             }
         }
 
         // Reload ingredients from database
+        console.log('🔄 Reloading ingredients from database...');
         ingredients = await loadPantryItems();
+        console.log('✅ Ingredients reloaded:', ingredients);
+        console.log('🎨 Rendering ingredients...');
         renderIngredients();
         updateRecipeStatus();
         updateDashboardStats();
+        console.log('✅ Rendering complete');
 
         // Hide form and clear inputs
         const formContainer = document.getElementById('add-ingredient-form-container');
@@ -1194,36 +1203,24 @@ function getExpirationStatus(expiration) {
 function getReservedQuantities() {
     const reserved = {};
 
-    Object.keys(mealPlan).forEach(day => {
-        Object.keys(mealPlan[day]).forEach(meal => {
-            const mealSlot = mealPlan[day][meal];
+    // Current structure uses week1 and week2
+    ['week1', 'week2'].forEach(weekKey => {
+        if (!mealPlan[weekKey]) return;
 
-            // Handle both old format (single recipeId) and new format (personA/personB/joint)
-            if (typeof mealSlot === 'number') {
-                // Old format - single recipe ID
-                const recipe = recipes.find(r => r.id === mealSlot);
+        const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        days.forEach(day => {
+            const dayRecipes = mealPlan[weekKey][day];
+            if (!Array.isArray(dayRecipes)) return;
+
+            dayRecipes.forEach(recipeId => {
+                const recipe = recipes.find(r => r.id === recipeId);
                 if (recipe && recipe.ingredients) {
                     recipe.ingredients.forEach(ing => {
                         const key = `${ing.name.toLowerCase()}|${ing.unit.toLowerCase()}`;
                         reserved[key] = (reserved[key] || 0) + ing.quantity;
                     });
                 }
-            } else if (mealSlot && typeof mealSlot === 'object') {
-                // New format - personA/personB/joint arrays
-                ['personA', 'personB', 'joint'].forEach(person => {
-                    if (Array.isArray(mealSlot[person])) {
-                        mealSlot[person].forEach(recipeId => {
-                            const recipe = recipes.find(r => r.id === recipeId);
-                            if (recipe && recipe.ingredients) {
-                                recipe.ingredients.forEach(ing => {
-                                    const key = `${ing.name.toLowerCase()}|${ing.unit.toLowerCase()}`;
-                                    reserved[key] = (reserved[key] || 0) + ing.quantity;
-                                });
-                            }
-                        });
-                    }
-                });
-            }
+            });
         });
     });
 
@@ -1902,6 +1899,17 @@ function addMissingFromModal() {
     const multiplier = parseFloat(document.getElementById('modal-servings-multiplier').value) || 1;
     addMissingToShopping(currentModalRecipeId, multiplier);
 }
+
+async function cookFromModal() {
+    if (!currentModalRecipeId) return;
+    await cookRecipe(currentModalRecipeId);
+}
+
+// Expose modal functions to window for inline handlers
+window.editFromModal = editFromModal;
+window.toggleFavoriteFromModal = toggleFavoriteFromModal;
+window.addMissingFromModal = addMissingFromModal;
+window.cookFromModal = cookFromModal;
 
 // Keep for backward compatibility but unused in new design
 async function toggleRecipeCard(event, id) {
