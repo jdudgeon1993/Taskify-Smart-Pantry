@@ -448,25 +448,34 @@
                     </div>
                 </div>
 
-                <!-- Quick Actions Row -->
-                <div class="shopping-quick-actions">
-                    <button id="quick-add-common-items-btn" class="btn-secondary">Quick Add Common Items</button>
+                <!-- Quick Actions Container -->
+                <div class="shopping-actions-container">
+                    <!-- Left Column: Quick Add -->
+                    <div class="shopping-actions-left">
+                        <button id="quick-add-common-items-btn" class="btn-action-large">Quick Add Common Items</button>
+                    </div>
 
-                    <div class="quick-actions-group">
-                        <h3>Quick Actions</h3>
-                        <div class="quick-actions-buttons">
-                            <button id="check-all-shopping-btn" class="btn-secondary">Check All</button>
-                            <button id="send-to-pantry-btn" class="btn-primary">Send to Pantry<br><small>** Only works when items are checked **</small></button>
+                    <!-- Right Column: Quick Actions -->
+                    <div class="shopping-actions-right">
+                        <div class="quick-actions-card">
+                            <h3>Quick Actions</h3>
+                            <div class="quick-actions-grid">
+                                <button id="check-all-shopping-btn" class="btn-action">Check All</button>
+                                <button id="send-to-pantry-btn" class="btn-action btn-action-primary">
+                                    Send to Pantry
+                                    <small>** Only works when items are checked **</small>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Generation Actions (Moved below Quick Actions) -->
-                <div class="shopping-generation-bar">
-                    <button id="auto-generate-list-btn" class="btn-secondary">Auto-Generate from Recipes</button>
-                    <button id="generate-from-meal-plan-btn" class="btn-secondary">Generate from Meal Plan</button>
-                    <button id="print-shopping-list-btn" class="btn-secondary">Print List</button>
-                    <button id="clear-shopping-list-btn" class="btn-danger">Clear List</button>
+                <!-- Generation Actions -->
+                <div class="shopping-generation-grid">
+                    <button id="auto-generate-list-btn" class="btn-generation">Auto-Generate from Recipes</button>
+                    <button id="generate-from-meal-plan-btn" class="btn-generation">Generate from Meal Plan</button>
+                    <button id="print-shopping-list-btn" class="btn-generation">Print List</button>
+                    <button id="clear-shopping-list-btn" class="btn-generation btn-danger">Clear List</button>
                 </div>
 
                 <!-- Shopping List Display -->
