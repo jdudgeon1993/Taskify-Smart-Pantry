@@ -1380,8 +1380,21 @@ function renderIngredients() {
             ? `<span class="category-badge">${item.itemCategory}</span>`
             : '';
 
+        // Location badge with icon
+        const locationIcons = {
+            'pantry': '📦',
+            'fridge': '❄️',
+            'freezer': '🧊'
+        };
+        const locationIcon = locationIcons[item.location.toLowerCase()] || '📍';
+        const locationName = item.location.charAt(0).toUpperCase() + item.location.slice(1);
+
         return `
             <div class="${cardClass}">
+                <div class="ingredient-location-badge">
+                    <span class="location-icon">${locationIcon}</span>
+                    <span class="location-name">${locationName}</span>
+                </div>
                 <div class="ingredient-card-header">
                     <h4 class="ingredient-card-name">${item.name}</h4>
                     <div class="ingredient-card-badges">

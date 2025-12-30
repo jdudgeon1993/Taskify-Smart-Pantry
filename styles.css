@@ -1333,6 +1333,32 @@ table tr:hover {
     border-color: var(--accent);
 }
 
+/* Location Badge */
+.ingredient-location-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.375rem 0.75rem;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: var(--white);
+    border-radius: var(--radius-md);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.025em;
+    margin-bottom: var(--spacing-sm);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-transform: capitalize;
+}
+
+.location-icon {
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.location-name {
+    line-height: 1;
+}
+
 .ingredient-card-header {
     display: flex;
     justify-content: space-between;
