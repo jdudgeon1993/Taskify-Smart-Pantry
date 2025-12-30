@@ -430,15 +430,18 @@ if (window.supabaseClient) {
             console.log('✅ [APP.JS] User signed in:', session.user.email);
             console.log('📱 [APP.JS] Calling initializeApp()...');
             try {
-                // Initialize app without timeout for debugging
-                await initializeApp();
+                // Add timeout to initialization
+                await withTimeout(initializeApp(), 30000, 'App initialization');
                 console.log('✅ [APP.JS] initializeApp() completed');
             } catch (error) {
                 console.error('❌ [APP.JS] Error in initializeApp:', error);
                 window.isLoading = false;
                 window.isInitialized = false;
                 showToast('Error', 'Failed to initialize: ' + error.message, 'error');
-                alert('Error loading app:\n\n' + error.message + '\n\nPlease check the console for details.');
+                // Show a helpful error message
+                if (error.message.includes('timed out')) {
+                    alert('The app is taking too long to load. This might be a network issue. Please refresh the page and try again.');
+                }
             }
         } else if (event === 'SIGNED_OUT') {
             console.log('👋 [APP.JS] User signed out');
@@ -488,34 +491,27 @@ async function ensureDefaultCategoriesAndLocations() {
 
 async function loadAllDataFromSupabase() {
     try {
-        // Start ensuring defaults in background (don't wait for it)
-        console.log('⏳ Starting default categories and locations setup...');
-        ensureDefaultCategoriesAndLocations().catch(err => {
-            console.warn('Could not ensure defaults:', err);
-        });
+        console.log('⏳ Ensuring default categories and locations...');
+        await ensureDefaultCategoriesAndLocations();
 
-        // Load all data in parallel for better performance
-        console.log('⏳ Loading all data in parallel...');
-        const [loadedIngredients, loadedRecipes, loadedShoppingList, loadedMealPlan] = await Promise.all([
-            loadPantryItems(),
-            loadRecipes(),
-            loadShoppingList(),
-            loadMealPlan()
-        ]);
-
-        // Assign loaded data
-        ingredients = loadedIngredients;
-        recipes = loadedRecipes;
-        shoppingList = loadedShoppingList;
-        mealPlan = loadedMealPlan;
-
-        // Log results
+        console.log('⏳ Loading pantry items...');
+        ingredients = await loadPantryItems();
         const totalItems = (ingredients.pantry?.length || 0) + (ingredients.fridge?.length || 0) + (ingredients.freezer?.length || 0);
         console.log('✅ Pantry items loaded:', totalItems, 'items');
+
+        console.log('⏳ Loading recipes...');
+        recipes = await loadRecipes();
         console.log('✅ Recipes loaded:', recipes.length, 'recipes');
+
+        console.log('⏳ Loading shopping list...');
+        shoppingList = await loadShoppingList();
         console.log('✅ Shopping list loaded:', shoppingList.length, 'items');
+
+        console.log('⏳ Loading meal plan...');
+        mealPlan = await loadMealPlan();
         console.log('✅ Meal plan loaded');
-        console.log('✅ All data loaded from Supabase (parallel loading)');
+
+        console.log('✅ All data loaded from Supabase');
     } catch (error) {
         console.error('❌ Error loading data:', error);
         throw error;

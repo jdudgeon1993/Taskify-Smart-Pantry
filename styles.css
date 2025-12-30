@@ -2220,8 +2220,6 @@ table tr:hover {
 .card-icon {
     font-size: 2rem;
     filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.1));
-    transition: transform 0.3s ease;
-    display: inline-block;
 }
 
 /* Card Statistics */
@@ -2248,48 +2246,24 @@ table tr:hover {
 }
 
 /* Specific Card Colors */
-/* Pantry/Ingredients - Warm brown/tan */
 .dashboard-card[data-navigate="ingredients"]:hover {
-    background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%);
+    background: linear-gradient(135deg, #FFF9E6 0%, #FFFBF0 100%);
     border-color: #D4A574;
-    box-shadow: 0 8px 16px rgba(212, 165, 116, 0.3);
 }
 
-.dashboard-card[data-navigate="ingredients"]:hover .card-icon {
-    transform: scale(1.2);
-}
-
-/* Recipes - Fresh green */
 .dashboard-card[data-navigate="recipes"]:hover {
-    background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+    background: linear-gradient(135deg, #F0FFF4 0%, #F7FAFC 100%);
     border-color: #48BB78;
-    box-shadow: 0 8px 16px rgba(72, 187, 120, 0.3);
 }
 
-.dashboard-card[data-navigate="recipes"]:hover .card-icon {
-    transform: scale(1.2);
-}
-
-/* Shopping - Blue */
 .dashboard-card[data-navigate="shopping"]:hover {
-    background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+    background: linear-gradient(135deg, #EBF8FF 0%, #F7FAFC 100%);
     border-color: #4299E1;
-    box-shadow: 0 8px 16px rgba(66, 153, 225, 0.3);
 }
 
-.dashboard-card[data-navigate="shopping"]:hover .card-icon {
-    transform: scale(1.2);
-}
-
-/* Meal Plan - Purple */
 .dashboard-card[data-navigate="meal-plan"]:hover {
-    background: linear-gradient(135deg, #F3E5F5 0%, #E1BEE7 100%);
+    background: linear-gradient(135deg, #FAF5FF 0%, #F7FAFC 100%);
     border-color: #9F7AEA;
-    box-shadow: 0 8px 16px rgba(159, 122, 234, 0.3);
-}
-
-.dashboard-card[data-navigate="meal-plan"]:hover .card-icon {
-    transform: scale(1.2);
 }
 
 /* Badge for status indicators */
